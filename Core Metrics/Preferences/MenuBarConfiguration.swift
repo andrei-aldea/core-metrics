@@ -23,7 +23,14 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     private(set) var enabledMetrics: [MetricKind]
-    var displayMode: MenuBarDisplayMode
+    var displayMode: MenuBarDisplayMode {
+        didSet {
+            displayMode = Self.validatedDisplayMode(
+                displayMode,
+                enabledMetricCount: enabledMetrics.count
+            )
+        }
+    }
     var memoryValueStyle: MemoryMenuValueStyle
     var storageValueStyle: StorageMenuValueStyle
 
@@ -33,8 +40,12 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         memoryValueStyle: MemoryMenuValueStyle = .percentage,
         storageValueStyle: StorageMenuValueStyle = .percentage
     ) {
-        self.enabledMetrics = Self.normalized(enabledMetrics)
-        self.displayMode = displayMode
+        let normalizedMetrics = Self.normalized(enabledMetrics)
+        self.enabledMetrics = normalizedMetrics
+        self.displayMode = Self.validatedDisplayMode(
+            displayMode,
+            enabledMetricCount: normalizedMetrics.count
+        )
         self.memoryValueStyle = memoryValueStyle
         self.storageValueStyle = storageValueStyle
     }
@@ -59,6 +70,9 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             }
 
             enabledMetrics.append(metric)
+            if displayMode == .valueOnly {
+                displayMode = .compact
+            }
             return true
         }
 
@@ -141,5 +155,16 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         let uniqueMetrics = metrics.filter { seen.insert($0).inserted }
         let boundedMetrics = Array(uniqueMetrics.prefix(Self.maximumEnabledMetricCount))
         return boundedMetrics.isEmpty ? [.cpu] : boundedMetrics
+    }
+
+    private static func validatedDisplayMode(
+        _ displayMode: MenuBarDisplayMode,
+        enabledMetricCount: Int
+    ) -> MenuBarDisplayMode {
+        if displayMode == .valueOnly, enabledMetricCount > 1 {
+            return .compact
+        }
+
+        return displayMode
     }
 }

@@ -65,6 +65,25 @@ struct MenuBarConfigurationTests {
         #expect(configuration.enabledMetrics == [.cpu, .storage, .memory])
     }
 
+    @Test("Value-only mode remains exclusive to one metric")
+    func restrictsValueOnlyMode() {
+        var configuration = MenuBarConfiguration(displayMode: .valueOnly)
+        #expect(configuration.displayMode == .valueOnly)
+
+        let enabledMemory = configuration.setMetric(.memory, enabled: true)
+        #expect(enabledMemory)
+        #expect(configuration.displayMode == .compact)
+
+        configuration.displayMode = .valueOnly
+        #expect(configuration.displayMode == .compact)
+
+        let normalized = MenuBarConfiguration(
+            enabledMetrics: [.cpu, .storage],
+            displayMode: .valueOnly
+        )
+        #expect(normalized.displayMode == .compact)
+    }
+
     @Test("Reordering moves one adjacent position and respects boundaries")
     func reordersMetrics() {
         var configuration = MenuBarConfiguration(enabledMetrics: [.cpu, .memory, .storage])

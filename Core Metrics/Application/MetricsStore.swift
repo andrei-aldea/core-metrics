@@ -1,5 +1,6 @@
 import Foundation
 import Observation
+import OSLog
 
 /// Main-actor-owned, observable state for the current metrics and their short
 /// in-memory histories.
@@ -10,6 +11,7 @@ final class MetricsStore {
     private(set) var memoryUsage: MemoryUsage?
     private(set) var storageUsage: StorageUsage?
     private(set) var isSampling = false
+    private(set) var hasSamplingIssue = false
 
     private var cpuHistoryBuffer: RingBuffer<CPUUsage>
     private var memoryHistoryBuffer: RingBuffer<MemoryUsage>
@@ -28,7 +30,14 @@ final class MetricsStore {
     @ObservationIgnored private let fastSamplingInterval: Duration
     @ObservationIgnored private let storageSamplingInterval: Duration
     @ObservationIgnored private let longGapThreshold: TimeInterval
+    @ObservationIgnored private let logger = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "CoreMetrics",
+        category: "Metrics"
+    )
     @ObservationIgnored private var samplingTask: Task<Void, Never>?
+    @ObservationIgnored private var cpuSamplingFailed = false
+    @ObservationIgnored private var memorySamplingFailed = false
+    @ObservationIgnored private var storageSamplingFailed = false
 
     init(
         cpuProvider: any CPUMetricsProviding = CPUMetricsProvider(),
@@ -95,21 +104,20 @@ final class MetricsStore {
                         previousWallSampleDate = wallSampleDate
 
                         do {
-                            if let usage = try cpuProvider.sample(isContinuous: isContinuous) {
-                                await self?.recordCPU(usage)
-                            }
+                            let usage = try cpuProvider.sample(isContinuous: isContinuous)
+                            await self?.recordCPU(usage)
                         } catch {
                             // A failed read invalidates the delta baseline but
-                            // intentionally preserves the last published value.
+                            // does not leave a stale value presented as live.
                             cpuProvider.reset()
+                            await self?.recordCPUFailure()
                         }
 
                         do {
-                            if let usage = try memoryProvider.sample() {
-                                await self?.recordMemory(usage)
-                            }
+                            let usage = try memoryProvider.sample()
+                            await self?.recordMemory(usage)
                         } catch {
-                            // Preserve the last good value and retry next time.
+                            await self?.recordMemoryFailure()
                         }
 
                         do {
@@ -127,11 +135,10 @@ final class MetricsStore {
                         }
 
                         do {
-                            if let usage = try storageProvider.sample() {
-                                await self?.recordStorage(usage)
-                            }
+                            let usage = try storageProvider.sample()
+                            await self?.recordStorage(usage)
                         } catch {
-                            // Preserve the last good value and retry next time.
+                            await self?.recordStorageFailure()
                         }
 
                         do {
@@ -151,20 +158,95 @@ final class MetricsStore {
         samplingTask?.cancel()
         samplingTask = nil
         isSampling = false
+        cpuSamplingFailed = false
+        memorySamplingFailed = false
+        storageSamplingFailed = false
+        hasSamplingIssue = false
     }
 
-    private func recordCPU(_ usage: CPUUsage) {
+    private func recordCPU(_ usage: CPUUsage?) {
         cpuUsage = usage
+        guard let usage else {
+            updateSamplingIssue()
+            return
+        }
+
+        if cpuSamplingFailed {
+            logger.notice("CPU sampling recovered")
+        }
+        cpuSamplingFailed = false
         cpuHistoryBuffer.append(usage)
+        updateSamplingIssue()
     }
 
-    private func recordMemory(_ usage: MemoryUsage) {
+    private func recordMemory(_ usage: MemoryUsage?) {
         memoryUsage = usage
+        guard let usage else {
+            if !memorySamplingFailed {
+                logger.error("Memory sampling became unavailable")
+            }
+            memorySamplingFailed = true
+            updateSamplingIssue()
+            return
+        }
+
+        if memorySamplingFailed {
+            logger.notice("Memory sampling recovered")
+        }
+        memorySamplingFailed = false
         memoryHistoryBuffer.append(usage)
+        updateSamplingIssue()
     }
 
-    private func recordStorage(_ usage: StorageUsage) {
+    private func recordStorage(_ usage: StorageUsage?) {
         storageUsage = usage
+        guard usage != nil else {
+            if !storageSamplingFailed {
+                logger.error("Storage sampling became unavailable")
+            }
+            storageSamplingFailed = true
+            updateSamplingIssue()
+            return
+        }
+
+        if storageSamplingFailed {
+            logger.notice("Storage sampling recovered")
+        }
+        storageSamplingFailed = false
+        updateSamplingIssue()
+    }
+
+    private func recordCPUFailure() {
+        if !cpuSamplingFailed {
+            logger.error("CPU sampling became unavailable")
+        }
+        cpuSamplingFailed = true
+        cpuUsage = nil
+        updateSamplingIssue()
+    }
+
+    private func recordMemoryFailure() {
+        if !memorySamplingFailed {
+            logger.error("Memory sampling became unavailable")
+        }
+        memorySamplingFailed = true
+        memoryUsage = nil
+        updateSamplingIssue()
+    }
+
+    private func recordStorageFailure() {
+        if !storageSamplingFailed {
+            logger.error("Storage sampling became unavailable")
+        }
+        storageSamplingFailed = true
+        storageUsage = nil
+        updateSamplingIssue()
+    }
+
+    private func updateSamplingIssue() {
+        hasSamplingIssue = cpuSamplingFailed
+            || memorySamplingFailed
+            || storageSamplingFailed
     }
 
     private nonisolated static func isContinuous(

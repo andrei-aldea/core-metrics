@@ -2,7 +2,7 @@ import Foundation
 import Observation
 
 /// Main-actor-owned preferences with an immediately observable in-memory value
-/// and asynchronous-on-disk UserDefaults persistence.
+/// and native UserDefaults persistence.
 @MainActor
 @Observable
 final class PreferencesStore {

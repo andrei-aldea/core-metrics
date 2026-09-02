@@ -15,15 +15,12 @@ struct PreferencesStoreTests {
             persistenceKey: fixture.persistenceKey
         )
 
-        #expect(store.setMetric(.memory, enabled: true))
+        #expect(store.setStat(.cpuUser, enabled: true))
+        #expect(store.setStat(.memoryUsed, enabled: true))
         store.displayMode = .compact
-        store.memoryValueStyle = .used
-        store.storageValueStyle = .available
 
-        #expect(store.enabledMetrics == [.cpu, .memory])
+        #expect(store.enabledStats == [.cpuTotal, .cpuUser, .memoryUsed])
         #expect(store.displayMode == .compact)
-        #expect(store.memoryValueStyle == .used)
-        #expect(store.storageValueStyle == .available)
 
         let data = try #require(fixture.defaults.data(forKey: fixture.persistenceKey))
         let persisted = try JSONDecoder().decode(MenuBarConfiguration.self, from: data)
@@ -41,10 +38,8 @@ struct PreferencesStoreTests {
             persistenceKey: fixture.persistenceKey
         )
         firstStore.configuration = MenuBarConfiguration(
-            enabledMetrics: [.storage, .cpu],
-            displayMode: .valueOnly,
-            memoryValueStyle: .used,
-            storageValueStyle: .available
+            enabledStats: [.storageAvailable, .cpuUser, .memoryCompressed],
+            displayMode: .compact
         )
 
         let restoredStore = PreferencesStore(
@@ -66,6 +61,15 @@ struct PreferencesStoreTests {
             persistenceKey: fixture.persistenceKey
         )
         #expect(store.configuration == .defaultValue)
+
+        let repairedData = try #require(
+            fixture.defaults.data(forKey: fixture.persistenceKey)
+        )
+        let repairedConfiguration = try JSONDecoder().decode(
+            MenuBarConfiguration.self,
+            from: repairedData
+        )
+        #expect(repairedConfiguration == .defaultValue)
     }
 
     @MainActor
@@ -78,7 +82,7 @@ struct PreferencesStoreTests {
             defaults: fixture.defaults,
             persistenceKey: fixture.persistenceKey
         )
-        #expect(store.setMetric(.storage, enabled: true))
+        #expect(store.setStat(.storageTotal, enabled: true))
         store.displayMode = .compact
         store.reset()
 

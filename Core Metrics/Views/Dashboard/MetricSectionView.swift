@@ -32,7 +32,7 @@ struct MetricSectionView<Content: View>: View {
                     Text(title)
                 } icon: {
                     Image(systemName: systemImage)
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(.secondary)
                 }
                 .font(.headline)
 

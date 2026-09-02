@@ -38,12 +38,83 @@ struct MetricFormattingTests {
         )
     }
 
-    @Test("Menu formatting selects the configured value")
-    func formatsMenuValues() {
+    @Test("Formats each CPU menu value", arguments: [
+        (CPUMenuValueStyle.total, "40%"),
+        (.user, "15%"),
+        (.system, "25%"),
+        (.idle, "60%"),
+    ])
+    func formatsCPUMenuValues(style: CPUMenuValueStyle, expected: String) {
+        let cpu = CPUUsage(total: 0.4, user: 0.15, system: 0.25, idle: 0.6)
+        #expect(MenuValueFormatting.cpu(cpu, style: style, locale: locale) == expected)
+    }
+
+    @Test("Formats each memory menu value", arguments: [
+        (MemoryMenuValueStyle.percentage, "75%"),
+        (.used, "12G"),
+        (.available, "4G"),
+        (.appEstimate, "8G"),
+        (.wired, "3G"),
+        (.compressed, "1G"),
+        (.total, "16G"),
+    ])
+    func formatsMemoryMenuValues(style: MemoryMenuValueStyle, expected: String) {
         let memory = MemoryUsage(
             usedBytes: 12 * 1_024 * 1_024 * 1_024,
             availableBytes: 4 * 1_024 * 1_024 * 1_024,
             totalBytes: 16 * 1_024 * 1_024 * 1_024,
+            appEstimateBytes: 8 * 1_024 * 1_024 * 1_024,
+            wiredBytes: 3 * 1_024 * 1_024 * 1_024,
+            compressedBytes: 1 * 1_024 * 1_024 * 1_024,
+            usedFraction: 0.75
+        )
+
+        #expect(MenuValueFormatting.memory(memory, style: style, locale: locale) == expected)
+    }
+
+    @Test("Formats each storage menu value", arguments: [
+        (StorageMenuValueStyle.percentage, "86%"),
+        (.used, "857G"),
+        (.available, "143G"),
+        (.total, "1T"),
+    ])
+    func formatsStorageMenuValues(style: StorageMenuValueStyle, expected: String) {
+        let storage = StorageUsage(
+            usedBytes: 857_000_000_000,
+            availableBytes: 143_000_000_000,
+            totalBytes: 1_000_000_000_000,
+            usedFraction: 0.857
+        )
+
+        #expect(MenuValueFormatting.storage(storage, style: style, locale: locale) == expected)
+    }
+
+    @Test("Routes every concrete menu-bar stat to its value", arguments: [
+        (MenuBarStat.cpuTotal, "40%"),
+        (.cpuUser, "15%"),
+        (.cpuSystem, "25%"),
+        (.cpuIdle, "60%"),
+        (.memoryPercentage, "75%"),
+        (.memoryUsed, "12G"),
+        (.memoryAvailable, "4G"),
+        (.memoryAppEstimate, "8G"),
+        (.memoryWired, "3G"),
+        (.memoryCompressed, "1G"),
+        (.memoryTotal, "16G"),
+        (.storagePercentage, "86%"),
+        (.storageUsed, "857G"),
+        (.storageAvailable, "143G"),
+        (.storageTotal, "1T"),
+    ])
+    func formatsConcreteMenuBarStat(stat: MenuBarStat, expected: String) {
+        let cpu = CPUUsage(total: 0.4, user: 0.15, system: 0.25, idle: 0.6)
+        let memory = MemoryUsage(
+            usedBytes: 12 * 1_024 * 1_024 * 1_024,
+            availableBytes: 4 * 1_024 * 1_024 * 1_024,
+            totalBytes: 16 * 1_024 * 1_024 * 1_024,
+            appEstimateBytes: 8 * 1_024 * 1_024 * 1_024,
+            wiredBytes: 3 * 1_024 * 1_024 * 1_024,
+            compressedBytes: 1 * 1_024 * 1_024 * 1_024,
             usedFraction: 0.75
         )
         let storage = StorageUsage(
@@ -53,15 +124,20 @@ struct MetricFormattingTests {
             usedFraction: 0.857
         )
 
-        #expect(MenuValueFormatting.memory(memory, style: .percentage, locale: locale) == "75%")
-        #expect(MenuValueFormatting.memory(memory, style: .used, locale: locale) == "12G")
-        #expect(MenuValueFormatting.storage(storage, style: .percentage, locale: locale) == "86%")
-        #expect(MenuValueFormatting.storage(storage, style: .available, locale: locale) == "143G")
+        #expect(
+            MenuValueFormatting.value(
+                for: stat,
+                cpuUsage: cpu,
+                memoryUsage: memory,
+                storageUsage: storage,
+                locale: locale
+            ) == expected
+        )
     }
 
     @Test("Unavailable values use a stable placeholder")
     func formatsUnavailableValues() {
-        #expect(MenuValueFormatting.cpu(nil, locale: locale) == "—")
+        #expect(MenuValueFormatting.cpu(nil, style: .idle, locale: locale) == "—")
         #expect(MenuValueFormatting.memory(nil, style: .used, locale: locale) == "—")
         #expect(MenuValueFormatting.storage(nil, style: .available, locale: locale) == "—")
     }

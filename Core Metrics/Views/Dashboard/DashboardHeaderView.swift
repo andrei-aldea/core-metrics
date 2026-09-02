@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct DashboardHeaderView: View {
@@ -5,7 +6,7 @@ struct DashboardHeaderView: View {
     let hasSamplingIssue: Bool
 
     var body: some View {
-        HStack {
+        HStack(spacing: 10) {
             Label {
                 VStack(alignment: .leading) {
                     Text("Core Metrics")
@@ -16,17 +17,25 @@ struct DashboardHeaderView: View {
                         .foregroundStyle(.secondary)
                 }
             } icon: {
-                Image(systemName: "gauge.with.dots.needle.67percent")
-                    .font(.title2)
-                    .foregroundStyle(Color.accentColor)
+                Image(nsImage: NSApplication.shared.applicationIconImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 32, height: 32)
+                    .accessibilityHidden(true)
             }
             .accessibilityElement(children: .combine)
 
             Spacer()
 
             Label(statusTitle, systemImage: statusSymbol)
-                .font(.subheadline)
+                .font(.caption.weight(.medium))
                 .foregroundStyle(.secondary)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .glassEffect(.regular, in: .capsule)
+                .accessibilityLabel("Sampling status")
+                .accessibilityValue(statusTitle)
+                .help(statusHelp)
         }
     }
 
@@ -47,6 +56,16 @@ struct DashboardHeaderView: View {
             "exclamationmark.triangle"
         } else {
             "dot.radiowaves.left.and.right"
+        }
+    }
+
+    private var statusHelp: String {
+        if !isSampling {
+            "Metric sampling is paused."
+        } else if hasSamplingIssue {
+            "One or more metrics are temporarily unavailable and will retry automatically."
+        } else {
+            "All aggregate metrics are sampling normally."
         }
     }
 }

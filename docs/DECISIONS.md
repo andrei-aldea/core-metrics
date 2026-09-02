@@ -30,15 +30,15 @@
 
 **Consequences:** History resets at launch and consumes a small fixed amount of memory.
 
-## ADR-004 — macOS 14 minimum with native Liquid Glass adoption
+## ADR-004 — macOS 27 minimum and platform-native appearance
 
-**Decision:** Set the minimum deployment target to macOS 14. Build the interface from standard SwiftUI controls and structures. On macOS 26 and later, use custom [`glassEffect`](https://developer.apple.com/documentation/swiftui/view/glasseffect(_:in:)) or [`GlassEffectContainer`](https://developer.apple.com/documentation/swiftui/glasseffectcontainer) only when a top-level interactive surface benefits; guard every such use with availability checks. Older systems receive ordinary semantic colors and native materials, not a simulated glass effect.
+**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. Use native `glassEffect` and glass button styles sparingly for the live-status and interactive layer, while keeping metric content on one clear plane. Do not add custom blur stacks or decorative glass replicas.
 
-**Reasoning:** macOS 14 supports `MenuBarExtra`, Swift Charts, and `SettingsLink` while retaining a useful compatibility range. Apple's [Liquid Glass adoption guide](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) says standard controls adopt the current appearance automatically, and its [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) warns against excessive effects and containers. The custom APIs begin on macOS 26.
+**Reasoning:** The product explicitly requires macOS 27 and can therefore use one current UI baseline without availability branches for older releases. Apple's [Liquid Glass adoption guide](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) says standard controls adopt the current appearance automatically, and its [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) warns against excessive effects and containers.
 
-**Alternatives considered:** Requiring macOS 26; targeting macOS 13 with a custom Settings-opening fallback; manually recreating glass on older releases.
+**Alternatives considered:** Retaining the former macOS 14 compatibility range; adding version-specific appearance branches; manually recreating platform materials.
 
-**Consequences:** Most of the UI needs no version-specific styling. macOS 26 code paths and macOS 14 fallbacks require visual and accessibility testing, including Reduce Transparency and Reduce Motion.
+**Consequences:** The binary cannot launch on macOS 26 or earlier. UI code and testing are simpler, but every release must validate the platform glass, semantic monochrome hierarchy, and legibility on macOS 27 with light/dark appearance, Increased Contrast, Reduce Transparency, Reduce Motion, and supported accessibility text sizes.
 
 ## ADR-005 — Menu-bar-only primary lifecycle
 

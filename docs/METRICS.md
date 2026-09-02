@@ -42,9 +42,11 @@ For nonnegative page counters and `pageSize` in bytes:
 
 This is the **Core Metrics memory estimate**. It follows the App Memory + Wired + Compressed category model described in Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac), while using documented Mach counters. Apple doesn't publish Activity Monitor's exact counter formula, so Core Metrics does not claim numeric parity with Activity Monitor.
 
-Apple's public XNU [`vm_statistics.h`](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/mach/vm_statistics.h) defines `internal_page_count` as anonymous pages, `purgeable_count` as purgeable pages, `wire_count` as wired pages, and `compressor_page_count` as physical pages occupied by compressed data. `total_uncompressed_pages_in_compressor` is not physical usage and is excluded. `speculative_count` is already included in `free_count`; code must never add the two. Active, inactive, free, and speculative values are retained for diagnostics but aren't independently added to this formula.
+Apple's public XNU [`vm_statistics.h`](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/mach/vm_statistics.h) defines `internal_page_count` as anonymous pages, `purgeable_count` as purgeable pages, `wire_count` as wired pages, and `compressor_page_count` as physical pages occupied by compressed data. `total_uncompressed_pages_in_compressor` is not physical usage and is excluded. Active, inactive, free, and speculative counters are not needed by this definition and are not read or added independently.
 
 Calculations use overflow-safe conversion and clamp inconsistent snapshots. A zero total produces no percentage.
+
+The dashboard exposes the calculated App Estimate, Wired, and Compressed byte counts as the transparent components of the Core Metrics estimate. The menu bar can show percentage used, used, available, App Estimate, Wired, Compressed, or total memory. Category values are formatted from the same snapshot and no additional counters are sampled for presentation.
 
 ## Storage
 
@@ -56,11 +58,21 @@ Version 1 queries `URL(fileURLWithPath: "/")` for Foundation's [`volumeTotalCapa
 
 The UI says **Available**, not Free. Core Metrics doesn't perform directory or storage-category scans.
 
+The menu bar can show percentage used, used bytes, available bytes, or total startup-volume capacity.
+
 [`volumeAvailableCapacityForImportantUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforimportantusagekey) and [`volumeAvailableCapacityForOpportunisticUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforopportunisticusagekey) aren't used for the dashboard. Apple's [volume-capacity guidance](https://developer.apple.com/documentation/foundation/checking-volume-storage-capacity) defines them as estimates for user-requested/app-required writes and predictive/nonessential writes, respectively, not as neutral disk-utilization values. Core Metrics neither derives nor displays purgeable space.
 
 ## Sampling
 
 - CPU: approximately 1 second.
 - Memory: approximately 1 second.
-- Storage: approximately 30 seconds.
+- Storage: approximately 30 seconds after valid reads; temporarily retries on the one-second cadence after a failure or invalid snapshot.
 - CPU and memory history: bounded, in memory, and not persisted.
+
+## Menu-bar representations
+
+- CPU: Total Used, User, System, or Idle percentage from the current aggregate delta sample.
+- Memory: Percentage Used, Used, Available, App Estimate, Wired, Compressed, or Total from the current memory snapshot.
+- Storage: Percentage Used, Used, Available, or Total from the current startup-volume snapshot.
+
+One to five of these concrete stats can be selected and ordered independently, including multiple stats from the same metric. Each percentage or byte value uses a fixed-width menu-bar column so live updates do not resize its slot. Only this selection, order, and display mode are persisted. Metric values and history remain in memory and reset when the app exits.

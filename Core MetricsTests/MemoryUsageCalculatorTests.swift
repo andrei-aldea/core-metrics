@@ -19,6 +19,9 @@ struct MemoryUsageCalculatorTests {
         #expect(usage.availableBytes == 300)
         #expect(usage.usedBytes == 700)
         #expect(usage.totalBytes == 1_000)
+        #expect(usage.appEstimateBytes == 400)
+        #expect(usage.wiredBytes == 200)
+        #expect(usage.compressedBytes == 100)
         #expect(isClose(usage.usedFraction, 0.7))
     }
 
@@ -36,6 +39,9 @@ struct MemoryUsageCalculatorTests {
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.availableBytes == 0)
         #expect(usage.usedBytes == 1_000)
+        #expect(usage.appEstimateBytes == 1_000)
+        #expect(usage.wiredBytes == 1_000)
+        #expect(usage.compressedBytes == 0)
         #expect(usage.usedFraction == 1)
     }
 
@@ -53,6 +59,9 @@ struct MemoryUsageCalculatorTests {
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.availableBytes == 0)
         #expect(usage.usedBytes == 4_096)
+        #expect(usage.appEstimateBytes == .max)
+        #expect(usage.wiredBytes == .max)
+        #expect(usage.compressedBytes == .max)
     }
 
     @Test("Purgeable pages cannot make the app estimate negative")
@@ -69,6 +78,9 @@ struct MemoryUsageCalculatorTests {
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.usedBytes == 100)
         #expect(usage.availableBytes == 900)
+        #expect(usage.appEstimateBytes == 0)
+        #expect(usage.wiredBytes == 50)
+        #expect(usage.compressedBytes == 50)
     }
 
     @Test("Rejects an unusable total or page size", arguments: [

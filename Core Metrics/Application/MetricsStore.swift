@@ -10,8 +10,10 @@ final class MetricsStore {
     private(set) var cpuUsage: CPUUsage?
     private(set) var memoryUsage: MemoryUsage?
     private(set) var storageUsage: StorageUsage?
+    private(set) var cpuSampleState: MetricSampleState = .collecting
+    private(set) var memorySampleState: MetricSampleState = .collecting
+    private(set) var storageSampleState: MetricSampleState = .collecting
     private(set) var isSampling = false
-    private(set) var hasSamplingIssue = false
 
     private var cpuHistoryBuffer: RingBuffer<CPUUsage>
     private var memoryHistoryBuffer: RingBuffer<MemoryUsage>
@@ -22,6 +24,12 @@ final class MetricsStore {
 
     var memoryHistory: [MemoryUsage] {
         memoryHistoryBuffer.elements
+    }
+
+    var hasSamplingIssue: Bool {
+        cpuSampleState == .unavailable
+            || memorySampleState == .unavailable
+            || storageSampleState == .unavailable
     }
 
     @ObservationIgnored private let initialCPUProvider: any CPUMetricsProviding
@@ -35,9 +43,6 @@ final class MetricsStore {
         category: "Metrics"
     )
     @ObservationIgnored private var samplingTask: Task<Void, Never>?
-    @ObservationIgnored private var cpuSamplingFailed = false
-    @ObservationIgnored private var memorySamplingFailed = false
-    @ObservationIgnored private var storageSamplingFailed = false
 
     init(
         cpuProvider: any CPUMetricsProviding = CPUMetricsProvider(),
@@ -83,8 +88,8 @@ final class MetricsStore {
         let gapThreshold = longGapThreshold
 
         isSampling = true
-        samplingTask = Task { @concurrent [weak self] in
-            await withTaskGroup(of: Void.self) { group in
+        samplingTask = Task(priority: .utility) { @concurrent [weak self] in
+            await withDiscardingTaskGroup { group in
                 group.addTask { [weak self] in
                     var cpuProvider = cpuProvider
                     var memoryProvider = memoryProvider
@@ -103,22 +108,35 @@ final class MetricsStore {
                         )
                         previousWallSampleDate = wallSampleDate
 
+                        let cpuUsage: CPUUsage?
+                        let cpuFailed: Bool
                         do {
-                            let usage = try cpuProvider.sample(isContinuous: isContinuous)
-                            await self?.recordCPU(usage)
+                            cpuUsage = try cpuProvider.sample(isContinuous: isContinuous)
+                            cpuFailed = false
                         } catch {
                             // A failed read invalidates the delta baseline but
                             // does not leave a stale value presented as live.
                             cpuProvider.reset()
-                            await self?.recordCPUFailure()
+                            cpuUsage = nil
+                            cpuFailed = true
                         }
 
+                        let memoryUsage: MemoryUsage?
+                        let memoryFailed: Bool
                         do {
-                            let usage = try memoryProvider.sample()
-                            await self?.recordMemory(usage)
+                            memoryUsage = try memoryProvider.sample()
+                            memoryFailed = memoryUsage == nil
                         } catch {
-                            await self?.recordMemoryFailure()
+                            memoryUsage = nil
+                            memoryFailed = true
                         }
+
+                        await self?.recordFastSample(
+                            cpuUsage: cpuUsage,
+                            cpuFailed: cpuFailed,
+                            memoryUsage: memoryUsage,
+                            memoryFailed: memoryFailed
+                        )
 
                         do {
                             try await Task.sleep(for: fastInterval)
@@ -134,22 +152,26 @@ final class MetricsStore {
                             return
                         }
 
+                        let shouldRetryQuickly: Bool
                         do {
                             let usage = try storageProvider.sample()
                             await self?.recordStorage(usage)
+                            shouldRetryQuickly = usage == nil
                         } catch {
                             await self?.recordStorageFailure()
+                            shouldRetryQuickly = true
                         }
 
                         do {
-                            try await Task.sleep(for: storageInterval)
+                            try await Task.sleep(
+                                for: shouldRetryQuickly ? fastInterval : storageInterval
+                            )
                         } catch {
                             return
                         }
                     }
                 }
 
-                await group.waitForAll()
             }
         }
     }
@@ -158,95 +180,100 @@ final class MetricsStore {
         samplingTask?.cancel()
         samplingTask = nil
         isSampling = false
-        cpuSamplingFailed = false
-        memorySamplingFailed = false
-        storageSamplingFailed = false
-        hasSamplingIssue = false
+    }
+
+    /// Applies the fast CPU and memory results in one main-actor hop, keeping
+    /// the off-actor acquisition loop from scheduling separate UI work items.
+    private func recordFastSample(
+        cpuUsage: CPUUsage?,
+        cpuFailed: Bool,
+        memoryUsage: MemoryUsage?,
+        memoryFailed: Bool
+    ) {
+        if cpuFailed {
+            recordCPUFailure()
+        } else {
+            recordCPU(cpuUsage)
+        }
+
+        if memoryFailed {
+            recordMemoryFailure()
+        } else {
+            recordMemory(memoryUsage)
+        }
     }
 
     private func recordCPU(_ usage: CPUUsage?) {
         cpuUsage = usage
         guard let usage else {
-            updateSamplingIssue()
+            if cpuSampleState != .unavailable {
+                cpuSampleState = .collecting
+            }
             return
         }
 
-        if cpuSamplingFailed {
+        if cpuSampleState == .unavailable {
             logger.notice("CPU sampling recovered")
         }
-        cpuSamplingFailed = false
+        cpuSampleState = .available
         cpuHistoryBuffer.append(usage)
-        updateSamplingIssue()
     }
 
     private func recordMemory(_ usage: MemoryUsage?) {
         memoryUsage = usage
         guard let usage else {
-            if !memorySamplingFailed {
+            if memorySampleState != .unavailable {
                 logger.error("Memory sampling became unavailable")
             }
-            memorySamplingFailed = true
-            updateSamplingIssue()
+            memorySampleState = .unavailable
             return
         }
 
-        if memorySamplingFailed {
+        if memorySampleState == .unavailable {
             logger.notice("Memory sampling recovered")
         }
-        memorySamplingFailed = false
+        memorySampleState = .available
         memoryHistoryBuffer.append(usage)
-        updateSamplingIssue()
     }
 
     private func recordStorage(_ usage: StorageUsage?) {
         storageUsage = usage
         guard usage != nil else {
-            if !storageSamplingFailed {
+            if storageSampleState != .unavailable {
                 logger.error("Storage sampling became unavailable")
             }
-            storageSamplingFailed = true
-            updateSamplingIssue()
+            storageSampleState = .unavailable
             return
         }
 
-        if storageSamplingFailed {
+        if storageSampleState == .unavailable {
             logger.notice("Storage sampling recovered")
         }
-        storageSamplingFailed = false
-        updateSamplingIssue()
+        storageSampleState = .available
     }
 
     private func recordCPUFailure() {
-        if !cpuSamplingFailed {
+        if cpuSampleState != .unavailable {
             logger.error("CPU sampling became unavailable")
         }
-        cpuSamplingFailed = true
+        cpuSampleState = .unavailable
         cpuUsage = nil
-        updateSamplingIssue()
     }
 
     private func recordMemoryFailure() {
-        if !memorySamplingFailed {
+        if memorySampleState != .unavailable {
             logger.error("Memory sampling became unavailable")
         }
-        memorySamplingFailed = true
+        memorySampleState = .unavailable
         memoryUsage = nil
-        updateSamplingIssue()
     }
 
     private func recordStorageFailure() {
-        if !storageSamplingFailed {
+        if storageSampleState != .unavailable {
             logger.error("Storage sampling became unavailable")
         }
-        storageSamplingFailed = true
+        storageSampleState = .unavailable
         storageUsage = nil
-        updateSamplingIssue()
-    }
-
-    private func updateSamplingIssue() {
-        hasSamplingIssue = cpuSamplingFailed
-            || memorySamplingFailed
-            || storageSamplingFailed
     }
 
     private nonisolated static func isContinuous(

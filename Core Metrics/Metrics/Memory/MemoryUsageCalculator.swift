@@ -20,13 +20,18 @@ nonisolated enum MemoryUsageCalculator {
         let appPageCount = raw.internalPageCount >= raw.purgeablePageCount
             ? raw.internalPageCount - raw.purgeablePageCount
             : 0
-        let usedPageCount = saturatingAdd(
-            saturatingAdd(appPageCount, raw.wiredPageCount),
-            raw.compressorPageCount
+        let appEstimateBytes = saturatingMultiply(appPageCount, raw.pageSizeBytes)
+        let wiredBytes = saturatingMultiply(raw.wiredPageCount, raw.pageSizeBytes)
+        let compressedBytes = saturatingMultiply(
+            raw.compressorPageCount,
+            raw.pageSizeBytes
         )
         let usedBytes = min(
             raw.totalBytes,
-            saturatingMultiply(usedPageCount, raw.pageSizeBytes)
+            saturatingAdd(
+                saturatingAdd(appEstimateBytes, wiredBytes),
+                compressedBytes
+            )
         )
         let availableBytes = raw.totalBytes - usedBytes
 
@@ -34,6 +39,9 @@ nonisolated enum MemoryUsageCalculator {
             usedBytes: usedBytes,
             availableBytes: availableBytes,
             totalBytes: raw.totalBytes,
+            appEstimateBytes: appEstimateBytes,
+            wiredBytes: wiredBytes,
+            compressedBytes: compressedBytes,
             usedFraction: Double(usedBytes) / Double(raw.totalBytes)
         )
     }

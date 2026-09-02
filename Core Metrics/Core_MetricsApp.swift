@@ -10,6 +10,7 @@ struct CoreMetricsApp: App {
             DashboardView()
                 .environment(metricsStore)
                 .environment(preferencesStore)
+                .tint(Color.primary)
         } label: {
             MenuBarLabelView()
                 .environment(metricsStore)
@@ -19,7 +20,9 @@ struct CoreMetricsApp: App {
 
         Settings {
             SettingsView()
+                .environment(metricsStore)
                 .environment(preferencesStore)
+                .tint(Color.primary)
         }
         .windowResizability(.contentSize)
     }

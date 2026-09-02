@@ -2,11 +2,11 @@ import Foundation
 
 /// Durable, validated menu-bar preferences.
 ///
-/// `enabledMetrics` is always unique, ordered, and contains between one and
-/// three metrics. All mutations go through helpers that preserve this
-/// invariant, including values decoded from UserDefaults.
+/// `enabledStats` is always unique, ordered, and contains between one and five
+/// concrete aggregate statistics. All mutations preserve this invariant,
+/// including values decoded from UserDefaults.
 nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
-    private static let maximumEnabledMetricCount = 3
+    static let maximumEnabledStatCount = 5
 
     enum MoveDirection: Sendable {
         case up
@@ -15,79 +15,71 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
 
     static var defaultValue: MenuBarConfiguration {
         MenuBarConfiguration(
-            enabledMetrics: [.cpu],
-            displayMode: .iconAndValue,
-            memoryValueStyle: .percentage,
-            storageValueStyle: .percentage
+            enabledStats: [.cpuTotal],
+            displayMode: .iconAndValue
         )
     }
 
-    private(set) var enabledMetrics: [MetricKind]
+    private(set) var enabledStats: [MenuBarStat]
     var displayMode: MenuBarDisplayMode {
         didSet {
             displayMode = Self.validatedDisplayMode(
                 displayMode,
-                enabledMetricCount: enabledMetrics.count
+                enabledStatCount: enabledStats.count
             )
         }
     }
-    var memoryValueStyle: MemoryMenuValueStyle
-    var storageValueStyle: StorageMenuValueStyle
 
     init(
-        enabledMetrics: [MetricKind] = [.cpu],
-        displayMode: MenuBarDisplayMode = .iconAndValue,
-        memoryValueStyle: MemoryMenuValueStyle = .percentage,
-        storageValueStyle: StorageMenuValueStyle = .percentage
+        enabledStats: [MenuBarStat] = [.cpuTotal],
+        displayMode: MenuBarDisplayMode = .iconAndValue
     ) {
-        let normalizedMetrics = Self.normalized(enabledMetrics)
-        self.enabledMetrics = normalizedMetrics
+        let normalizedStats = Self.normalized(enabledStats)
+        self.enabledStats = normalizedStats
         self.displayMode = Self.validatedDisplayMode(
             displayMode,
-            enabledMetricCount: normalizedMetrics.count
+            enabledStatCount: normalizedStats.count
         )
-        self.memoryValueStyle = memoryValueStyle
-        self.storageValueStyle = storageValueStyle
     }
 
-    func isMetricEnabled(_ metric: MetricKind) -> Bool {
-        enabledMetrics.contains(metric)
+    func isStatEnabled(_ stat: MenuBarStat) -> Bool {
+        enabledStats.contains(stat)
     }
 
-    func canDisable(_ metric: MetricKind) -> Bool {
-        isMetricEnabled(metric) && enabledMetrics.count > 1
+    func canDisable(_ stat: MenuBarStat) -> Bool {
+        isStatEnabled(stat) && enabledStats.count > 1
     }
 
     /// Returns `true` only when the configuration actually changed.
     @discardableResult
-    mutating func setMetric(_ metric: MetricKind, enabled: Bool) -> Bool {
+    mutating func setStat(_ stat: MenuBarStat, enabled: Bool) -> Bool {
         if enabled {
             guard
-                !isMetricEnabled(metric),
-                enabledMetrics.count < Self.maximumEnabledMetricCount
+                !isStatEnabled(stat),
+                enabledStats.count < Self.maximumEnabledStatCount
             else {
                 return false
             }
 
-            enabledMetrics.append(metric)
+            enabledStats.append(stat)
             if displayMode == .valueOnly {
                 displayMode = .compact
             }
             return true
         }
 
-        guard canDisable(metric), let index = enabledMetrics.firstIndex(of: metric) else {
+        guard canDisable(stat), let index = enabledStats.firstIndex(of: stat) else {
             return false
         }
 
-        enabledMetrics.remove(at: index)
+        enabledStats.remove(at: index)
         return true
     }
 
-    /// Moves an enabled metric one position and returns whether it moved.
+    /// Moves an enabled stat one position and returns whether it moved.
     @discardableResult
-    mutating func moveMetric(_ metric: MetricKind, direction: MoveDirection) -> Bool {
-        guard let sourceIndex = enabledMetrics.firstIndex(of: metric) else {
+    mutating func moveStat(_ stat: MenuBarStat, direction: MoveDirection) -> Bool {
+        guard let sourceIndex = enabledStats.firstIndex(of: stat) else {
             return false
         }
 
@@ -99,22 +91,22 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             destinationIndex = sourceIndex + 1
         }
 
-        guard enabledMetrics.indices.contains(destinationIndex) else {
+        guard enabledStats.indices.contains(destinationIndex) else {
             return false
         }
 
-        enabledMetrics.swapAt(sourceIndex, destinationIndex)
+        enabledStats.swapAt(sourceIndex, destinationIndex)
         return true
     }
 
     @discardableResult
-    mutating func moveMetricUp(_ metric: MetricKind) -> Bool {
-        moveMetric(metric, direction: .up)
+    mutating func moveStatUp(_ stat: MenuBarStat) -> Bool {
+        moveStat(stat, direction: .up)
     }
 
     @discardableResult
-    mutating func moveMetricDown(_ metric: MetricKind) -> Bool {
-        moveMetric(metric, direction: .down)
+    mutating func moveStatDown(_ stat: MenuBarStat) -> Bool {
+        moveStat(stat, direction: .down)
     }
 
     mutating func reset() {
@@ -122,46 +114,81 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case enabledMetrics
+        case enabledStats
         case displayMode
+
+        // Version 1 keys retained only to migrate existing local preferences.
+        case enabledMetrics
+        case cpuValueStyle
         case memoryValueStyle
         case storageValueStyle
     }
 
     init(from decoder: any Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+        let displayMode = try container.decodeIfPresent(
+            MenuBarDisplayMode.self,
+            forKey: .displayMode
+        ) ?? .iconAndValue
+
+        if let enabledStats = try container.decodeIfPresent(
+            [MenuBarStat].self,
+            forKey: .enabledStats
+        ) {
+            self.init(enabledStats: enabledStats, displayMode: displayMode)
+            return
+        }
+
+        let enabledMetrics = try container.decodeIfPresent(
+            [MetricKind].self,
+            forKey: .enabledMetrics
+        ) ?? [.cpu]
+        let cpuStyle = try container.decodeIfPresent(
+            CPUMenuValueStyle.self,
+            forKey: .cpuValueStyle
+        ) ?? .total
+        let memoryStyle = try container.decodeIfPresent(
+            MemoryMenuValueStyle.self,
+            forKey: .memoryValueStyle
+        ) ?? .percentage
+        let storageStyle = try container.decodeIfPresent(
+            StorageMenuValueStyle.self,
+            forKey: .storageValueStyle
+        ) ?? .percentage
+
         self.init(
-            enabledMetrics: try container.decodeIfPresent(
-                [MetricKind].self,
-                forKey: .enabledMetrics
-            ) ?? [.cpu],
-            displayMode: try container.decodeIfPresent(
-                MenuBarDisplayMode.self,
-                forKey: .displayMode
-            ) ?? .iconAndValue,
-            memoryValueStyle: try container.decodeIfPresent(
-                MemoryMenuValueStyle.self,
-                forKey: .memoryValueStyle
-            ) ?? .percentage,
-            storageValueStyle: try container.decodeIfPresent(
-                StorageMenuValueStyle.self,
-                forKey: .storageValueStyle
-            ) ?? .percentage
+            enabledStats: enabledMetrics.map { metric in
+                switch metric {
+                case .cpu:
+                    MenuBarStat(cpuStyle: cpuStyle)
+                case .memory:
+                    MenuBarStat(memoryStyle: memoryStyle)
+                case .storage:
+                    MenuBarStat(storageStyle: storageStyle)
+                }
+            },
+            displayMode: displayMode
         )
     }
 
-    private static func normalized(_ metrics: [MetricKind]) -> [MetricKind] {
-        var seen: Set<MetricKind> = []
-        let uniqueMetrics = metrics.filter { seen.insert($0).inserted }
-        let boundedMetrics = Array(uniqueMetrics.prefix(Self.maximumEnabledMetricCount))
-        return boundedMetrics.isEmpty ? [.cpu] : boundedMetrics
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(enabledStats, forKey: .enabledStats)
+        try container.encode(displayMode, forKey: .displayMode)
+    }
+
+    private static func normalized(_ stats: [MenuBarStat]) -> [MenuBarStat] {
+        var seen: Set<MenuBarStat> = []
+        let uniqueStats = stats.filter { seen.insert($0).inserted }
+        let boundedStats = Array(uniqueStats.prefix(Self.maximumEnabledStatCount))
+        return boundedStats.isEmpty ? [.cpuTotal] : boundedStats
     }
 
     private static func validatedDisplayMode(
         _ displayMode: MenuBarDisplayMode,
-        enabledMetricCount: Int
+        enabledStatCount: Int
     ) -> MenuBarDisplayMode {
-        if displayMode == .valueOnly, enabledMetricCount > 1 {
+        if displayMode == .valueOnly, enabledStatCount > 1 {
             return .compact
         }
 

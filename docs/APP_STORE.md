@@ -12,11 +12,11 @@ Core Metrics is designed for App Sandbox distribution through the Mac App Store.
 
 ## Current development audit
 
-The MVP was most recently validated with Xcode 27.0 beta (build `27A5252f`), Apple Swift 6.4, and the macOS 27 SDK on Apple silicon. The project compiles in Swift 6 mode with complete concurrency checking and warnings as errors, while targeting macOS 14.
+The MVP was most recently validated with Xcode 27.0 beta (build `27A5252f`), Apple Swift 6.4, and the macOS 27 SDK on Apple silicon. The project compiles in Swift 6 mode with complete concurrency checking and warnings as errors, while targeting macOS 27.
 
 This development audit found:
 
-- The generated product has `LSUIElement = true`, a macOS 14 minimum version, and the Utilities application category.
+- The generated product has `LSUIElement = true`, a macOS 27 minimum version, the selected `AppIcon` asset, and the Utilities application category.
 - The repository entitlement file contains only `com.apple.security.app-sandbox = true`; hardened runtime is enabled by the project.
 - The privacy manifest is valid and is copied to `Contents/Resources/PrivacyInfo.xcprivacy` in the app bundle.
 - Linked application frameworks are public Apple frameworks. There are no third-party packages, private frameworks, privileged helpers, nested executables, or network capabilities.
@@ -57,7 +57,7 @@ The approved categories, covered APIs, and reason text are defined by Apple unde
 
 The current source tree is intentionally development-ready rather than submission-ready. Complete all of the following before uploading a build:
 
-- Add a final, original macOS app icon and select it as the primary app-icon source. The current empty placeholder icon set is not an App Store asset.
+- Review the integrated original icon at all Finder, Settings, and App Store sizes. The flattened asset catalog is valid and selected; optionally recreate the retained master as a layered Icon Composer source for platform-managed material effects before the final archive.
 - Replace `org.example.CoreMetrics` with a bundle identifier controlled by the publisher, then configure the publisher's team, App Store distribution certificate, and provisioning profile outside the public repository.
 - Publish a privacy policy and support page at stable public URLs. Add the privacy-policy URL to App Store Connect and expose it in an easily accessible in-app location as required by App Review Guideline 5.1.1(i).
 - Complete the App Store privacy label truthfully. If the implementation remains local-only, with no transmission or third-party SDKs, the expected declaration is that no data is collected; re-audit before answering.

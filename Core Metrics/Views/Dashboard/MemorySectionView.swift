@@ -5,6 +5,7 @@ struct MemorySectionView: View {
 
     let usage: MemoryUsage?
     let history: [MemoryUsage]
+    let sampleState: MetricSampleState
 
     var body: some View {
         MetricSectionView(
@@ -13,6 +14,8 @@ struct MemorySectionView: View {
             primaryLabel: "Used",
             primaryValue: formattedPercentage(usage?.usedFraction)
         ) {
+            MetricAvailabilityView(metricName: "Memory", state: sampleState)
+
             MetricHistoryChart(
                 metricName: "Memory usage",
                 samples: history,
@@ -22,6 +25,21 @@ struct MemorySectionView: View {
             MetricRowView(
                 label: "Used",
                 value: formattedBytes(usage?.usedBytes)
+            )
+
+            MetricRowView(
+                label: "App Estimate",
+                value: formattedBytes(usage?.appEstimateBytes)
+            )
+
+            MetricRowView(
+                label: "Wired",
+                value: formattedBytes(usage?.wiredBytes)
+            )
+
+            MetricRowView(
+                label: "Compressed",
+                value: formattedBytes(usage?.compressedBytes)
             )
 
             MetricRowView(

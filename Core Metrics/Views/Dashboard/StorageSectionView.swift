@@ -4,6 +4,7 @@ struct StorageSectionView: View {
     @Environment(\.locale) private var locale
 
     let usage: StorageUsage?
+    let sampleState: MetricSampleState
 
     var body: some View {
         MetricSectionView(
@@ -12,16 +13,14 @@ struct StorageSectionView: View {
             primaryLabel: "Startup disk used",
             primaryValue: formattedPercentage(usage?.usedFraction)
         ) {
+            MetricAvailabilityView(metricName: "Storage", state: sampleState)
+
             if let usage {
                 ProgressView(value: usage.usedFraction)
                     .progressViewStyle(.linear)
-                    .tint(Color.accentColor)
+                    .tint(Color.primary)
                     .accessibilityLabel(Text("Startup disk used"))
                     .accessibilityValue(Text(accessiblePercentage))
-            } else {
-                Text("Storage usage unavailable")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
             }
 
             MetricRowView(

@@ -3,18 +3,20 @@ import SwiftUI
 
 struct DashboardFooterView: View {
     var body: some View {
-        HStack {
-            SettingsLink {
-                Label("Settings", systemImage: "gearshape")
+        GlassEffectContainer(spacing: 8) {
+            HStack {
+                SettingsLink {
+                    Label("Settings", systemImage: "gearshape")
+                }
+
+                Spacer()
+
+                Button("Quit", systemImage: "power", action: quit)
+                    .keyboardShortcut("q")
             }
-
-            Spacer()
-
-            Button("Quit", systemImage: "power", action: quit)
-                .keyboardShortcut("q")
+            .buttonStyle(.glass)
+            .controlSize(.small)
         }
-        .buttonStyle(.borderless)
-        .controlSize(.small)
     }
 
     private func quit() {

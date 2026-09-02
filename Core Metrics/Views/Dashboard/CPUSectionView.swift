@@ -5,6 +5,7 @@ struct CPUSectionView: View {
 
     let usage: CPUUsage?
     let history: [CPUUsage]
+    let sampleState: MetricSampleState
 
     var body: some View {
         MetricSectionView(
@@ -13,6 +14,8 @@ struct CPUSectionView: View {
             primaryLabel: "Total used",
             primaryValue: formattedPercentage(usage?.total)
         ) {
+            MetricAvailabilityView(metricName: "CPU", state: sampleState)
+
             MetricHistoryChart(
                 metricName: "CPU usage",
                 samples: history,

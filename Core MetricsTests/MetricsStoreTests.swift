@@ -26,6 +26,9 @@ struct MetricsStoreTests {
         }
 
         #expect(reachedLimitedState)
+        #expect(store.cpuSampleState == .unavailable)
+        #expect(store.memorySampleState == .available)
+        #expect(store.storageSampleState == .available)
     }
 
     @MainActor
@@ -59,6 +62,42 @@ struct MetricsStoreTests {
         }
 
         #expect(recovered)
+        #expect(store.cpuSampleState == .available)
+    }
+
+    @MainActor
+    @Test("Storage failure retries promptly instead of waiting for its normal cadence")
+    func storageFailureRetriesPromptly() async {
+        let recoveryGate = StorageRecoveryGate()
+        let store = MetricsStore(
+            cpuProvider: ControlledRecoveryCPUProvider(
+                gate: RecoveryGate(valuesAreAllowed: true)
+            ),
+            memoryProvider: FixedMemoryProvider(),
+            storageProvider: ControlledRecoveryStorageProvider(gate: recoveryGate),
+            fastSamplingInterval: .milliseconds(10),
+            storageSamplingInterval: .seconds(60)
+        )
+
+        store.start()
+        defer { store.stop() }
+
+        let failed = await eventually {
+            recoveryGate.sampleCount >= 1
+                && store.storageSampleState == .unavailable
+                && store.storageUsage == nil
+        }
+        #expect(failed)
+
+        recoveryGate.allowValueSamples()
+        let recovered = await eventually {
+            recoveryGate.sampleCount >= 2
+                && store.storageSampleState == .available
+                && store.storageUsage != nil
+                && !store.hasSamplingIssue
+        }
+
+        #expect(recovered)
     }
 
     @MainActor
@@ -71,7 +110,11 @@ struct MetricsStoreTests {
                 return true
             }
 
-            try? await Task.sleep(for: .milliseconds(5))
+            do {
+                try await Task.sleep(for: .milliseconds(5))
+            } catch {
+                return false
+            }
         }
 
         return condition()
@@ -131,7 +174,11 @@ private nonisolated final class RecoveryGate: @unchecked Sendable {
 
     private let lock = NSLock()
     private var count = 0
-    private var valuesAreAllowed = false
+    private var valuesAreAllowed: Bool
+
+    init(valuesAreAllowed: Bool = false) {
+        self.valuesAreAllowed = valuesAreAllowed
+    }
 
     var sampleCount: Int {
         lock.withLock { count }
@@ -156,12 +203,50 @@ private nonisolated final class RecoveryGate: @unchecked Sendable {
     }
 }
 
+private nonisolated struct ControlledRecoveryStorageProvider: StorageMetricsProviding {
+    let gate: StorageRecoveryGate
+
+    func sample() throws -> StorageUsage? {
+        guard gate.nextSampleShouldSucceed() else {
+            throw FixtureProviderError.unavailable
+        }
+
+        return try FixedStorageProvider().sample()
+    }
+}
+
+private nonisolated final class StorageRecoveryGate: @unchecked Sendable {
+    private let lock = NSLock()
+    private var count = 0
+    private var valuesAreAllowed = false
+
+    var sampleCount: Int {
+        lock.withLock { count }
+    }
+
+    func nextSampleShouldSucceed() -> Bool {
+        lock.withLock {
+            count += 1
+            return valuesAreAllowed
+        }
+    }
+
+    func allowValueSamples() {
+        lock.withLock {
+            valuesAreAllowed = true
+        }
+    }
+}
+
 private nonisolated struct FixedMemoryProvider: MemoryMetricsProviding {
     mutating func sample() throws -> MemoryUsage? {
         MemoryUsage(
             usedBytes: 60,
             availableBytes: 40,
             totalBytes: 100,
+            appEstimateBytes: 40,
+            wiredBytes: 10,
+            compressedBytes: 10,
             usedFraction: 0.6
         )
     }

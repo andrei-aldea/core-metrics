@@ -12,6 +12,10 @@ nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {
 
     mutating func readRawCounters() throws -> MemoryRawCounters {
         let host = mach_host_self()
+        defer {
+            mach_port_deallocate(mach_task_self_, host)
+        }
+
         var statistics = vm_statistics64_data_t()
         let requestedCount = mach_msg_type_number_t(
             MemoryLayout<vm_statistics64_data_t>.stride

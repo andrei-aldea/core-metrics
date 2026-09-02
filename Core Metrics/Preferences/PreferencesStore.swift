@@ -22,6 +22,7 @@ final class PreferencesStore {
         self.defaults = defaults
         self.persistenceKey = persistenceKey
 
+        let hasStoredValue = defaults.object(forKey: persistenceKey) != nil
         if
             let data = defaults.data(forKey: persistenceKey),
             let storedConfiguration = try? JSONDecoder().decode(
@@ -32,11 +33,21 @@ final class PreferencesStore {
             configuration = storedConfiguration
         } else {
             configuration = .defaultValue
+
+            // Replace malformed or wrongly typed persistence once so later
+            // launches start from a valid configuration instead of repeating
+            // the same decode failure.
+            if
+                hasStoredValue,
+                let repairedData = try? JSONEncoder().encode(configuration)
+            {
+                defaults.set(repairedData, forKey: persistenceKey)
+            }
         }
     }
 
-    var enabledMetrics: [MetricKind] {
-        configuration.enabledMetrics
+    var enabledStats: [MenuBarStat] {
+        configuration.enabledStats
     }
 
     var displayMode: MenuBarDisplayMode {
@@ -48,36 +59,18 @@ final class PreferencesStore {
         }
     }
 
-    var memoryValueStyle: MemoryMenuValueStyle {
-        get { configuration.memoryValueStyle }
-        set {
-            var updatedConfiguration = configuration
-            updatedConfiguration.memoryValueStyle = newValue
-            configuration = updatedConfiguration
-        }
+    func isStatEnabled(_ stat: MenuBarStat) -> Bool {
+        configuration.isStatEnabled(stat)
     }
 
-    var storageValueStyle: StorageMenuValueStyle {
-        get { configuration.storageValueStyle }
-        set {
-            var updatedConfiguration = configuration
-            updatedConfiguration.storageValueStyle = newValue
-            configuration = updatedConfiguration
-        }
-    }
-
-    func isMetricEnabled(_ metric: MetricKind) -> Bool {
-        configuration.isMetricEnabled(metric)
-    }
-
-    func canDisable(_ metric: MetricKind) -> Bool {
-        configuration.canDisable(metric)
+    func canDisable(_ stat: MenuBarStat) -> Bool {
+        configuration.canDisable(stat)
     }
 
     @discardableResult
-    func setMetric(_ metric: MetricKind, enabled: Bool) -> Bool {
+    func setStat(_ stat: MenuBarStat, enabled: Bool) -> Bool {
         var updatedConfiguration = configuration
-        guard updatedConfiguration.setMetric(metric, enabled: enabled) else {
+        guard updatedConfiguration.setStat(stat, enabled: enabled) else {
             return false
         }
 
@@ -86,12 +79,12 @@ final class PreferencesStore {
     }
 
     @discardableResult
-    func moveMetric(
-        _ metric: MetricKind,
+    func moveStat(
+        _ stat: MenuBarStat,
         direction: MenuBarConfiguration.MoveDirection
     ) -> Bool {
         var updatedConfiguration = configuration
-        guard updatedConfiguration.moveMetric(metric, direction: direction) else {
+        guard updatedConfiguration.moveStat(stat, direction: direction) else {
             return false
         }
 
@@ -100,13 +93,13 @@ final class PreferencesStore {
     }
 
     @discardableResult
-    func moveMetricUp(_ metric: MetricKind) -> Bool {
-        moveMetric(metric, direction: .up)
+    func moveStatUp(_ stat: MenuBarStat) -> Bool {
+        moveStat(stat, direction: .up)
     }
 
     @discardableResult
-    func moveMetricDown(_ metric: MetricKind) -> Bool {
-        moveMetric(metric, direction: .down)
+    func moveStatDown(_ stat: MenuBarStat) -> Bool {
+        moveStat(stat, direction: .down)
     }
 
     func reset() {

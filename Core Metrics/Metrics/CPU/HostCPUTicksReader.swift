@@ -4,6 +4,11 @@ import Darwin
 /// `host_statistics(HOST_CPU_LOAD_INFO)` API.
 nonisolated struct HostCPUTicksReader: CPUTicksReading {
     func readTicks() throws -> CPUTicks {
+        let host = mach_host_self()
+        defer {
+            mach_port_deallocate(mach_task_self_, host)
+        }
+
         var information = host_cpu_load_info_data_t()
         let expectedCount = mach_msg_type_number_t(
             MemoryLayout<host_cpu_load_info_data_t>.stride
@@ -17,7 +22,7 @@ nonisolated struct HostCPUTicksReader: CPUTicksReading {
                 capacity: Int(count)
             ) { reboundPointer in
                 host_statistics(
-                    mach_host_self(),
+                    host,
                     HOST_CPU_LOAD_INFO,
                     reboundPointer,
                     &count

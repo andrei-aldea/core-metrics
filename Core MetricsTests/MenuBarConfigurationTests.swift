@@ -13,6 +13,35 @@ struct MenuBarConfigurationTests {
         #expect(MetricKind.allCases.map(\.systemImage) == ["cpu", "memorychip", "internaldrive"])
     }
 
+    @Test("Menu-bar stats have stable persistence values and categories")
+    func menuBarStatMetadata() {
+        #expect(MenuBarStat.allCases.map(\.rawValue) == [
+            "cpuTotal",
+            "cpuUser",
+            "cpuSystem",
+            "cpuIdle",
+            "memoryPercentage",
+            "memoryUsed",
+            "memoryAvailable",
+            "memoryAppEstimate",
+            "memoryWired",
+            "memoryCompressed",
+            "memoryTotal",
+            "storagePercentage",
+            "storageUsed",
+            "storageAvailable",
+            "storageTotal",
+        ])
+        #expect(MenuBarStat.values(for: .cpu).count == 4)
+        #expect(MenuBarStat.values(for: .memory).count == 7)
+        #expect(MenuBarStat.values(for: .storage).count == 4)
+        #expect(MenuBarStat.allCases.map(\.shortCode) == [
+            "CT", "CU", "CS", "CI",
+            "M%", "MU", "MA", "ME", "MW", "MC", "MT",
+            "S%", "SU", "SA", "ST",
+        ])
+    }
+
     @Test("Display modes have stable persistence values")
     func displayModeRawValues() {
         #expect(MenuBarDisplayMode.allCases.map(\.rawValue) == [
@@ -22,55 +51,95 @@ struct MenuBarConfigurationTests {
         ])
     }
 
-    @Test("Initialization repairs empty, duplicate, and oversized lists", arguments: [
-        ([MetricKind](), [MetricKind.cpu]),
-        ([.memory, .cpu, .memory], [.memory, .cpu]),
-        ([.storage, .memory, .cpu, .storage], [.storage, .memory, .cpu]),
-    ])
-    func normalizesEnabledMetrics(input: [MetricKind], expected: [MetricKind]) {
-        let configuration = MenuBarConfiguration(enabledMetrics: input)
-        #expect(configuration.enabledMetrics == expected)
+    @Test("Legacy metric value styles have stable persistence values")
+    func metricValueStyleRawValues() {
+        #expect(CPUMenuValueStyle.allCases.map(\.rawValue) == [
+            "total",
+            "user",
+            "system",
+            "idle",
+        ])
+        #expect(MemoryMenuValueStyle.allCases.map(\.rawValue) == [
+            "percentage",
+            "used",
+            "available",
+            "appEstimate",
+            "wired",
+            "compressed",
+            "total",
+        ])
+        #expect(StorageMenuValueStyle.allCases.map(\.rawValue) == [
+            "percentage",
+            "used",
+            "available",
+            "total",
+        ])
     }
 
-    @Test("At least one metric must remain enabled")
-    func preservesMinimumEnabledMetric() {
+    @Test("Initialization repairs empty, duplicate, and oversized lists", arguments: [
+        ([MenuBarStat](), [MenuBarStat.cpuTotal]),
+        ([.memoryUsed, .cpuTotal, .memoryUsed], [.memoryUsed, .cpuTotal]),
+        (
+            [.storageTotal, .memoryUsed, .cpuTotal, .cpuUser, .cpuSystem, .cpuIdle],
+            [.storageTotal, .memoryUsed, .cpuTotal, .cpuUser, .cpuSystem]
+        ),
+    ])
+    func normalizesEnabledStats(input: [MenuBarStat], expected: [MenuBarStat]) {
+        let configuration = MenuBarConfiguration(enabledStats: input)
+        #expect(configuration.enabledStats == expected)
+    }
+
+    @Test("At least one stat must remain enabled")
+    func preservesMinimumEnabledStat() {
         var configuration = MenuBarConfiguration()
 
-        #expect(!configuration.canDisable(.cpu))
-        let refusedLastDisable = configuration.setMetric(.cpu, enabled: false)
+        #expect(!configuration.canDisable(.cpuTotal))
+        let refusedLastDisable = configuration.setStat(.cpuTotal, enabled: false)
         #expect(!refusedLastDisable)
-        #expect(configuration.enabledMetrics == [.cpu])
+        #expect(configuration.enabledStats == [.cpuTotal])
 
-        let enabledMemory = configuration.setMetric(.memory, enabled: true)
+        let enabledMemory = configuration.setStat(.memoryUsed, enabled: true)
         #expect(enabledMemory)
-        #expect(configuration.canDisable(.cpu))
-        let disabledCPU = configuration.setMetric(.cpu, enabled: false)
+        #expect(configuration.canDisable(.cpuTotal))
+        let disabledCPU = configuration.setStat(.cpuTotal, enabled: false)
         #expect(disabledCPU)
-        #expect(configuration.enabledMetrics == [.memory])
-        let refusedOnlyMemoryDisable = configuration.setMetric(.memory, enabled: false)
+        #expect(configuration.enabledStats == [.memoryUsed])
+        let refusedOnlyMemoryDisable = configuration.setStat(.memoryUsed, enabled: false)
         #expect(!refusedOnlyMemoryDisable)
     }
 
-    @Test("Enabling appends and duplicate requests are no-ops")
-    func enablesMetricsInOrder() {
+    @Test("Stats append in order and stop at five")
+    func enablesStatsInOrder() {
         var configuration = MenuBarConfiguration()
 
-        let enabledStorage = configuration.setMetric(.storage, enabled: true)
-        let enabledMemory = configuration.setMetric(.memory, enabled: true)
-        let duplicateStorage = configuration.setMetric(.storage, enabled: true)
+        let enabledCPUUser = configuration.setStat(.cpuUser, enabled: true)
+        let enabledMemory = configuration.setStat(.memoryUsed, enabled: true)
+        let enabledStorage = configuration.setStat(.storageAvailable, enabled: true)
+        let enabledCompressed = configuration.setStat(.memoryCompressed, enabled: true)
+        let refusedSixth = configuration.setStat(.storageTotal, enabled: true)
+        let refusedDuplicate = configuration.setStat(.memoryUsed, enabled: true)
 
-        #expect(enabledStorage)
+        #expect(enabledCPUUser)
         #expect(enabledMemory)
-        #expect(!duplicateStorage)
-        #expect(configuration.enabledMetrics == [.cpu, .storage, .memory])
+        #expect(enabledStorage)
+        #expect(enabledCompressed)
+        #expect(!refusedSixth)
+        #expect(!refusedDuplicate)
+        #expect(configuration.enabledStats == [
+            .cpuTotal,
+            .cpuUser,
+            .memoryUsed,
+            .storageAvailable,
+            .memoryCompressed,
+        ])
     }
 
-    @Test("Value-only mode remains exclusive to one metric")
+    @Test("Value-only mode remains exclusive to one stat")
     func restrictsValueOnlyMode() {
         var configuration = MenuBarConfiguration(displayMode: .valueOnly)
         #expect(configuration.displayMode == .valueOnly)
 
-        let enabledMemory = configuration.setMetric(.memory, enabled: true)
+        let enabledMemory = configuration.setStat(.memoryUsed, enabled: true)
         #expect(enabledMemory)
         #expect(configuration.displayMode == .compact)
 
@@ -78,58 +147,77 @@ struct MenuBarConfigurationTests {
         #expect(configuration.displayMode == .compact)
 
         let normalized = MenuBarConfiguration(
-            enabledMetrics: [.cpu, .storage],
+            enabledStats: [.cpuTotal, .storagePercentage],
             displayMode: .valueOnly
         )
         #expect(normalized.displayMode == .compact)
     }
 
     @Test("Reordering moves one adjacent position and respects boundaries")
-    func reordersMetrics() {
-        var configuration = MenuBarConfiguration(enabledMetrics: [.cpu, .memory, .storage])
+    func reordersStats() {
+        var configuration = MenuBarConfiguration(
+            enabledStats: [.cpuTotal, .memoryUsed, .storagePercentage]
+        )
 
-        let movedCPUDown = configuration.moveMetricDown(.cpu)
+        let movedCPUDown = configuration.moveStatDown(.cpuTotal)
         #expect(movedCPUDown)
-        #expect(configuration.enabledMetrics == [.memory, .cpu, .storage])
-        let movedStorageUp = configuration.moveMetricUp(.storage)
+        #expect(configuration.enabledStats == [.memoryUsed, .cpuTotal, .storagePercentage])
+        let movedStorageUp = configuration.moveStatUp(.storagePercentage)
         #expect(movedStorageUp)
-        #expect(configuration.enabledMetrics == [.memory, .storage, .cpu])
-        let movedFirstUp = configuration.moveMetricUp(.memory)
-        let movedLastDown = configuration.moveMetricDown(.cpu)
-        let movedLastByDirection = configuration.moveMetric(.cpu, direction: .down)
+        #expect(configuration.enabledStats == [.memoryUsed, .storagePercentage, .cpuTotal])
+        let movedFirstUp = configuration.moveStatUp(.memoryUsed)
+        let movedLastDown = configuration.moveStatDown(.cpuTotal)
+        let movedLastByDirection = configuration.moveStat(.cpuTotal, direction: .down)
 
         #expect(!movedFirstUp)
         #expect(!movedLastDown)
         #expect(!movedLastByDirection)
     }
 
-    @Test("Decoding repairs an empty enabled list")
+    @Test("Decoding repairs an empty current-format stat list")
     func decodingRepairsInvariant() throws {
         let data = try #require(
             """
             {
-              "enabledMetrics": [],
+              "enabledStats": [],
+              "displayMode": "compact"
+            }
+            """.data(using: .utf8)
+        )
+
+        let configuration = try JSONDecoder().decode(MenuBarConfiguration.self, from: data)
+        #expect(configuration.enabledStats == [.cpuTotal])
+        #expect(configuration.displayMode == .compact)
+    }
+
+    @Test("Version 1 preferences migrate to equivalent concrete stats")
+    func migratesVersionOnePreferences() throws {
+        let data = try #require(
+            """
+            {
+              "enabledMetrics": ["storage", "cpu", "memory"],
               "displayMode": "compact",
-              "memoryValueStyle": "used",
+              "cpuValueStyle": "system",
+              "memoryValueStyle": "compressed",
               "storageValueStyle": "available"
             }
             """.data(using: .utf8)
         )
 
         let configuration = try JSONDecoder().decode(MenuBarConfiguration.self, from: data)
-        #expect(configuration.enabledMetrics == [.cpu])
+        #expect(configuration.enabledStats == [
+            .storageAvailable,
+            .cpuSystem,
+            .memoryCompressed,
+        ])
         #expect(configuration.displayMode == .compact)
-        #expect(configuration.memoryValueStyle == .used)
-        #expect(configuration.storageValueStyle == .available)
     }
 
     @Test("Reset restores every default")
     func resetsConfiguration() {
         var configuration = MenuBarConfiguration(
-            enabledMetrics: [.storage, .memory],
-            displayMode: .compact,
-            memoryValueStyle: .used,
-            storageValueStyle: .available
+            enabledStats: [.storageTotal, .memoryUsed],
+            displayMode: .compact
         )
 
         configuration.reset()

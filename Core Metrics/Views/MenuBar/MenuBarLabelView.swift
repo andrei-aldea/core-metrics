@@ -6,12 +6,15 @@ struct MenuBarLabelView: View {
     @Environment(PreferencesStore.self) private var preferencesStore
 
     var body: some View {
+        let stats = preferencesStore.enabledStats
+        let values = stats.map(value(for:))
+
         HStack(spacing: 6) {
-            ForEach(preferencesStore.enabledMetrics) { metric in
+            ForEach(stats.enumerated(), id: \.element) { index, stat in
                 MenuBarMetricLabelView(
-                    metric: metric,
+                    stat: stat,
                     displayMode: preferencesStore.displayMode,
-                    value: value(for: metric)
+                    value: values[index]
                 )
             }
         }
@@ -19,67 +22,52 @@ struct MenuBarLabelView: View {
         .lineLimit(1)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Core Metrics")
-        .accessibilityValue(accessibilitySummary)
+        .accessibilityValue(accessibilitySummary(stats: stats, values: values))
         .task {
             metricsStore.start()
         }
     }
 
-    private var accessibilitySummary: String {
-        preferencesStore.enabledMetrics
-            .map(accessibilityDescription(for:))
+    private func value(for stat: MenuBarStat) -> String {
+        switch stat.metric {
+        case .cpu:
+            MenuValueFormatting.value(
+                for: stat,
+                cpuUsage: metricsStore.cpuUsage,
+                memoryUsage: nil,
+                storageUsage: nil,
+                locale: locale
+            )
+        case .memory:
+            MenuValueFormatting.value(
+                for: stat,
+                cpuUsage: nil,
+                memoryUsage: metricsStore.memoryUsage,
+                storageUsage: nil,
+                locale: locale
+            )
+        case .storage:
+            MenuValueFormatting.value(
+                for: stat,
+                cpuUsage: nil,
+                memoryUsage: nil,
+                storageUsage: metricsStore.storageUsage,
+                locale: locale
+            )
+        }
+    }
+
+    private func accessibilitySummary(
+        stats: [MenuBarStat],
+        values: [String]
+    ) -> String {
+        zip(stats, values)
+            .map { stat, value in
+                let accessibleValue = value == MetricFormatting.unavailable
+                    ? "Unavailable"
+                    : value
+                return "\(stat.displayName), \(accessibleValue)"
+            }
             .joined(separator: ", ")
-    }
-
-    private func value(for metric: MetricKind) -> String {
-        switch metric {
-        case .cpu:
-            MenuValueFormatting.cpu(metricsStore.cpuUsage, locale: locale)
-        case .memory:
-            MenuValueFormatting.memory(
-                metricsStore.memoryUsage,
-                style: preferencesStore.memoryValueStyle,
-                locale: locale
-            )
-        case .storage:
-            MenuValueFormatting.storage(
-                metricsStore.storageUsage,
-                style: preferencesStore.storageValueStyle,
-                locale: locale
-            )
-        }
-    }
-
-    private func accessibilityDescription(for metric: MetricKind) -> String {
-        switch metric {
-        case .cpu:
-            guard let usage = metricsStore.cpuUsage else {
-                return "CPU unavailable"
-            }
-
-            return "CPU \(MetricFormatting.percentage(usage.total, locale: locale)) used"
-        case .memory:
-            guard let usage = metricsStore.memoryUsage else {
-                return "Memory unavailable"
-            }
-
-            switch preferencesStore.memoryValueStyle {
-            case .percentage:
-                return "Memory \(MetricFormatting.percentage(usage.usedFraction, locale: locale)) used"
-            case .used:
-                return "Memory \(MetricFormatting.bytes(usage.usedBytes, style: .memory, locale: locale)) used"
-            }
-        case .storage:
-            guard let usage = metricsStore.storageUsage else {
-                return "Storage unavailable"
-            }
-
-            switch preferencesStore.storageValueStyle {
-            case .percentage:
-                return "Storage \(MetricFormatting.percentage(usage.usedFraction, locale: locale)) used"
-            case .available:
-                return "Storage \(MetricFormatting.bytes(usage.availableBytes, style: .storage, locale: locale)) available"
-            }
-        }
     }
 }

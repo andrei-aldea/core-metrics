@@ -14,7 +14,7 @@ struct MetricHistoryChart<Sample>: View {
                 x: .value("Sample", index + 1),
                 y: .value("Percentage", fraction(at: index))
             )
-            .foregroundStyle(Color.accentColor)
+            .foregroundStyle(.secondary)
             .lineStyle(
                 StrokeStyle(
                     lineWidth: 1.5,
@@ -28,7 +28,7 @@ struct MetricHistoryChart<Sample>: View {
                     x: .value("Sample", index + 1),
                     y: .value("Percentage", fraction(at: index))
                 )
-                .foregroundStyle(Color.accentColor)
+                .foregroundStyle(.primary)
                 .symbolSize(18)
             }
         }

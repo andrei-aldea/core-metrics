@@ -16,7 +16,7 @@ The UI never calls Mach or volume-capacity APIs directly. Provider errors clear 
 
 - `MenuBarExtra` is the primary scene and uses the native menu style.
 - The label shows an ordered, validated selection of one to five concrete stats. Percentage and byte-value columns have separate fixed widths, so live samples cannot resize an individual slot.
-- The status menu shows the selected live values and provides native submenus for stat selection and display mode, followed by Settings and Quit.
+- The status menu shows the selected live values and provides native submenus for stat selection and display mode, followed by the standard About panel, Settings, and Quit.
 - `Show Core Metrics` opens a suppressed-at-launch standard window containing a flat selected-stat summary, CPU and memory history, memory-category detail rows, and startup-volume progress. Its scroll region has a minimum height so the content remains usable at launch while still adapting to accessibility text sizes.
 - A native `Settings` scene adds, removes, and orders menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar slot view without forcing the Settings window wider.
 - `LSUIElement` keeps the app out of the Dock and application switcher. The dashboard window activates the app only when explicitly opened. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
@@ -27,7 +27,7 @@ Sampling uses structured concurrency with one owned utility-priority task and ca
 
 Each Mach provider balances the send right returned by `mach_host_self()` with `mach_port_deallocate()` after its host call. The menu-bar view observes only the metric categories represented by its enabled slots, so an unshown storage or memory refresh cannot invalidate a CPU-only label.
 
-CPU and memory normally refresh once per second. Storage refreshes every 30 seconds after a valid sample, but a failed or invalid storage read temporarily retries on the fast cadence until it recovers. A wall-clock discontinuity longer than the configured threshold invalidates the CPU baseline, so a suspended interval is not presented as current load. The next valid delta resumes CPU presentation.
+CPU and memory normally refresh once per second. Storage refreshes every 30 seconds after a valid sample, but a failed or invalid storage read temporarily retries on the fast cadence until it recovers. A wall-clock discontinuity longer than the configured threshold invalidates the CPU baseline, so a suspended interval is not presented as current load. The next valid delta resumes CPU presentation. Each selected native-menu row observes only its own metric category and formats its value once per refresh, so unrelated samples do not invalidate that row.
 
 ## Failure and stale-data behavior
 

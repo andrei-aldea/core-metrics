@@ -15,7 +15,7 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 
 ## Highlights
 
-- **Native macOS menu:** System Liquid Glass, hover selection, separators, nested menus, keyboard navigation, Settings, and Quit are provided by `MenuBarExtra` rather than recreated with custom controls.
+- **Native macOS menu:** System Liquid Glass, hover selection, separators, nested menus, keyboard navigation, About, Settings, and Quit are provided by `MenuBarExtra` rather than recreated with custom controls.
 - **Customizable status item:** Choose and order one to five stats. Fixed percentage and byte-value columns keep every slot stable while values update.
 - **Useful detail on demand:** Open a compact dashboard for recent CPU and memory history, memory categories, and startup-volume capacity.
 - **Local and private:** Samples stay on the Mac, recent history is bounded in memory, and nothing is transmitted or persisted as telemetry.

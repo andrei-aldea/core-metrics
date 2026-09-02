@@ -16,7 +16,7 @@ Core Metrics should feel like a restrained, independent macOS utility: dense eno
 
 - The native menu-style extra provides the real macOS menu surface, hover selection, separators, nested menus, keyboard behavior, and Liquid Glass automatically.
 - The menu has no application icon, branded header, persistent live badge, custom card, or imitation menu row. It begins with the standard `Show Core Metrics` action, followed by the selected live stats.
-- `Customize Stats` exposes native nested menus and checkmark toggles for the supported CPU, memory, and storage representations. The display picker, Settings, and Quit remain standard menu items.
+- `Customize Stats` exposes native nested menus and checkmark toggles for the supported CPU, memory, and storage representations. The display picker, About panel, Settings shortcut, and Quit remain standard macOS menu items.
 - The ordered menu-bar selection also appears as a flat summary in the on-demand dashboard window. Its values use fixed trailing columns, then CPU, memory, and storage remain stacked in one scrollable column with inset separators. There is no decorative card grid or per-metric background treatment.
 - Metric symbols, chart traces, progress, and controls use semantic monochrome styles. Native glass remains in system-owned chrome and the Settings preview rather than wrapping read-only data in additional effects.
 - Secondary labels and status text use semantic foreground styles, so light, dark, Increased Contrast, and Reduce Transparency remain system-managed.

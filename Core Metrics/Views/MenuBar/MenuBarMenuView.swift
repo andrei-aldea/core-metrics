@@ -1,16 +1,15 @@
-import AppKit
 import SwiftUI
 
 /// The status item uses a real macOS menu so the system owns its Liquid Glass,
 /// selection, keyboard behavior, separators, and nested-menu presentation.
 struct MenuBarMenuView: View {
-    @Environment(\.locale) private var locale
     @Environment(\.openWindow) private var openWindow
-    @Environment(MetricsStore.self) private var metricsStore
     @Environment(PreferencesStore.self) private var preferencesStore
 
     var body: some View {
         @Bindable var preferences = preferencesStore
+        let selectedStatCount = preferencesStore.enabledStats.count
+        let maximumStatCount = MenuBarConfiguration.maximumEnabledStatCount
 
         Button("Show Core Metrics", action: showDashboard)
 
@@ -18,20 +17,17 @@ struct MenuBarMenuView: View {
 
         Section("Selected Stats") {
             ForEach(preferencesStore.enabledStats) { stat in
-                Button(action: showDashboard) {
-                    Text(menuTitle(for: stat))
-                }
-                .accessibilityLabel(accessibilityLabel(for: stat))
+                MenuBarSelectedStatItemView(
+                    stat: stat,
+                    action: showDashboard
+                )
             }
         }
 
         Divider()
 
         Menu("Customize Stats") {
-            Text(
-                "\(preferencesStore.enabledStats.count) of "
-                    + "\(MenuBarConfiguration.maximumEnabledStatCount) selected"
-            )
+            Text("\(selectedStatCount) of \(maximumStatCount) selected")
 
             Divider()
 
@@ -53,9 +49,12 @@ struct MenuBarMenuView: View {
 
         Divider()
 
+        Button("About Core Metrics", action: showAbout)
+
         SettingsLink {
             Text("Settings…")
         }
+        .keyboardShortcut(",", modifiers: .command)
 
         Divider()
 
@@ -69,31 +68,14 @@ struct MenuBarMenuView: View {
             : MenuBarDisplayMode.allCases
     }
 
-    private func menuTitle(for stat: MenuBarStat) -> String {
-        "\(stat.dashboardName) — \(formattedValue(for: stat))"
-    }
-
-    private func accessibilityLabel(for stat: MenuBarStat) -> String {
-        let value = formattedValue(for: stat)
-        let accessibleValue = value == MetricFormatting.unavailable
-            ? "Unavailable"
-            : value
-        return "\(stat.displayName), \(accessibleValue)"
-    }
-
-    private func formattedValue(for stat: MenuBarStat) -> String {
-        MenuValueFormatting.value(
-            for: stat,
-            cpuUsage: metricsStore.cpuUsage,
-            memoryUsage: metricsStore.memoryUsage,
-            storageUsage: metricsStore.storageUsage,
-            locale: locale
-        )
-    }
-
     private func showDashboard() {
         openWindow(id: DashboardLayout.windowIdentifier)
         NSApplication.shared.activate()
+    }
+
+    private func showAbout() {
+        NSApplication.shared.activate()
+        NSApplication.shared.orderFrontStandardAboutPanel(nil)
     }
 
     private func quit() {

@@ -35,6 +35,14 @@ final class CoreMetricsUITests: XCTestCase {
             app.menuItems["Live"].exists,
             "The removed sampling badge should not be present"
         )
+        XCTAssertTrue(
+            app.menuItems["About Core Metrics"].exists,
+            "The menu-only app should expose the standard About panel"
+        )
+        XCTAssertTrue(
+            app.menuItems["Settings…"].exists,
+            "Settings should remain directly available from the status menu"
+        )
 
         showDashboard.click()
 

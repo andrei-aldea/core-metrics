@@ -1,0 +1,36 @@
+name: Feature request
+description: Propose a focused improvement within the Core Metrics product scope.
+title: "feat: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Core Metrics intentionally covers aggregate CPU, memory, and startup-volume storage only. Requests for fan control, temperatures, privileged access, process inspection, cleaning, networking, battery monitoring, accounts, analytics, or cloud features are out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What user problem would this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the smallest useful change.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What workarounds or simpler approaches have you considered?
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope confirmation
+      options:
+        - label: This request stays within aggregate CPU, memory, startup-volume storage, UI, accessibility, reliability, or App Store readiness.
+          required: true

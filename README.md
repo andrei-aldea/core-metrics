@@ -1,48 +1,116 @@
-# Core Metrics
+<p align="center">
+  <img src="docs/assets/Core-Metrics-AppIcon-Master.png" width="128" height="128" alt="Core Metrics app icon">
+</p>
 
-Core Metrics is a focused, privacy-first macOS menu-bar utility for seeing CPU, memory, and startup-disk usage at a glance.
+<h1 align="center">Core Metrics</h1>
 
-The app is built with Swift and SwiftUI for eventual free distribution through the Mac App Store. It uses public Apple APIs, runs inside the App Sandbox, keeps metric history in memory, and has no account, network service, telemetry, analytics, advertising, or third-party dependency.
+<p align="center">
+  A lightweight, private macOS menu-bar utility for CPU, memory, and startup-disk usage.
+</p>
 
-## Status
+Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate system metrics visible without becoming an optimizer or an Activity Monitor replacement. It has no account, network service, telemetry, analytics, advertising, or third-party dependency.
 
-The native MVP is implemented:
+> [!NOTE]
+> Core Metrics is under active development and does not yet have a downloadable release. The project currently requires macOS 27 and Xcode 27.
 
-- A menu-bar-only `MenuBarExtra` shows one to five independently selected CPU, memory, and storage stats in ordered, fixed-width slots that do not resize as samples change.
-- The compact dashboard presents CPU total/user/system/idle with history; the documented Core Metrics memory estimate, App Estimate, Wired, Compressed, Available, and Total values with history; and startup-volume used/available/total capacity.
-- Settings adds, removes, and orders up to five concrete stats, changes their display mode, and shows a horizontally scrollable live preview made from the same fixed-width slots. CPU offers total/user/system/idle; memory offers percentage/used/available/total and its documented category breakdown; and storage offers percentage/used/available/total. Multiple details from the same aggregate metric can appear together. Preferences persist in `UserDefaults` and update the status label immediately.
-- The dashboard distinguishes first-sample collection from provider failures, shows a branded header and non-color-only recovery messages, preserves bounded chart history only as historical context, and retries failed reads automatically.
-- An original monochrome three-pillar Core Metrics app icon is selected in the asset catalog at every required macOS raster size; its 1024-pixel source is retained under `docs/assets`.
-- Metric acquisition, calculations, bounded history, formatting, preferences, and presentation remain separate and have automated tests around their pure behavior.
+## Highlights
 
-Current development validation uses Xcode 27.0 beta (build `27A5252f`), Apple Swift 6.4, and the macOS 27 SDK. The app deployment target is macOS 27. This beta toolchain is suitable for development validation only; an App Store archive must use a stable Xcode version supported by App Store Connect at submission time.
+- **Native macOS menu:** System Liquid Glass, hover selection, separators, nested menus, keyboard navigation, Settings, and Quit are provided by `MenuBarExtra` rather than recreated with custom controls.
+- **Customizable status item:** Choose and order one to five stats. Fixed percentage and byte-value columns keep every slot stable while values update.
+- **Useful detail on demand:** Open a compact dashboard for recent CPU and memory history, memory categories, and startup-volume capacity.
+- **Local and private:** Samples stay on the Mac, recent history is bounded in memory, and nothing is transmitted or persisted as telemetry.
+- **Graceful failure handling:** An unavailable provider clears its current reading, explains the recovery state, and retries automatically instead of presenting stale data as live.
+- **Mac App Store-oriented:** App Sandbox is enabled, the app uses documented public Apple APIs, and privacy-manifest declarations are kept narrow and truthful.
 
-## Build and test
+## Metrics
+
+| Category | Available representations |
+| --- | --- |
+| CPU | Total used, user, system, idle |
+| Memory | Used percentage, used, available, App Estimate, wired, compressed, total |
+| Storage | Used percentage, used, available, total for the startup volume |
+
+The exact formulas and storage semantics are documented in [docs/METRICS.md](docs/METRICS.md).
+
+## Requirements
+
+- macOS 27 or later
+- Xcode 27 or later
+
+The current development baseline is Xcode 27.0 beta (`27A5252f`) with Apple Swift 6.4. A future App Store archive must be produced with a stable Xcode version accepted by App Store Connect.
+
+## Build
+
+Clone the repository and open `Core Metrics.xcodeproj`, or build without signing from Terminal:
 
 ```sh
+git clone <repository-url>
+cd core-metrics
 xcodebuild -list -project "Core Metrics.xcodeproj"
-xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
-xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO test
+xcodebuild \
+  -project "Core Metrics.xcodeproj" \
+  -scheme "Core Metrics" \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  build
 ```
 
-Open `Core Metrics.xcodeproj` in Xcode to run and inspect the menu-bar interface.
+After launching, Core Metrics appears only in the menu bar. Select **Show Core Metrics** for the detailed dashboard or **Settings…** to change the status-item layout.
 
-The shared scheme compiles the app, unit-test target, and UI-test target while keeping the unsigned repeatable command focused on unit-test execution. The UI test remains available for a signed targeted smoke run; real status-item, dashboard, and Settings verification is performed from the running app in Xcode.
+## Test
+
+Run the repeatable unit suite without code signing:
+
+```sh
+xcodebuild \
+  -project "Core Metrics.xcodeproj" \
+  -scheme "Core Metrics" \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  test
+```
+
+The separate `Core Metrics UI Tests` scheme covers status-item and dashboard activation. UI tests require a signed local build and an interactive macOS session with working automation permissions.
+
+## Architecture
+
+The app separates system acquisition, pure calculation, sampling/history, preferences, and SwiftUI presentation:
+
+```text
+Documented Apple APIs
+        ↓
+Metric providers
+        ↓
+Pure calculations and snapshots
+        ↓
+MetricsStore + bounded in-memory history
+        ↓
+Menu bar · Native menu · Dashboard · Settings
+```
+
+Additional documentation:
+
+- [Architecture](docs/ARCHITECTURE.md)
+- [Design principles](docs/DESIGN.md)
+- [Architecture decisions](docs/DECISIONS.md)
+- [Metric definitions](docs/METRICS.md)
+- [App Store readiness](docs/APP_STORE.md)
+- [Icon provenance](docs/ICON.md)
 
 ## Privacy
 
-Core Metrics reads local aggregate system counters only. It does not inspect arbitrary processes or files, persist metric history, or transmit data.
+Core Metrics reads aggregate CPU counters, aggregate virtual-memory counters, and startup-volume capacity locally. It does not inspect arbitrary processes or files, make network requests, persist metric history, or collect personal data.
 
-If a metric read fails, the current value changes to an unavailable state instead of displaying an old sample as live. Valid chart history remains bounded in memory so it can continue when sampling recovers. CPU and memory retry on their normal fast cadence, while storage temporarily switches from its normal 30-second cadence to the fast retry cadence. Failure and recovery transitions are logged without including metric values or machine-specific details.
+Only menu-bar preferences are stored in `UserDefaults`. The privacy manifest declares no tracking or collected data. See [docs/APP_STORE.md](docs/APP_STORE.md) for the current privacy and release audit.
 
-## Release status
+## Scope
 
-The MVP is not yet an App Store submission artifact. The original flattened app icon is integrated, but the publisher still needs to review its final store appearance and may choose to convert the retained master into an editable layered Icon Composer source. Before release, the publisher must replace the placeholder bundle identifier, configure team and distribution signing locally, publish privacy-policy and support URLs, add an easily accessible in-app privacy-policy link, complete the App Store privacy label and metadata, and validate a signed archive made with a supported stable Xcode. The final archive must retain App Sandbox and hardened runtime while containing no `get-task-allow` entitlement.
+Core Metrics intentionally excludes process inspection, temperature probing, fan control, SMC or private APIs, privileged helpers, cleaning, file scanning, malware features, hardware tuning, battery/network monitoring, accounts, cloud services, analytics, ads, subscriptions, and purchases.
 
-Never commit developer team IDs, certificates, provisioning profiles, Apple IDs, personal Git metadata, or machine-specific Xcode data. See [docs/APP_STORE.md](docs/APP_STORE.md) for the full audit and release checklist.
+## Contributing
 
-See [AGENTS.md](AGENTS.md) for contributor rules and [docs](docs) for architecture, metric semantics, design, icon provenance, and App Store notes.
+Issues and focused pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and keep proposals within the product scope above.
 
 ## License
 
-A repository license has not yet been selected.
+No license has been selected yet. The source is publicly visible, but no permission to copy, modify, or redistribute it is granted unless a license is added later.

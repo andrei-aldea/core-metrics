@@ -77,6 +77,43 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         }
     }
 
+    /// Compact wording for the dashboard's selected-stat summary. Percentage
+    /// variants keep the suffix so they remain distinct from byte variants.
+    var dashboardName: String {
+        switch self {
+        case .cpuTotal:
+            "CPU Used"
+        case .cpuUser:
+            "CPU User"
+        case .cpuSystem:
+            "CPU System"
+        case .cpuIdle:
+            "CPU Idle"
+        case .memoryPercentage:
+            "Memory Used %"
+        case .memoryUsed:
+            "Memory Used"
+        case .memoryAvailable:
+            "Memory Available"
+        case .memoryAppEstimate:
+            "Memory App Estimate"
+        case .memoryWired:
+            "Memory Wired"
+        case .memoryCompressed:
+            "Memory Compressed"
+        case .memoryTotal:
+            "Memory Total"
+        case .storagePercentage:
+            "Storage Used %"
+        case .storageUsed:
+            "Storage Used"
+        case .storageAvailable:
+            "Storage Available"
+        case .storageTotal:
+            "Storage Total"
+        }
+    }
+
     /// Stable, terse text that distinguishes each stat in compact mode.
     var shortCode: String {
         switch self {

@@ -3,53 +3,50 @@ import SwiftUI
 struct DashboardView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(MetricsStore.self) private var metricsStore
+    @Environment(PreferencesStore.self) private var preferencesStore
 
     var body: some View {
-        VStack(spacing: 0) {
-            DashboardHeaderView(
-                isSampling: metricsStore.isSampling,
-                hasSamplingIssue: metricsStore.hasSamplingIssue
-            )
-                .padding(.horizontal)
-                .padding(.vertical, DashboardLayout.chromeVerticalPadding)
+        ScrollView {
+            VStack(spacing: 0) {
+                DashboardSelectedStatsView(
+                    stats: preferencesStore.enabledStats,
+                    cpuUsage: metricsStore.cpuUsage,
+                    memoryUsage: metricsStore.memoryUsage,
+                    storageUsage: metricsStore.storageUsage
+                )
 
-            Divider()
+                Divider()
+                    .padding(.horizontal)
 
-            ScrollView {
-                VStack(spacing: 0) {
-                    CPUSectionView(
-                        usage: metricsStore.cpuUsage,
-                        history: metricsStore.cpuHistory,
-                        sampleState: metricsStore.cpuSampleState
-                    )
+                CPUSectionView(
+                    usage: metricsStore.cpuUsage,
+                    history: metricsStore.cpuHistory,
+                    sampleState: metricsStore.cpuSampleState
+                )
 
-                    Divider()
+                Divider()
+                    .padding(.horizontal)
 
-                    MemorySectionView(
-                        usage: metricsStore.memoryUsage,
-                        history: metricsStore.memoryHistory,
-                        sampleState: metricsStore.memorySampleState
-                    )
+                MemorySectionView(
+                    usage: metricsStore.memoryUsage,
+                    history: metricsStore.memoryHistory,
+                    sampleState: metricsStore.memorySampleState
+                )
 
-                    Divider()
+                Divider()
+                    .padding(.horizontal)
 
-                    StorageSectionView(
-                        usage: metricsStore.storageUsage,
-                        sampleState: metricsStore.storageSampleState
-                    )
-                }
+                StorageSectionView(
+                    usage: metricsStore.storageUsage,
+                    sampleState: metricsStore.storageSampleState
+                )
             }
-            .frame(
-                idealHeight: DashboardLayout.contentIdealHeight,
-                maxHeight: DashboardLayout.contentMaximumHeight
-            )
-
-            Divider()
-
-            DashboardFooterView()
-                .padding(.horizontal)
-                .padding(.vertical, DashboardLayout.chromeVerticalPadding)
         }
+        .frame(
+            minHeight: DashboardLayout.contentMinimumHeight,
+            idealHeight: DashboardLayout.contentIdealHeight,
+            maxHeight: DashboardLayout.contentMaximumHeight
+        )
         .frame(width: panelWidth)
     }
 

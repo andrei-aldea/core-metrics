@@ -32,7 +32,7 @@
 
 ## ADR-004 — macOS 27 minimum and platform-native appearance
 
-**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. Use native `glassEffect` and glass button styles sparingly for the live-status and interactive layer, while keeping metric content on one clear plane. Do not add custom blur stacks or decorative glass replicas.
+**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. The status item uses the native menu presentation so macOS owns its Liquid Glass, selection, separators, keyboard behavior, and submenus. Custom dashboard content stays on one clear plane. Do not add custom blur stacks or decorative glass replicas.
 
 **Reasoning:** The product explicitly requires macOS 27 and can therefore use one current UI baseline without availability branches for older releases. Apple's [Liquid Glass adoption guide](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) says standard controls adopt the current appearance automatically, and its [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) warns against excessive effects and containers.
 
@@ -42,13 +42,13 @@
 
 ## ADR-005 — Menu-bar-only primary lifecycle
 
-**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.window)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. Do not persist or expose an `isInserted` switch in version 1.
+**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.menu)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. A suppressed-at-launch `Window` scene presents the detailed dashboard only when requested. Do not persist or expose an `isInserted` switch in version 1.
 
-**Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and states that removing the only extra terminates the app. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
+**Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and states that removing the only extra terminates the app. The menu style matches standard macOS status utilities and provides more consistent behavior than recreating a menu inside a custom popover. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
 
 **Alternatives considered:** A permanent Dock icon, runtime activation-policy changes, AppKit `NSStatusItem`, and a persistently hideable extra.
 
-**Consequences:** Settings and Quit must be available in the menu panel. Removal, relaunch, Settings activation, and behavior when menu-bar space is constrained require real-app testing.
+**Consequences:** Selected stats, direct customization, display mode, Settings, and Quit remain available in the status menu. Rich history and breakdowns move to an on-demand standard window. Removal, relaunch, menu updates, window activation, Settings activation, and behavior when menu-bar space is constrained require real-app testing.
 
 ## ADR-006 — Activity Monitor-category-aligned memory estimate
 

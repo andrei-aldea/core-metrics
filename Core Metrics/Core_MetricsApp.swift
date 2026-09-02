@@ -7,7 +7,7 @@ struct CoreMetricsApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            DashboardView()
+            MenuBarMenuView()
                 .environment(metricsStore)
                 .environment(preferencesStore)
                 .tint(Color.primary)
@@ -16,7 +16,16 @@ struct CoreMetricsApp: App {
                 .environment(metricsStore)
                 .environment(preferencesStore)
         }
-        .menuBarExtraStyle(.window)
+        .menuBarExtraStyle(.menu)
+
+        Window("Core Metrics", id: DashboardLayout.windowIdentifier) {
+            DashboardView()
+                .environment(metricsStore)
+                .environment(preferencesStore)
+                .tint(Color.primary)
+        }
+        .defaultLaunchBehavior(.suppressed)
+        .windowResizability(.contentSize)
 
         Settings {
             SettingsView()

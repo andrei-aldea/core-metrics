@@ -10,15 +10,16 @@ Core Metrics uses a small layered architecture designed to keep system acquisiti
 4. A main-actor observable metrics store publishes current snapshots and bounded in-memory history.
 5. SwiftUI menu-bar and dashboard views render the metrics store, while Settings and the status label observe a dedicated preferences store.
 
-The UI never calls Mach or volume-capacity APIs directly. Provider errors clear the affected current snapshot so an old reading is never represented as live. The UI renders an unavailable value, explains that recovery is automatic, and changes the dashboard header to a limited status until sampling recovers. A separate collecting state represents normal first-sample latency.
+The UI never calls Mach or volume-capacity APIs directly. Provider errors clear the affected current snapshot so an old reading is never represented as live. The UI renders an unavailable value and the affected section explains that recovery is automatic. A separate collecting state represents normal first-sample latency.
 
 ## Application surfaces
 
-- `MenuBarExtra` is the primary scene and uses the native window style for a popover-like dashboard.
+- `MenuBarExtra` is the primary scene and uses the native menu style.
 - The label shows an ordered, validated selection of one to five concrete stats. Percentage and byte-value columns have separate fixed widths, so live samples cannot resize an individual slot.
-- The dashboard presents CPU and memory history, CPU and memory-category detail rows, startup-volume progress, sampling status, Settings, and Quit.
+- The status menu shows the selected live values and provides native submenus for stat selection and display mode, followed by Settings and Quit.
+- `Show Core Metrics` opens a suppressed-at-launch standard window containing a flat selected-stat summary, CPU and memory history, memory-category detail rows, and startup-volume progress. Its scroll region has a minimum height so the content remains usable at launch while still adapting to accessibility text sizes.
 - A native `Settings` scene adds, removes, and orders menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar slot view without forcing the Settings window wider.
-- `LSUIElement` keeps the app out of the Dock and application switcher. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
+- `LSUIElement` keeps the app out of the Dock and application switcher. The dashboard window activates the app only when explicitly opened. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
 
 ## Concurrency
 

@@ -40,6 +40,13 @@ struct MenuBarConfigurationTests {
             "M%", "MU", "MA", "ME", "MW", "MC", "MT",
             "S%", "SU", "SA", "ST",
         ])
+        #expect(MenuBarStat.allCases.map(\.dashboardName) == [
+            "CPU Used", "CPU User", "CPU System", "CPU Idle",
+            "Memory Used %", "Memory Used", "Memory Available",
+            "Memory App Estimate", "Memory Wired", "Memory Compressed",
+            "Memory Total", "Storage Used %", "Storage Used",
+            "Storage Available", "Storage Total",
+        ])
     }
 
     @Test("Display modes have stable persistence values")

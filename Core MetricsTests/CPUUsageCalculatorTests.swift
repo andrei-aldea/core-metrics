@@ -13,7 +13,7 @@ struct CPUUsageCalculatorTests {
         #expect(isClose(usage.user, 0.2))
         #expect(isClose(usage.system, 0.2))
         #expect(isClose(usage.idle, 0.6))
-        #expect(isClose(usage.user + usage.system, 0.4))
+        #expect(isClose(usage.used, 0.4))
         #expect(isClose(usage.user + usage.system + usage.idle, 1))
     }
 
@@ -34,7 +34,7 @@ struct CPUUsageCalculatorTests {
         #expect(isClose(usage.user, 0.5))
         #expect(isClose(usage.system, 0.25))
         #expect(isClose(usage.idle, 0.25))
-        #expect(isClose(usage.user + usage.system, 0.75))
+        #expect(isClose(usage.used, 0.75))
     }
 
     @Test("Counter scale does not change normalized usage", arguments: [UInt32(1), 2, 8, 64])
@@ -48,7 +48,7 @@ struct CPUUsageCalculatorTests {
         )
 
         let usage = try #require(CPUUsageCalculator.calculate(previous: previous, current: current))
-        #expect(isClose(usage.user + usage.system, 0.3))
+        #expect(isClose(usage.used, 0.3))
         #expect(isClose(usage.idle, 0.7))
     }
 
@@ -70,7 +70,7 @@ struct CPUUsageCalculatorTests {
 
         let resumedUsage = accumulator.consume(resumed)
         let usage = try #require(resumedUsage)
-        #expect(isClose(usage.user + usage.system, 0.2))
+        #expect(isClose(usage.used, 0.2))
 
         accumulator.reset()
         let resetUsage = accumulator.consume(resumed)

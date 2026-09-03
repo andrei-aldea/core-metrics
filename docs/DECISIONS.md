@@ -52,11 +52,11 @@
 
 ## ADR-006 — Activity Monitor-aligned memory categories
 
-**Decision:** Define Cached Files from the public file-backed `external_page_count`, define Memory Used as physical total minus free and cached bytes, and read Swap Used through the public `CTL_VM` / `VM_SWAPUSAGE` sysctl. Clamp all physical-memory arithmetic defensively. Treat a failed swap read as a partial-value failure rather than discarding Memory Used and Cached Files.
+**Decision:** Define Cached Files from the public file-backed `external_page_count`, define Memory Used as physical total minus free and cached bytes, expose Wired and Compressed Memory from `wire_count` and `compressor_page_count`, expose Physical Memory from `ProcessInfo.physicalMemory`, and read Swap Used through the public `CTL_VM` / `VM_SWAPUSAGE` sysctl. Derive Memory Used Percentage from the validated snapshot. Clamp all physical-memory arithmetic defensively. Treat a failed swap read as a partial-value failure rather than discarding the other memory values.
 
-**Reasoning:** Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) defines the three requested categories. The documented [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t) and Apple's public XNU `sysctl.h` expose corresponding aggregate counters without process inspection or private frameworks.
+**Reasoning:** Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) defines these aggregate categories. The documented [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t), [`ProcessInfo.physicalMemory`](https://developer.apple.com/documentation/foundation/processinfo/physicalmemory), and Apple's public XNU `sysctl.h` expose corresponding values without process inspection or private frameworks.
 
-**Alternatives considered:** The former App Estimate + Wired + Compressor approximation, parsing command output, inspecting Activity Monitor, private frameworks, and treating swap failure as failure of the entire memory sample.
+**Alternatives considered:** Reintroducing an estimated App Memory category, using the uncompressed logical page total as Compressed Memory, parsing command output, inspecting Activity Monitor, private frameworks, and treating swap failure as failure of the entire memory sample.
 
 **Consequences:** The categories and units align with Activity Monitor, but independently timed samples can differ briefly. Documentation must not claim that Core Metrics reads Activity Monitor's private implementation.
 

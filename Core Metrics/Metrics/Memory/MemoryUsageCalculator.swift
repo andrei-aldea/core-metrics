@@ -7,6 +7,8 @@ import Foundation
 ///     cached = clamp(externalPages * pageSize, 0...total)
 ///     free   = clamp(freePages * pageSize, 0...total)
 ///     used   = total - clamp(cached + free, 0...total)
+///     wired = clamp(wiredPages * pageSize, 0...total)
+///     compressed = clamp(compressorPages * pageSize, 0...total)
 ///
 /// Apple's Activity Monitor guide defines Cached Files as unused file-backed
 /// memory and Memory Used as RAM currently in use. The public counters can
@@ -30,11 +32,22 @@ nonisolated enum MemoryUsageCalculator {
             saturatingAdd(cachedBytes, freeBytes)
         )
         let usedBytes = raw.totalBytes - reclaimableBytes
+        let wiredBytes = min(
+            raw.totalBytes,
+            saturatingMultiply(raw.wiredPageCount, raw.pageSizeBytes)
+        )
+        let compressedBytes = min(
+            raw.totalBytes,
+            saturatingMultiply(raw.compressorPageCount, raw.pageSizeBytes)
+        )
 
         return MemoryUsage(
             usedBytes: usedBytes,
             cachedBytes: cachedBytes,
-            swapUsedBytes: raw.swapUsedBytes
+            swapUsedBytes: raw.swapUsedBytes,
+            wiredBytes: wiredBytes,
+            compressedBytes: compressedBytes,
+            totalBytes: raw.totalBytes
         )
     }
 

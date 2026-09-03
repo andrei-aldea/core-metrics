@@ -262,7 +262,10 @@ private nonisolated struct FixedMemoryProvider: MemoryMetricsProviding {
         MemoryUsage(
             usedBytes: 60,
             cachedBytes: 40,
-            swapUsedBytes: 5
+            swapUsedBytes: 5,
+            wiredBytes: 20,
+            compressedBytes: 10,
+            totalBytes: 100
         )
     }
 }

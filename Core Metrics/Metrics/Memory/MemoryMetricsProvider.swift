@@ -70,12 +70,14 @@ nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {
             pageSizeBytes: pageSizeBytes,
             freePageCount: UInt64(statistics.free_count),
             externalPageCount: UInt64(statistics.external_page_count),
+            wiredPageCount: UInt64(statistics.wire_count),
+            compressorPageCount: UInt64(statistics.compressor_page_count),
             swapUsedBytes: swapUsedBytes()
         )
     }
 
     /// Swap is useful but not required for the other memory values. Returning
-    /// `nil` keeps Memory Used and Cached Files live when this independent read
+    /// `nil` keeps the physical-memory values live when this independent read
     /// is temporarily unavailable.
     private func swapUsedBytes() -> UInt64? {
         var name = [CTL_VM, VM_SWAPUSAGE]

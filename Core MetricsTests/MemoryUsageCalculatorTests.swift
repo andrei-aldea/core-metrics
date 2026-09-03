@@ -10,6 +10,8 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: 10,
             freePageCount: 10,
             externalPageCount: 20,
+            wiredPageCount: 30,
+            compressorPageCount: 15,
             swapUsedBytes: 50
         )
 
@@ -17,6 +19,10 @@ struct MemoryUsageCalculatorTests {
 
         #expect(usage.usedBytes == 700)
         #expect(usage.cachedBytes == 200)
+        #expect(usage.wiredBytes == 300)
+        #expect(usage.compressedBytes == 150)
+        #expect(usage.totalBytes == 1_000)
+        #expect(usage.usedFraction == 0.7)
         #expect(usage.swapUsedBytes == 50)
     }
 
@@ -27,12 +33,16 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: 100,
             freePageCount: 10,
             externalPageCount: 10,
+            wiredPageCount: 20,
+            compressorPageCount: 20,
             swapUsedBytes: 0
         )
 
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.usedBytes == 0)
         #expect(usage.cachedBytes == 1_000)
+        #expect(usage.wiredBytes == 1_000)
+        #expect(usage.compressedBytes == 1_000)
         #expect(usage.swapUsedBytes == 0)
     }
 
@@ -43,12 +53,16 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: .max,
             freePageCount: .max,
             externalPageCount: .max,
+            wiredPageCount: .max,
+            compressorPageCount: .max,
             swapUsedBytes: .max
         )
 
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.usedBytes == 0)
         #expect(usage.cachedBytes == 4_096)
+        #expect(usage.wiredBytes == 4_096)
+        #expect(usage.compressedBytes == 4_096)
         #expect(usage.swapUsedBytes == .max)
     }
 
@@ -59,12 +73,17 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: 10,
             freePageCount: 10,
             externalPageCount: 20,
+            wiredPageCount: 30,
+            compressorPageCount: 15,
             swapUsedBytes: nil
         )
 
         let usage = try #require(MemoryUsageCalculator.calculate(from: raw))
         #expect(usage.usedBytes == 700)
         #expect(usage.cachedBytes == 200)
+        #expect(usage.wiredBytes == 300)
+        #expect(usage.compressedBytes == 150)
+        #expect(usage.totalBytes == 1_000)
         #expect(usage.swapUsedBytes == nil)
     }
 
@@ -74,6 +93,8 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: 4_096,
             freePageCount: 0,
             externalPageCount: 0,
+            wiredPageCount: 0,
+            compressorPageCount: 0,
             swapUsedBytes: 0
         ),
         MemoryRawCounters(
@@ -81,6 +102,8 @@ struct MemoryUsageCalculatorTests {
             pageSizeBytes: 0,
             freePageCount: 0,
             externalPageCount: 0,
+            wiredPageCount: 0,
+            compressorPageCount: 0,
             swapUsedBytes: 0
         ),
     ])

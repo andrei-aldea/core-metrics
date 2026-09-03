@@ -56,13 +56,19 @@ struct MetricFormattingTests {
     }
 
     @Test("Routes every concrete menu-bar stat to its value", arguments: [
-        (MenuBarStat.cpuUser, "15%"),
+        (MenuBarStat.cpuUsed, "40%"),
+        (.cpuUser, "15%"),
         (.cpuSystem, "25%"),
         (.cpuIdle, "60%"),
         (.memoryUsed, "12.0GB"),
+        (.memoryUsedPercentage, "75%"),
+        (.memoryWired, "4.0GB"),
+        (.memoryCompressed, "2.5GB"),
         (.memoryCached, "3.0GB"),
         (.memorySwap, "1.0GB"),
+        (.memoryTotal, "16.0GB"),
         (.storageUsed, "857.0GB"),
+        (.storageUsedPercentage, "86%"),
         (.storageFree, "143.0GB"),
         (.storageTotal, "1.0TB"),
     ])
@@ -71,7 +77,10 @@ struct MetricFormattingTests {
         let memory = MemoryUsage(
             usedBytes: 12 * 1_024 * 1_024 * 1_024,
             cachedBytes: 3 * 1_024 * 1_024 * 1_024,
-            swapUsedBytes: 1 * 1_024 * 1_024 * 1_024
+            swapUsedBytes: 1 * 1_024 * 1_024 * 1_024,
+            wiredBytes: 4 * 1_024 * 1_024 * 1_024,
+            compressedBytes: 5 * 1_024 * 1_024 * 1_024 / 2,
+            totalBytes: 16 * 1_024 * 1_024 * 1_024
         )
         let storage = StorageUsage(
             usedBytes: 857_000_000_000,
@@ -95,12 +104,18 @@ struct MetricFormattingTests {
         let memoryWithoutSwap = MemoryUsage(
             usedBytes: 12,
             cachedBytes: 3,
-            swapUsedBytes: nil
+            swapUsedBytes: nil,
+            wiredBytes: 4,
+            compressedBytes: 2,
+            totalBytes: 16
         )
 
+        #expect(formattedValue(for: .cpuUsed, cpu: nil) == "—")
         #expect(formattedValue(for: .cpuIdle, cpu: nil) == "—")
         #expect(formattedValue(for: .memoryUsed, memory: nil) == "—")
+        #expect(formattedValue(for: .memoryWired, memory: nil) == "—")
         #expect(formattedValue(for: .memorySwap, memory: memoryWithoutSwap) == "—")
+        #expect(formattedValue(for: .storageUsedPercentage, storage: nil) == "—")
         #expect(formattedValue(for: .storageFree, storage: nil) == "—")
     }
 
@@ -169,22 +184,22 @@ struct MetricFormattingTests {
     @Test("Each live value keeps a stable menu-bar column width")
     func reservesStableStatusValueWidth() {
         let stats: [MenuBarStat] = [
-            .cpuUser,
-            .cpuSystem,
-            .cpuIdle,
-            .memoryUsed,
-            .memorySwap,
-            .storageUsed,
-            .storageFree,
+            .cpuUsed,
+            .memoryUsedPercentage,
+            .memoryWired,
+            .memoryCompressed,
+            .memoryTotal,
+            .storageUsedPercentage,
+            .storageTotal,
         ]
         let shorterValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["9%", "1%", "90%", "2.1GB", "—", "9.0GB", "1.0TB"],
+            values: ["9%", "1%", "2.1GB", "1.0GB", "8.0GB", "9%", "9.0GB"],
             displayMode: .compact
         )
         let longerValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["100%", "99%", "100%", "1023.9GB", "88.8GB", "999.9GB", "999.9TB"],
+            values: ["100%", "100%", "1023.9GB", "999.9GB", "999.9GB", "100%", "999.9TB"],
             displayMode: .compact
         )
 

@@ -2,7 +2,7 @@ import Foundation
 
 /// Durable, validated menu-bar preferences.
 ///
-/// `enabledStats` is always unique, follows the widget's canonical order, and
+/// `enabledStats` is always unique, follows the panel's canonical order, and
 /// contains between one and seven concrete aggregate statistics. All mutations
 /// preserve this invariant, including values decoded from UserDefaults.
 nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
@@ -131,20 +131,25 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
                 switch metric {
                 case .cpu:
                     switch cpuStyle {
-                    case .total, .user: .cpuUser
+                    case .total: .cpuUsed
+                    case .user: .cpuUser
                     case .system: .cpuSystem
                     case .idle: .cpuIdle
                     }
                 case .memory:
                     switch memoryStyle {
                     case .available: .memoryCached
-                    case .percentage, .used, .appEstimate, .wired,
-                         .compressed, .total: .memoryUsed
+                    case .percentage: .memoryUsedPercentage
+                    case .used, .appEstimate: .memoryUsed
+                    case .wired: .memoryWired
+                    case .compressed: .memoryCompressed
+                    case .total: .memoryTotal
                     }
                 case .storage:
                     switch storageStyle {
                     case .available: .storageFree
-                    case .percentage, .used: .storageUsed
+                    case .percentage: .storageUsedPercentage
+                    case .used: .storageUsed
                     case .total: .storageTotal
                     }
                 }
@@ -161,9 +166,9 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
 
     private static func normalized(_ stats: [MenuBarStat]) -> [MenuBarStat] {
         let selectedStats = Set(stats)
-        let widgetOrderedStats = MenuBarStat.allCases.filter(selectedStats.contains)
+        let panelOrderedStats = MenuBarStat.allCases.filter(selectedStats.contains)
         let boundedStats = Array(
-            widgetOrderedStats.prefix(Self.maximumEnabledStatCount)
+            panelOrderedStats.prefix(Self.maximumEnabledStatCount)
         )
         return boundedStats.isEmpty ? [.cpuUser] : boundedStats
     }

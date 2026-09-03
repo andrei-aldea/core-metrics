@@ -17,7 +17,7 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 
 - **Native macOS panel:** The system-presented `MenuBarExtra` window supplies current Liquid Glass while keeping all selection controls open for repeated changes.
 - **Customizable status item:** Choose up to seven stats. They always follow the panel's CPU → Memory → Storage order, and one-decimal values with full unit abbreviations use fixed eight-character columns inside a fixed-width status item to prevent width jitter.
-- **Focused system values:** CPU User/System/Idle, Memory Used/Cached Files/Swap Used, and startup-disk Free/Used/Total are available—without charts or duplicated values in the panel.
+- **Focused system values:** Choose aggregate CPU utilization and breakdowns, Activity Monitor-style memory totals and categories, or startup-disk capacity and percentages—without charts or duplicated live values in the panel.
 - **Local and private:** Samples stay on the Mac, no metric history is retained, and nothing is transmitted or persisted as telemetry.
 - **Graceful failure handling:** An unavailable provider clears its current reading, shows a stable placeholder, and retries automatically instead of presenting stale data as live.
 - **Mac App Store-oriented:** App Sandbox is enabled, the app uses documented public Apple APIs, and privacy-manifest declarations are kept narrow and truthful.
@@ -26,9 +26,9 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 
 | Category | Available representations |
 | --- | --- |
-| CPU | User, system, idle percentages |
-| Memory | Memory Used, Cached Files, Swap Used |
-| Storage | Free space, used space, total capacity for the startup volume |
+| CPU | Used, user, system, and idle percentages |
+| Memory | Memory Used, used percentage, Wired Memory, Compressed Memory, Cached Files, Swap Used, and Physical Memory |
+| Storage | Used space, used percentage, free space, and total capacity for the startup volume |
 
 The exact formulas and storage semantics are documented in [docs/METRICS.md](docs/METRICS.md).
 

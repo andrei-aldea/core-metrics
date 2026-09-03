@@ -38,7 +38,7 @@ CPU and memory normally refresh every two seconds. Storage refreshes every 30 se
 
 ## State and persistence
 
-Version 1 retains no history, has no database, and persists no telemetry. Only user-facing menu-bar preferences are stored in `UserDefaults` as a validated configuration. The preferences model owns the serialization boundary, repairs decoded uniqueness/count invariants, replaces a malformed stored payload with defaults, migrates both earlier schemas into the current nine concrete stat slots, and publishes changes immediately to the status label, panel, and Settings.
+Version 1 retains no history, has no database, and persists no telemetry. Only user-facing menu-bar preferences are stored in `UserDefaults` as a validated configuration. The preferences model owns the serialization boundary, repairs decoded uniqueness/count invariants, replaces a malformed stored payload with defaults, migrates both earlier schemas into the current fifteen concrete stat choices, and publishes changes immediately to the status label, panel, and Settings.
 
 ## Dependency policy
 

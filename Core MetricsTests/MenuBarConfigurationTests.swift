@@ -16,23 +16,29 @@ struct MenuBarConfigurationTests {
     func menuBarStatMetadata() {
         #expect(MenuBarConfiguration.maximumEnabledStatCount == 7)
         #expect(MenuBarStat.allCases.map(\.rawValue) == [
+            "cpuTotal",
             "cpuUser",
             "cpuSystem",
             "cpuIdle",
             "memoryUsed",
+            "memoryPercentage",
+            "memoryWired",
+            "memoryCompressed",
             "memoryCached",
             "memorySwap",
+            "memoryTotal",
             "storageUsed",
+            "storagePercentage",
             "storageAvailable",
             "storageTotal",
         ])
-        #expect(MenuBarStat.values(for: .cpu).count == 3)
-        #expect(MenuBarStat.values(for: .memory).count == 3)
-        #expect(MenuBarStat.values(for: .storage).count == 3)
+        #expect(MenuBarStat.values(for: .cpu).count == 4)
+        #expect(MenuBarStat.values(for: .memory).count == 7)
+        #expect(MenuBarStat.values(for: .storage).count == 4)
         #expect(MenuBarStat.allCases.map(\.shortCode) == [
-            "CU", "CS", "CI",
-            "MU", "CF", "SW",
-            "SU", "SF", "ST",
+            "C%", "CU", "CS", "CI",
+            "MU", "M%", "MW", "MC", "CF", "SW", "PM",
+            "SU", "S%", "SF", "ST",
         ])
     }
 
@@ -50,7 +56,15 @@ struct MenuBarConfigurationTests {
         ([.memoryUsed, .cpuUser, .memoryUsed], [.cpuUser, .memoryUsed]),
         (
             Array(MenuBarStat.allCases.reversed()),
-            [.cpuUser, .cpuSystem, .cpuIdle, .memoryUsed, .memoryCached, .memorySwap, .storageUsed]
+            [
+                .cpuUsed,
+                .cpuUser,
+                .cpuSystem,
+                .cpuIdle,
+                .memoryUsed,
+                .memoryUsedPercentage,
+                .memoryWired,
+            ]
         ),
     ])
     func normalizesEnabledStats(input: [MenuBarStat], expected: [MenuBarStat]) {
@@ -79,8 +93,8 @@ struct MenuBarConfigurationTests {
         #expect(!refusedOnlyMemoryDisable)
     }
 
-    @Test("Stats follow widget order and stop at seven")
-    func enablesStatsInWidgetOrder() {
+    @Test("Stats follow panel order and stop at seven")
+    func enablesStatsInPanelOrder() {
         var configuration = MenuBarConfiguration()
 
         let enabledStorageTotal = configuration.setStat(.storageTotal, enabled: true)
@@ -167,14 +181,14 @@ struct MenuBarConfigurationTests {
         let configuration = try JSONDecoder().decode(MenuBarConfiguration.self, from: data)
         #expect(configuration.enabledStats == [
             .cpuSystem,
-            .memoryUsed,
+            .memoryCompressed,
             .storageFree,
         ])
         #expect(configuration.displayMode == .compact)
     }
 
     @Test("Every version 1 CPU style remains decodable", arguments: [
-        ("total", MenuBarStat.cpuUser),
+        ("total", MenuBarStat.cpuUsed),
         ("user", .cpuUser),
         ("system", .cpuSystem),
         ("idle", .cpuIdle),
@@ -192,13 +206,13 @@ struct MenuBarConfigurationTests {
     }
 
     @Test("Every version 1 memory style remains decodable", arguments: [
-        ("percentage", MenuBarStat.memoryUsed),
+        ("percentage", MenuBarStat.memoryUsedPercentage),
         ("used", .memoryUsed),
         ("available", .memoryCached),
         ("appEstimate", .memoryUsed),
-        ("wired", .memoryUsed),
-        ("compressed", .memoryUsed),
-        ("total", .memoryUsed),
+        ("wired", .memoryWired),
+        ("compressed", .memoryCompressed),
+        ("total", .memoryTotal),
     ])
     func migratesEveryVersionOneMemoryStyle(
         rawValue: String,
@@ -213,7 +227,7 @@ struct MenuBarConfigurationTests {
     }
 
     @Test("Every version 1 storage style remains decodable", arguments: [
-        ("percentage", MenuBarStat.storageUsed),
+        ("percentage", MenuBarStat.storageUsedPercentage),
         ("used", .storageUsed),
         ("available", .storageFree),
         ("total", .storageTotal),
@@ -248,10 +262,10 @@ struct MenuBarConfigurationTests {
 
         let configuration = try JSONDecoder().decode(MenuBarConfiguration.self, from: data)
         #expect(configuration.enabledStats == [
-            .cpuUser,
+            .cpuUsed,
             .memoryCached,
             .memorySwap,
-            .storageUsed,
+            .storageUsedPercentage,
         ])
         #expect(configuration.displayMode == .labelAndValue)
     }

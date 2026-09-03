@@ -9,4 +9,8 @@ nonisolated struct CPUUsage: Equatable, Sendable {
     let user: Double
     let system: Double
     let idle: Double
+
+    var used: Double {
+        user + system
+    }
 }

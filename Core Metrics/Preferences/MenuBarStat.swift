@@ -5,13 +5,19 @@ import Foundation
 /// Raw values are persistence identifiers. Keep them stable when changing
 /// user-facing names.
 nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifiable, Sendable {
+    case cpuUsed = "cpuTotal"
     case cpuUser
     case cpuSystem
     case cpuIdle
     case memoryUsed
+    case memoryUsedPercentage = "memoryPercentage"
+    case memoryWired
+    case memoryCompressed
     case memoryCached
     case memorySwap
+    case memoryTotal
     case storageUsed
+    case storageUsedPercentage = "storagePercentage"
     case storageFree = "storageAvailable"
     case storageTotal
 
@@ -21,17 +27,20 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
 
     var metric: MetricKind {
         switch self {
-        case .cpuUser, .cpuSystem, .cpuIdle:
+        case .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle:
             .cpu
-        case .memoryUsed, .memoryCached, .memorySwap:
+        case .memoryUsed, .memoryUsedPercentage, .memoryWired,
+             .memoryCompressed, .memoryCached, .memorySwap, .memoryTotal:
             .memory
-        case .storageUsed, .storageFree, .storageTotal:
+        case .storageUsed, .storageUsedPercentage, .storageFree, .storageTotal:
             .storage
         }
     }
 
     var displayName: String {
         switch self {
+        case .cpuUsed:
+            "CPU Used"
         case .cpuUser:
             "CPU User"
         case .cpuSystem:
@@ -40,12 +49,22 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
             "CPU Idle"
         case .memoryUsed:
             "Memory Used"
+        case .memoryUsedPercentage:
+            "RAM Used %"
+        case .memoryWired:
+            "Wired Memory"
+        case .memoryCompressed:
+            "Compressed Memory"
         case .memoryCached:
             "Cached Files"
         case .memorySwap:
             "Swap Used"
+        case .memoryTotal:
+            "Physical Memory"
         case .storageUsed:
             "SSD Used Space"
+        case .storageUsedPercentage:
+            "SSD Used %"
         case .storageFree:
             "SSD Free Space"
         case .storageTotal:
@@ -56,6 +75,8 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
     /// Concise wording used inside the metric-grouped status panel.
     var panelName: String {
         switch self {
+        case .cpuUsed:
+            "Used"
         case .cpuUser:
             "User"
         case .cpuSystem:
@@ -64,12 +85,22 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
             "Idle"
         case .memoryUsed:
             "Memory Used"
+        case .memoryUsedPercentage:
+            "Used %"
+        case .memoryWired:
+            "Wired Memory"
+        case .memoryCompressed:
+            "Compressed Memory"
         case .memoryCached:
             "Cached Files"
         case .memorySwap:
             "Swap Used"
+        case .memoryTotal:
+            "Physical Memory"
         case .storageUsed:
             "Used Space"
+        case .storageUsedPercentage:
+            "Used %"
         case .storageFree:
             "Free Space"
         case .storageTotal:
@@ -81,6 +112,8 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
     /// deliberately text-only so macOS can't drop part of a composed label.
     var menuBarName: String {
         switch self {
+        case .cpuUsed:
+            "CPU Used"
         case .cpuUser:
             "CPU User"
         case .cpuSystem:
@@ -89,12 +122,22 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
             "CPU Idle"
         case .memoryUsed:
             "RAM Used"
+        case .memoryUsedPercentage:
+            "RAM Usage"
+        case .memoryWired:
+            "RAM Wired"
+        case .memoryCompressed:
+            "RAM Compressed"
         case .memoryCached:
             "Cached"
         case .memorySwap:
             "Swap"
+        case .memoryTotal:
+            "Physical RAM"
         case .storageUsed:
             "SSD Used"
+        case .storageUsedPercentage:
+            "SSD Usage"
         case .storageFree:
             "SSD Free"
         case .storageTotal:
@@ -105,6 +148,8 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
     /// Stable, terse text that distinguishes each stat in compact mode.
     var shortCode: String {
         switch self {
+        case .cpuUsed:
+            "C%"
         case .cpuUser:
             "CU"
         case .cpuSystem:
@@ -113,12 +158,22 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
             "CI"
         case .memoryUsed:
             "MU"
+        case .memoryUsedPercentage:
+            "M%"
+        case .memoryWired:
+            "MW"
+        case .memoryCompressed:
+            "MC"
         case .memoryCached:
             "CF"
         case .memorySwap:
             "SW"
+        case .memoryTotal:
+            "PM"
         case .storageUsed:
             "SU"
+        case .storageUsedPercentage:
+            "S%"
         case .storageFree:
             "SF"
         case .storageTotal:
@@ -142,11 +197,8 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         // Older builds exposed more representations. Map them to the closest
         // supported macOS 27 statistic instead of discarding all preferences.
         self = switch persistedValue {
-        case "cpuTotal": .cpuUser
-        case "memoryPercentage", "memoryAppEstimate", "memoryWired",
-             "memoryCompressed", "memoryTotal": .memoryUsed
+        case "memoryAppEstimate": .memoryUsed
         case "memoryAvailable": .memoryCached
-        case "storagePercentage": .storageUsed
         default:
             throw DecodingError.dataCorruptedError(
                 in: container,

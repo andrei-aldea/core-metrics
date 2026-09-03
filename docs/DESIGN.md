@@ -24,7 +24,7 @@ The Settings window has a useful minimum size. It offers the exact live status-t
 
 ## Failure behavior
 
-When a provider is unavailable, its status-item slot shows an em dash rather than retaining a stale number, and sampling retries automatically. Initial CPU delta collection uses the same neutral placeholder without being treated as a failure. If only the swap read fails, Memory Used and Cached Files remain available while Swap Used alone shows the placeholder.
+When a provider is unavailable, its status-item slot shows an em dash rather than retaining a stale number, and sampling retries automatically. Initial CPU delta collection uses the same neutral placeholder without being treated as a failure. If only the swap read fails, the physical-memory values remain available while Swap Used alone shows the placeholder.
 
 ## Accessibility checks
 

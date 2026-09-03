@@ -34,9 +34,30 @@ final class CoreMetricsUITests: XCTestCase {
             app.checkBoxes["menuBarStat.cpuSystem"].exists,
             "CPU System should be directly selectable without a transient submenu"
         )
+        for identifier in [
+            "menuBarStat.cpuTotal",
+            "menuBarStat.memoryPercentage",
+            "menuBarStat.memoryWired",
+            "menuBarStat.memoryCompressed",
+            "menuBarStat.memoryTotal",
+            "menuBarStat.storagePercentage",
+        ] {
+            XCTAssertTrue(
+                app.checkBoxes[identifier].exists,
+                "The new statistic \(identifier) should appear in its metric section"
+            )
+        }
         XCTAssertFalse(
             app.staticTexts["Live"].exists,
             "The removed sampling badge should not be present"
+        )
+        XCTAssertFalse(
+            app.staticTexts["Style"].exists,
+            "The segmented display control should not repeat a Style label"
+        )
+        XCTAssertTrue(
+            app.staticTexts["Menu Bar Text"].exists,
+            "The bare display-mode control should retain its section heading"
         )
         XCTAssertTrue(
             app.buttons["About"].exists,

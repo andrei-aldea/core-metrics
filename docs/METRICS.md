@@ -56,9 +56,9 @@ The menu bar can show free space, used space, or total startup-volume capacity.
 
 ## Sampling
 
-- CPU: approximately 1 second.
-- Memory: approximately 1 second.
-- Storage: approximately 30 seconds after valid reads; temporarily retries on the one-second cadence after a failure or invalid snapshot.
+- CPU: approximately 2 seconds.
+- Memory: approximately 2 seconds.
+- Storage: approximately 30 seconds after valid reads; temporarily retries on the two-second cadence after a failure or invalid snapshot.
 - History: not collected or retained.
 
 ## Menu-bar representations

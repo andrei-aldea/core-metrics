@@ -29,7 +29,7 @@ nonisolated enum CPUUsageCalculator {
         )
     }
 
-    /// A single modulo-2^32 delta. At the one-second sampling cadence, a
+    /// A single modulo-2^32 delta. At the two-second sampling cadence, a
     /// counter can wrap at most once between samples.
     private static func delta(from previous: UInt32, to current: UInt32) -> UInt64 {
         UInt64(current &- previous)

@@ -26,7 +26,7 @@ Sampling uses structured concurrency with one owned utility-priority task and ca
 
 Each Mach provider balances the send right returned by `mach_host_self()` with `mach_port_deallocate()` after its host call. The menu-bar view observes only the metric categories represented by its enabled slots, so an unshown storage or memory refresh cannot invalidate a CPU-only label. The memory provider treats its public swap sysctl as independent: an unavailable swap value becomes `nil` without hiding valid physical-memory values.
 
-CPU and memory normally refresh once per second. Storage refreshes every 30 seconds after a valid sample, but a failed or invalid storage read temporarily retries on the fast cadence until it recovers. A wall-clock discontinuity longer than the configured threshold invalidates the CPU baseline, so a suspended interval is not presented as current load. The next valid delta resumes CPU presentation.
+CPU and memory normally refresh every two seconds. Storage refreshes every 30 seconds after a valid sample, but a failed or invalid storage read temporarily retries on the two-second cadence until it recovers. A wall-clock discontinuity longer than the configured threshold invalidates the CPU baseline, so a suspended interval is not presented as current load. The next valid delta resumes CPU presentation.
 
 ## Failure and stale-data behavior
 

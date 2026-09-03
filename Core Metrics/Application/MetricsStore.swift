@@ -33,7 +33,7 @@ final class MetricsStore {
         cpuProvider: any CPUMetricsProviding = CPUMetricsProvider(),
         memoryProvider: any MemoryMetricsProviding = MemoryMetricsProvider(),
         storageProvider: any StorageMetricsProviding = RootVolumeStorageProvider(),
-        fastSamplingInterval: Duration = .seconds(1),
+        fastSamplingInterval: Duration = .seconds(2),
         storageSamplingInterval: Duration = .seconds(30),
         longGapThreshold: TimeInterval = 5
     ) {

@@ -19,19 +19,26 @@ struct MenuBarMenuView: View {
                         }
                     }
                 }
-
-                Section("Menu Bar Text") {
-                    Picker("Style", selection: $preferences.displayMode) {
-                        ForEach(preferencesStore.availableDisplayModes) { mode in
-                            Text(mode.displayName)
-                                .tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                }
             }
             .formStyle(.grouped)
             .accessibilityIdentifier("menuBarPanel")
+
+            VStack(alignment: .leading) {
+                Text("Menu Bar Text")
+                    .font(.headline)
+
+                Picker("Menu Bar Text", selection: $preferences.displayMode) {
+                    ForEach(preferencesStore.availableDisplayModes) { mode in
+                        Text(mode.displayName)
+                            .tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .fixedSize(horizontal: true, vertical: false)
+                .frame(maxWidth: .infinity)
+            }
+            .padding()
 
             Divider()
 

@@ -3,7 +3,9 @@ import Foundation
 /// Locale-aware, centralized formatting for menu-bar values.
 nonisolated enum MetricFormatting {
     static let unavailable = "—"
-    private static let compactByteSuffixes = ["B", "K", "M", "G", "T", "P", "E"]
+    private static let compactByteSuffixes = [
+        "B", "KB", "MB", "GB", "TB", "PB", "EB",
+    ]
 
     static func percentage(
         _ fraction: Double,
@@ -43,7 +45,7 @@ nonisolated enum MetricFormatting {
         }
 
         // Promote values that would round to the next unit, keeping compact
-        // output short and avoiding labels such as 1024.0G.
+        // output short and avoiding labels such as 1024.0GB.
         let roundedValue = (value * 10).rounded() / 10
         if roundedValue >= base, suffixIndex < compactByteSuffixes.count - 1 {
             return (roundedValue / base, suffixIndex + 1)

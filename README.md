@@ -16,7 +16,7 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 ## Highlights
 
 - **Native macOS panel:** The system-presented `MenuBarExtra` window supplies current Liquid Glass while keeping all selection controls open for repeated changes.
-- **Customizable status item:** Choose up to seven stats. They always follow the panel's CPU → Memory → Storage order, and one-decimal values use fixed seven-character columns inside a fixed-width status item to prevent width jitter.
+- **Customizable status item:** Choose up to seven stats. They always follow the panel's CPU → Memory → Storage order, and one-decimal values with full unit abbreviations use fixed eight-character columns inside a fixed-width status item to prevent width jitter.
 - **Focused system values:** CPU User/System/Idle, Memory Used/Cached Files/Swap Used, and startup-disk Free/Used/Total are available—without charts or duplicated values in the panel.
 - **Local and private:** Samples stay on the Mac, no metric history is retained, and nothing is transmitted or persisted as telemetry.
 - **Graceful failure handling:** An unavailable provider clears its current reading, shows a stable placeholder, and retries automatically instead of presenting stale data as live.

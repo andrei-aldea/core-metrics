@@ -19,7 +19,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("This is the exact text sent to the menu bar. Each value reserves a seven-character column, so live updates do not resize its slot.")
+                Text("This is the exact text sent to the menu bar. Each value reserves an eight-character column, so live updates do not resize its slot.")
             }
 
             Section {

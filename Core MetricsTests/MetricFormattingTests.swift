@@ -21,11 +21,11 @@ struct MetricFormattingTests {
 
     @Test("Formats compact memory values", arguments: [
         (UInt64(0), "0.0B"),
-        (UInt64(1_024), "1.0K"),
-        (UInt64(1_610_612_736), "1.5G"),
-        (UInt64(12 * 1_024 * 1_024 * 1_024), "12.0G"),
-        (UInt64(13.86 * 1_024 * 1_024 * 1_024), "13.9G"),
-        (UInt64(1023.96 * 1_024 * 1_024 * 1_024), "1.0T"),
+        (UInt64(1_024), "1.0KB"),
+        (UInt64(1_610_612_736), "1.5GB"),
+        (UInt64(12 * 1_024 * 1_024 * 1_024), "12.0GB"),
+        (UInt64(13.86 * 1_024 * 1_024 * 1_024), "13.9GB"),
+        (UInt64(1023.96 * 1_024 * 1_024 * 1_024), "1.0TB"),
     ])
     func formatsCompactMemory(_ bytes: UInt64, expected: String) {
         #expect(MetricFormatting.compactBytes(bytes, style: .memory, locale: locale) == expected)
@@ -38,7 +38,7 @@ struct MetricFormattingTests {
                 143_000_000_000,
                 style: .storage,
                 locale: locale
-            ) == "143.0G"
+            ) == "143.0GB"
         )
     }
 
@@ -51,7 +51,7 @@ struct MetricFormattingTests {
                 143_000_000_000,
                 style: .storage,
                 locale: romanianLocale
-            ) == "143,0G"
+            ) == "143,0GB"
         )
     }
 
@@ -59,12 +59,12 @@ struct MetricFormattingTests {
         (MenuBarStat.cpuUser, "15%"),
         (.cpuSystem, "25%"),
         (.cpuIdle, "60%"),
-        (.memoryUsed, "12.0G"),
-        (.memoryCached, "3.0G"),
-        (.memorySwap, "1.0G"),
-        (.storageUsed, "857.0G"),
-        (.storageFree, "143.0G"),
-        (.storageTotal, "1.0T"),
+        (.memoryUsed, "12.0GB"),
+        (.memoryCached, "3.0GB"),
+        (.memorySwap, "1.0GB"),
+        (.storageUsed, "857.0GB"),
+        (.storageFree, "143.0GB"),
+        (.storageTotal, "1.0TB"),
     ])
     func formatsConcreteMenuBarStat(stat: MenuBarStat, expected: String) {
         let cpu = CPUUsage(user: 0.15, system: 0.25, idle: 0.6)
@@ -109,30 +109,30 @@ struct MetricFormattingTests {
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser, .memoryUsed],
-                values: ["15%", "12.0G"],
+                values: ["15%", "12.0GB"],
                 displayMode: .compact
-            ) == "CU     15%  MU   12.0G"
+            ) == "CU      15%  MU   12.0GB"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["15%"],
                 displayMode: .labelAndValue
-            ) == "CPU User     15%"
+            ) == "CPU User      15%"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.storageTotal],
-                values: ["1.0T"],
+                values: ["1.0TB"],
                 displayMode: .labelAndValue
-            ) == "SSD Total    1.0T"
+            ) == "SSD Total    1.0TB"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["9%"],
                 displayMode: .valueOnly
-            ) == "     9%"
+            ) == "      9%"
         )
         #expect(
             MenuBarLabelFormatting.text(
@@ -146,7 +146,7 @@ struct MetricFormattingTests {
     @Test("Every display mode fills its reserved character width", arguments: [
         ([MenuBarStat.cpuUser], ["9%"], MenuBarDisplayMode.labelAndValue),
         ([.cpuUser], ["99%"], .valueOnly),
-        ([.cpuUser, .memoryUsed], ["9%", "2.1G"], .compact),
+        ([.cpuUser, .memoryUsed], ["9%", "2.1GB"], .compact),
     ])
     func fillsReservedCharacterWidth(
         stats: [MenuBarStat],
@@ -179,16 +179,16 @@ struct MetricFormattingTests {
         ]
         let shorterValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["9%", "1%", "90%", "2.1G", "—", "9.0G", "1.0T"],
+            values: ["9%", "1%", "90%", "2.1GB", "—", "9.0GB", "1.0TB"],
             displayMode: .compact
         )
         let longerValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["100%", "99%", "100%", "1023.9G", "88.8G", "999.9G", "999.9T"],
+            values: ["100%", "99%", "100%", "1023.9GB", "88.8GB", "999.9GB", "999.9TB"],
             displayMode: .compact
         )
 
-        #expect(MenuBarLabelFormatting.valueColumnWidth == 7)
+        #expect(MenuBarLabelFormatting.valueColumnWidth == 8)
         #expect(
             MenuBarLabelFormatting.reservedCharacterCount(
                 stats: stats,

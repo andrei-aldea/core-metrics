@@ -15,7 +15,7 @@ The UI never calls Mach or volume-capacity APIs directly. Provider errors clear 
 ## Application surfaces
 
 - `MenuBarExtra` is the primary scene and uses the native window style so its controls remain open during multi-selection and macOS supplies the surrounding Liquid Glass presentation.
-- The label shows a validated selection of one to seven concrete stats as one text value. Selection is normalized to the same CPU → Memory → Storage order shown in the panel, independent of click order. Each numeric value reserves a seven-character column in an explicitly measured monospaced frame, so sampling updates cannot resize the status item.
+- The label shows a validated selection of one to seven concrete stats as one text value. Selection is normalized to the same CPU → Memory → Storage order shown in the panel, independent of click order. Each numeric value reserves an eight-character column in an explicitly measured monospaced frame, so sampling updates cannot resize the status item.
 - The status panel begins with the CPU section, shows stat names and selection state—but no duplicate live values—and provides direct checkbox controls, a segmented display-mode picker, About, Settings, and Quit.
 - A native `Settings` scene adds and removes menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar label without forcing the Settings window wider.
 - `LSUIElement` keeps the app out of the Dock and application switcher. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.

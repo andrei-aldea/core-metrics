@@ -14,7 +14,7 @@ Core Metrics should feel like a restrained macOS utility: fast to scan, calm eno
 ## Menu bar and status panel
 
 - The status item is one complete text value. This avoids partial rendering of a composed hierarchy and keeps every chosen stat visible when menu-bar space permits.
-- People can select one to seven stats. Their display order always follows the panel's CPU → Memory → Storage order rather than click order. Each formatted value reserves a seven-character column inside a fixed-width monospaced frame; Label and Value, Value Only, and Compact remain the only representations.
+- People can select one to seven stats. Their display order always follows the panel's CPU → Memory → Storage order rather than click order. Each formatted value reserves an eight-character column inside a fixed-width monospaced frame; Label and Value, Value Only, and Compact remain the only representations.
 - The system-presented window-style `MenuBarExtra` stays open while checkboxes are changed, unlike a transient pull-down menu. It receives the platform's Liquid Glass presentation automatically.
 - The panel begins directly with the CPU section, followed by Memory, Storage, a display-style picker, About, Settings, and Quit.
 - Panel controls show stat names and selection state only. Live numbers appear in the status item, never duplicated beside selection controls.

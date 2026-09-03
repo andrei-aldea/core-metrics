@@ -1,9 +1,9 @@
 /// Builds one text-only status label. A single `Text` is more reliable than a
 /// hierarchy of images and independently framed values in a menu-bar scene.
 nonisolated enum MenuBarLabelFormatting {
-    /// Seven characters fit the largest one-decimal compact byte value
-    /// (`1023.9G`) while keeping every live slot stable.
-    static let valueColumnWidth = 7
+    /// Eight characters fit the largest one-decimal compact byte value
+    /// (`1023.9GB`) while keeping every live slot stable.
+    static let valueColumnWidth = 8
 
     static func text(
         stats: [MenuBarStat],

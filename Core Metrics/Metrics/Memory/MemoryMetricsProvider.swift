@@ -1,6 +1,12 @@
 import Darwin
 import Foundation
 
+private nonisolated enum HostMemoryStatisticsError: Error, Sendable {
+    case vmStatisticsCallFailed(kern_return_t)
+    case pageSizeCallFailed(kern_return_t)
+    case incompleteResult
+}
+
 /// Reads documented 64-bit host VM statistics and the public VM swap-usage
 /// sysctl, then feeds the pure Core Metrics memory calculator.
 nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {

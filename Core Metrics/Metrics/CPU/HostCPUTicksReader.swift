@@ -1,5 +1,10 @@
 import Darwin
 
+private nonisolated enum HostCPUStatisticsError: Error, Sendable {
+    case machCallFailed(kern_return_t)
+    case incompleteResult
+}
+
 /// Reads cumulative aggregate CPU ticks through the documented Mach
 /// `host_statistics(HOST_CPU_LOAD_INFO)` API.
 nonisolated struct HostCPUTicksReader: CPUTicksReading {

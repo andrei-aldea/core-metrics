@@ -1,11 +1,12 @@
 import Foundation
+import Synchronization
 import Testing
 @testable import Core_Metrics
 
 @Suite("Metrics store health")
 struct MetricsStoreTests {
     @MainActor
-    @Test("A failed sample clears stale data and marks sampling limited")
+    @Test("A failed sample clears stale data")
     func failureClearsStaleData() async {
         let store = MetricsStore(
             cpuProvider: FailsAfterFirstCPUProvider(),
@@ -18,17 +19,13 @@ struct MetricsStoreTests {
         store.start()
         defer { store.stop() }
 
-        let reachedLimitedState = await eventually {
+        let clearedStaleSample = await eventually {
             store.cpuUsage == nil
                 && store.memoryUsage != nil
                 && store.storageUsage != nil
-                && store.hasSamplingIssue
         }
 
-        #expect(reachedLimitedState)
-        #expect(store.cpuSampleState == .unavailable)
-        #expect(store.memorySampleState == .available)
-        #expect(store.storageSampleState == .available)
+        #expect(clearedStaleSample)
     }
 
     @MainActor
@@ -51,18 +48,15 @@ struct MetricsStoreTests {
         }
         #expect(reachedBaselineAfterFailure)
         #expect(store.cpuUsage == nil)
-        #expect(store.hasSamplingIssue)
 
         recoveryGate.allowValueSamples()
         let recovered = await eventually {
             store.cpuUsage == Self.cpuUsage
                 && store.memoryUsage != nil
                 && store.storageUsage != nil
-                && !store.hasSamplingIssue
         }
 
         #expect(recovered)
-        #expect(store.cpuSampleState == .available)
     }
 
     @MainActor
@@ -84,7 +78,6 @@ struct MetricsStoreTests {
 
         let failed = await eventually {
             recoveryGate.sampleCount >= 1
-                && store.storageSampleState == .unavailable
                 && store.storageUsage == nil
         }
         #expect(failed)
@@ -92,12 +85,33 @@ struct MetricsStoreTests {
         recoveryGate.allowValueSamples()
         let recovered = await eventually {
             recoveryGate.sampleCount >= 2
-                && store.storageSampleState == .available
                 && store.storageUsage != nil
-                && !store.hasSamplingIssue
         }
 
         #expect(recovered)
+    }
+
+    @MainActor
+    @Test("The owned sampling task does not retain the store")
+    func samplingTaskDoesNotRetainStore() async {
+        var store: MetricsStore? = MetricsStore(
+            cpuProvider: ControlledRecoveryCPUProvider(
+                gate: RecoveryGate(valuesAreAllowed: true)
+            ),
+            memoryProvider: FixedMemoryProvider(),
+            storageProvider: FixedStorageProvider(),
+            fastSamplingInterval: .seconds(60),
+            storageSamplingInterval: .seconds(60)
+        )
+        weak let weakStore = store
+
+        store?.start()
+        store = nil
+
+        let deallocated = await eventually {
+            weakStore == nil
+        }
+        #expect(deallocated)
     }
 
     @MainActor
@@ -164,40 +178,43 @@ private nonisolated struct ControlledRecoveryCPUProvider: CPUMetricsProviding {
     mutating func reset() {}
 }
 
-private nonisolated final class RecoveryGate: @unchecked Sendable {
-    enum Sample {
+private nonisolated final class RecoveryGate: Sendable {
+    enum Sample: Sendable {
         case failure
         case baseline
         case value
     }
 
-    private let lock = NSLock()
-    private var count = 0
-    private var valuesAreAllowed: Bool
+    private struct State: Sendable {
+        var count = 0
+        var valuesAreAllowed: Bool
+    }
+
+    private let state: Mutex<State>
 
     init(valuesAreAllowed: Bool = false) {
-        self.valuesAreAllowed = valuesAreAllowed
+        state = Mutex(State(valuesAreAllowed: valuesAreAllowed))
     }
 
     var sampleCount: Int {
-        lock.withLock { count }
+        state.withLock { $0.count }
     }
 
     func nextSample() -> Sample {
-        lock.withLock {
-            defer { count += 1 }
+        state.withLock { state in
+            defer { state.count += 1 }
 
-            if count == 0 {
+            if state.count == 0 {
                 return .failure
             }
 
-            return valuesAreAllowed ? .value : .baseline
+            return state.valuesAreAllowed ? .value : .baseline
         }
     }
 
     func allowValueSamples() {
-        lock.withLock {
-            valuesAreAllowed = true
+        state.withLock { state in
+            state.valuesAreAllowed = true
         }
     }
 }
@@ -214,25 +231,28 @@ private nonisolated struct ControlledRecoveryStorageProvider: StorageMetricsProv
     }
 }
 
-private nonisolated final class StorageRecoveryGate: @unchecked Sendable {
-    private let lock = NSLock()
-    private var count = 0
-    private var valuesAreAllowed = false
+private nonisolated final class StorageRecoveryGate: Sendable {
+    private struct State: Sendable {
+        var count = 0
+        var valuesAreAllowed = false
+    }
+
+    private let state = Mutex(State())
 
     var sampleCount: Int {
-        lock.withLock { count }
+        state.withLock { $0.count }
     }
 
     func nextSampleShouldSucceed() -> Bool {
-        lock.withLock {
-            count += 1
-            return valuesAreAllowed
+        state.withLock { state in
+            state.count += 1
+            return state.valuesAreAllowed
         }
     }
 
     func allowValueSamples() {
-        lock.withLock {
-            valuesAreAllowed = true
+        state.withLock { state in
+            state.valuesAreAllowed = true
         }
     }
 }

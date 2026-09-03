@@ -1,5 +1,9 @@
 import Foundation
 
+private nonisolated enum RootVolumeStorageError: Error, Sendable {
+    case capacityUnavailable
+}
+
 /// Reads the startup/root volume's standard total and available capacity.
 /// It intentionally does not use the important- or opportunistic-usage keys.
 nonisolated struct RootVolumeStorageProvider: StorageMetricsProviding {

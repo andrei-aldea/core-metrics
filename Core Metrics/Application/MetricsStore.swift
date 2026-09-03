@@ -6,19 +6,15 @@ import OSLog
 @MainActor
 @Observable
 final class MetricsStore {
+    private enum SampleKind: String, Hashable {
+        case cpu = "CPU"
+        case memory = "Memory"
+        case storage = "Storage"
+    }
+
     private(set) var cpuUsage: CPUUsage?
     private(set) var memoryUsage: MemoryUsage?
     private(set) var storageUsage: StorageUsage?
-    private(set) var cpuSampleState: MetricSampleState = .collecting
-    private(set) var memorySampleState: MetricSampleState = .collecting
-    private(set) var storageSampleState: MetricSampleState = .collecting
-    private(set) var isSampling = false
-
-    var hasSamplingIssue: Bool {
-        cpuSampleState == .unavailable
-            || memorySampleState == .unavailable
-            || storageSampleState == .unavailable
-    }
 
     @ObservationIgnored private let initialCPUProvider: any CPUMetricsProviding
     @ObservationIgnored private let initialMemoryProvider: any MemoryMetricsProviding
@@ -30,6 +26,7 @@ final class MetricsStore {
         subsystem: Bundle.main.bundleIdentifier ?? "CoreMetrics",
         category: "Metrics"
     )
+    @ObservationIgnored private var unavailableMetrics: Set<SampleKind> = []
     @ObservationIgnored private var samplingTask: Task<Void, Never>?
 
     init(
@@ -71,7 +68,6 @@ final class MetricsStore {
         let storageInterval = storageSamplingInterval
         let gapThreshold = longGapThreshold
 
-        isSampling = true
         samplingTask = Task(priority: .utility) { @concurrent [weak self] in
             await withDiscardingTaskGroup { group in
                 group.addTask { [weak self] in
@@ -155,7 +151,6 @@ final class MetricsStore {
                         }
                     }
                 }
-
             }
         }
     }
@@ -163,7 +158,6 @@ final class MetricsStore {
     func stop() {
         samplingTask?.cancel()
         samplingTask = nil
-        isSampling = false
     }
 
     /// Applies the fast CPU and memory results in one main-actor hop, keeping
@@ -189,73 +183,60 @@ final class MetricsStore {
 
     private func recordCPU(_ usage: CPUUsage?) {
         cpuUsage = usage
-        guard usage != nil else {
-            if cpuSampleState != .unavailable {
-                cpuSampleState = .collecting
-            }
-            return
+        if usage != nil {
+            markAvailable(.cpu)
         }
-
-        if cpuSampleState == .unavailable {
-            logger.notice("CPU sampling recovered")
-        }
-        cpuSampleState = .available
     }
 
     private func recordMemory(_ usage: MemoryUsage?) {
         memoryUsage = usage
         guard usage != nil else {
-            if memorySampleState != .unavailable {
-                logger.error("Memory sampling became unavailable")
-            }
-            memorySampleState = .unavailable
+            markUnavailable(.memory)
             return
         }
 
-        if memorySampleState == .unavailable {
-            logger.notice("Memory sampling recovered")
-        }
-        memorySampleState = .available
+        markAvailable(.memory)
     }
 
     private func recordStorage(_ usage: StorageUsage?) {
         storageUsage = usage
         guard usage != nil else {
-            if storageSampleState != .unavailable {
-                logger.error("Storage sampling became unavailable")
-            }
-            storageSampleState = .unavailable
+            markUnavailable(.storage)
             return
         }
 
-        if storageSampleState == .unavailable {
-            logger.notice("Storage sampling recovered")
-        }
-        storageSampleState = .available
+        markAvailable(.storage)
     }
 
     private func recordCPUFailure() {
-        if cpuSampleState != .unavailable {
-            logger.error("CPU sampling became unavailable")
-        }
-        cpuSampleState = .unavailable
         cpuUsage = nil
+        markUnavailable(.cpu)
     }
 
     private func recordMemoryFailure() {
-        if memorySampleState != .unavailable {
-            logger.error("Memory sampling became unavailable")
-        }
-        memorySampleState = .unavailable
         memoryUsage = nil
+        markUnavailable(.memory)
     }
 
     private func recordStorageFailure() {
-        if storageSampleState != .unavailable {
-            logger.error("Storage sampling became unavailable")
-        }
-        storageSampleState = .unavailable
         storageUsage = nil
+        markUnavailable(.storage)
+    }
+
+    private func markUnavailable(_ metric: SampleKind) {
+        guard unavailableMetrics.insert(metric).inserted else {
+            return
+        }
+
+        logger.error("\(metric.rawValue, privacy: .public) sampling became unavailable")
+    }
+
+    private func markAvailable(_ metric: SampleKind) {
+        guard unavailableMetrics.remove(metric) != nil else {
+            return
+        }
+
+        logger.notice("\(metric.rawValue, privacy: .public) sampling recovered")
     }
 
     private nonisolated static func isContinuous(

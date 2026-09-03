@@ -1,8 +1,8 @@
 import Darwin
 import Foundation
 
-/// Reads documented 64-bit host VM statistics and feeds the pure Core Metrics
-/// memory calculator.
+/// Reads documented 64-bit host VM statistics and the public VM swap-usage
+/// sysctl, then feeds the pure Core Metrics memory calculator.
 nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {
     private var cachedPageSizeBytes: UInt64?
 
@@ -21,11 +21,17 @@ nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {
             MemoryLayout<vm_statistics64_data_t>.stride
                 / MemoryLayout<integer_t>.stride
         )
+        guard let externalFieldOffset = MemoryLayout<vm_statistics64_data_t>.offset(
+            of: \.external_page_count
+        ) else {
+            throw HostMemoryStatisticsError.incompleteResult
+        }
+
+        let externalFieldEnd = externalFieldOffset
+            + MemoryLayout<natural_t>.stride
+        let integerStride = MemoryLayout<integer_t>.stride
         let requiredCount = mach_msg_type_number_t(
-            (MemoryLayout<vm_statistics64_data_t>.offset(
-                of: \.total_uncompressed_pages_in_compressor
-            ) ?? MemoryLayout<vm_statistics64_data_t>.stride)
-                / MemoryLayout<integer_t>.stride
+            (externalFieldEnd + integerStride - 1) / integerStride
         )
         var count = requestedCount
 
@@ -56,11 +62,38 @@ nonisolated struct MemoryMetricsProvider: MemoryMetricsProviding {
         return MemoryRawCounters(
             totalBytes: ProcessInfo.processInfo.physicalMemory,
             pageSizeBytes: pageSizeBytes,
-            internalPageCount: UInt64(statistics.internal_page_count),
-            purgeablePageCount: UInt64(statistics.purgeable_count),
-            wiredPageCount: UInt64(statistics.wire_count),
-            compressorPageCount: UInt64(statistics.compressor_page_count)
+            freePageCount: UInt64(statistics.free_count),
+            externalPageCount: UInt64(statistics.external_page_count),
+            swapUsedBytes: swapUsedBytes()
         )
+    }
+
+    /// Swap is useful but not required for the other memory values. Returning
+    /// `nil` keeps Memory Used and Cached Files live when this independent read
+    /// is temporarily unavailable.
+    private func swapUsedBytes() -> UInt64? {
+        var name = [CTL_VM, VM_SWAPUSAGE]
+        var usage = xsw_usage()
+        var size = MemoryLayout<xsw_usage>.size
+
+        let result = name.withUnsafeMutableBufferPointer { namePointer in
+            withUnsafeMutablePointer(to: &usage) { usagePointer in
+                sysctl(
+                    namePointer.baseAddress,
+                    UInt32(namePointer.count),
+                    usagePointer,
+                    &size,
+                    nil,
+                    0
+                )
+            }
+        }
+
+        guard result == 0, size >= MemoryLayout<xsw_usage>.size else {
+            return nil
+        }
+
+        return usage.xsu_used
     }
 
     private mutating func pageSize(for host: host_t) throws -> UInt64 {

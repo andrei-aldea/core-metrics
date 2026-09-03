@@ -16,7 +16,7 @@ struct CoreMetricsApp: App {
                 .environment(metricsStore)
                 .environment(preferencesStore)
         }
-        .menuBarExtraStyle(.menu)
+        .menuBarExtraStyle(.window)
 
         Window("Core Metrics", id: DashboardLayout.windowIdentifier) {
             DashboardView()
@@ -25,7 +25,11 @@ struct CoreMetricsApp: App {
                 .tint(Color.primary)
         }
         .defaultLaunchBehavior(.suppressed)
-        .windowResizability(.contentSize)
+        .defaultSize(
+            width: DashboardLayout.idealWindowWidth,
+            height: DashboardLayout.idealWindowHeight
+        )
+        .windowResizability(.contentMinSize)
 
         Settings {
             SettingsView()
@@ -33,6 +37,6 @@ struct CoreMetricsApp: App {
                 .environment(preferencesStore)
                 .tint(Color.primary)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
     }
 }

@@ -2,8 +2,7 @@ import Foundation
 import Observation
 import OSLog
 
-/// Main-actor-owned, observable state for the current metrics and their short
-/// in-memory histories.
+/// Main-actor-owned observable state for the current aggregate metrics.
 @MainActor
 @Observable
 final class MetricsStore {
@@ -14,17 +13,6 @@ final class MetricsStore {
     private(set) var memorySampleState: MetricSampleState = .collecting
     private(set) var storageSampleState: MetricSampleState = .collecting
     private(set) var isSampling = false
-
-    private var cpuHistoryBuffer: RingBuffer<CPUUsage>
-    private var memoryHistoryBuffer: RingBuffer<MemoryUsage>
-
-    var cpuHistory: [CPUUsage] {
-        cpuHistoryBuffer.elements
-    }
-
-    var memoryHistory: [MemoryUsage] {
-        memoryHistoryBuffer.elements
-    }
 
     var hasSamplingIssue: Bool {
         cpuSampleState == .unavailable
@@ -50,13 +38,11 @@ final class MetricsStore {
         storageProvider: any StorageMetricsProviding = RootVolumeStorageProvider(),
         fastSamplingInterval: Duration = .seconds(1),
         storageSamplingInterval: Duration = .seconds(30),
-        longGapThreshold: TimeInterval = 5,
-        historyCapacity: Int = 120
+        longGapThreshold: TimeInterval = 5
     ) {
         precondition(fastSamplingInterval > .zero)
         precondition(storageSamplingInterval > .zero)
         precondition(longGapThreshold > 0)
-        precondition(historyCapacity > 0)
 
         initialCPUProvider = cpuProvider
         initialMemoryProvider = memoryProvider
@@ -64,8 +50,6 @@ final class MetricsStore {
         self.fastSamplingInterval = fastSamplingInterval
         self.storageSamplingInterval = storageSamplingInterval
         self.longGapThreshold = longGapThreshold
-        cpuHistoryBuffer = RingBuffer(capacity: historyCapacity)
-        memoryHistoryBuffer = RingBuffer(capacity: historyCapacity)
     }
 
     deinit {
@@ -205,7 +189,7 @@ final class MetricsStore {
 
     private func recordCPU(_ usage: CPUUsage?) {
         cpuUsage = usage
-        guard let usage else {
+        guard usage != nil else {
             if cpuSampleState != .unavailable {
                 cpuSampleState = .collecting
             }
@@ -216,12 +200,11 @@ final class MetricsStore {
             logger.notice("CPU sampling recovered")
         }
         cpuSampleState = .available
-        cpuHistoryBuffer.append(usage)
     }
 
     private func recordMemory(_ usage: MemoryUsage?) {
         memoryUsage = usage
-        guard let usage else {
+        guard usage != nil else {
             if memorySampleState != .unavailable {
                 logger.error("Memory sampling became unavailable")
             }
@@ -233,7 +216,6 @@ final class MetricsStore {
             logger.notice("Memory sampling recovered")
         }
         memorySampleState = .available
-        memoryHistoryBuffer.append(usage)
     }
 
     private func recordStorage(_ usage: StorageUsage?) {

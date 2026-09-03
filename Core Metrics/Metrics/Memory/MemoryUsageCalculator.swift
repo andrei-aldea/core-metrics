@@ -4,45 +4,37 @@ import Foundation
 ///
 /// Definition:
 ///
-///     appPages = max(internal - purgeable, 0)
-///     used     = clamp((appPages + wired + compressor) * pageSize, 0...total)
-///     available = total - used
+///     cached = clamp(externalPages * pageSize, 0...total)
+///     free   = clamp(freePages * pageSize, 0...total)
+///     used   = total - clamp(cached + free, 0...total)
 ///
-/// This approximates the understandable categories of app, wired, and
-/// compressed memory using documented VM counters. It is a transparent Core
-/// Metrics estimate, not a claim of byte-for-byte parity with Activity Monitor.
+/// Apple's Activity Monitor guide defines Cached Files as unused file-backed
+/// memory and Memory Used as RAM currently in use. The public counters can
+/// follow those definitions, although sampling times can differ between apps.
 nonisolated enum MemoryUsageCalculator {
     static func calculate(from raw: MemoryRawCounters) -> MemoryUsage? {
         guard raw.totalBytes > 0, raw.pageSizeBytes > 0 else {
             return nil
         }
 
-        let appPageCount = raw.internalPageCount >= raw.purgeablePageCount
-            ? raw.internalPageCount - raw.purgeablePageCount
-            : 0
-        let appEstimateBytes = saturatingMultiply(appPageCount, raw.pageSizeBytes)
-        let wiredBytes = saturatingMultiply(raw.wiredPageCount, raw.pageSizeBytes)
-        let compressedBytes = saturatingMultiply(
-            raw.compressorPageCount,
-            raw.pageSizeBytes
-        )
-        let usedBytes = min(
+        let cachedBytes = min(
             raw.totalBytes,
-            saturatingAdd(
-                saturatingAdd(appEstimateBytes, wiredBytes),
-                compressedBytes
-            )
+            saturatingMultiply(raw.externalPageCount, raw.pageSizeBytes)
         )
-        let availableBytes = raw.totalBytes - usedBytes
+        let freeBytes = min(
+            raw.totalBytes,
+            saturatingMultiply(raw.freePageCount, raw.pageSizeBytes)
+        )
+        let reclaimableBytes = min(
+            raw.totalBytes,
+            saturatingAdd(cachedBytes, freeBytes)
+        )
+        let usedBytes = raw.totalBytes - reclaimableBytes
 
         return MemoryUsage(
             usedBytes: usedBytes,
-            availableBytes: availableBytes,
-            totalBytes: raw.totalBytes,
-            appEstimateBytes: appEstimateBytes,
-            wiredBytes: wiredBytes,
-            compressedBytes: compressedBytes,
-            usedFraction: Double(usedBytes) / Double(raw.totalBytes)
+            cachedBytes: cachedBytes,
+            swapUsedBytes: raw.swapUsedBytes
         )
     }
 

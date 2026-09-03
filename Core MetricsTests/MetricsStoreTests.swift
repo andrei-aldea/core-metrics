@@ -242,12 +242,8 @@ private nonisolated struct FixedMemoryProvider: MemoryMetricsProviding {
     mutating func sample() throws -> MemoryUsage? {
         MemoryUsage(
             usedBytes: 60,
-            availableBytes: 40,
-            totalBytes: 100,
-            appEstimateBytes: 40,
-            wiredBytes: 10,
-            compressedBytes: 10,
-            usedFraction: 0.6
+            cachedBytes: 40,
+            swapUsedBytes: 5
         )
     }
 }
@@ -257,8 +253,7 @@ private nonisolated struct FixedStorageProvider: StorageMetricsProviding {
         StorageUsage(
             usedBytes: 75,
             availableBytes: 25,
-            totalBytes: 100,
-            usedFraction: 0.75
+            totalBytes: 100
         )
     }
 }

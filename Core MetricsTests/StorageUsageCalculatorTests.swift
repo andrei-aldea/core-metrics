@@ -11,7 +11,6 @@ struct StorageUsageCalculatorTests {
         #expect(usage.usedBytes == 750)
         #expect(usage.availableBytes == 250)
         #expect(usage.usedBytes + usage.availableBytes == usage.totalBytes)
-        #expect(abs(usage.usedFraction - 0.75) < 1e-12)
     }
 
     @Test("Clamps an inconsistent available value")
@@ -21,7 +20,6 @@ struct StorageUsageCalculatorTests {
 
         #expect(usage.availableBytes == 100)
         #expect(usage.usedBytes == 0)
-        #expect(usage.usedFraction == 0)
     }
 
     @Test("Rejects a zero-capacity volume")

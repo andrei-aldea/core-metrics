@@ -15,10 +15,10 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 
 ## Highlights
 
-- **Native macOS menu:** System Liquid Glass, hover selection, separators, nested menus, keyboard navigation, About, Settings, and Quit are provided by `MenuBarExtra` rather than recreated with custom controls.
-- **Customizable status item:** Choose and order one to five stats. Fixed percentage and byte-value columns keep every slot stable while values update.
-- **Useful detail on demand:** Open a compact dashboard for recent CPU and memory history, memory categories, and startup-volume capacity.
-- **Local and private:** Samples stay on the Mac, recent history is bounded in memory, and nothing is transmitted or persisted as telemetry.
+- **Native macOS panel:** The system-presented `MenuBarExtra` window supplies current Liquid Glass while keeping all selection controls open for repeated changes.
+- **Customizable status item:** Choose and order one to five stats. One text-only label and fixed five-character value columns prevent partial labels and width jitter.
+- **Focused system values:** CPU User/System/Idle, Memory Used/Cached Files/Swap Used, and startup-disk Free/Used/Total are available—without charts or duplicated values in the panel.
+- **Local and private:** Samples stay on the Mac, no metric history is retained, and nothing is transmitted or persisted as telemetry.
 - **Graceful failure handling:** An unavailable provider clears its current reading, explains the recovery state, and retries automatically instead of presenting stale data as live.
 - **Mac App Store-oriented:** App Sandbox is enabled, the app uses documented public Apple APIs, and privacy-manifest declarations are kept narrow and truthful.
 
@@ -26,9 +26,9 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 
 | Category | Available representations |
 | --- | --- |
-| CPU | Total used, user, system, idle |
-| Memory | Used percentage, used, available, App Estimate, wired, compressed, total |
-| Storage | Used percentage, used, available, total for the startup volume |
+| CPU | User, system, idle percentages |
+| Memory | Memory Used, Cached Files, Swap Used |
+| Storage | Free space, used space, total capacity for the startup volume |
 
 The exact formulas and storage semantics are documented in [docs/METRICS.md](docs/METRICS.md).
 
@@ -55,7 +55,7 @@ xcodebuild \
   build
 ```
 
-After launching, Core Metrics appears only in the menu bar. Select **Show Core Metrics** for the detailed dashboard or **Settings…** to change the status-item layout.
+After launching, Core Metrics appears only in the menu bar. Select **Open Core Metrics** for the aligned numeric overview or use the persistent panel and **Settings…** to change the status-item layout.
 
 ## Test
 
@@ -74,7 +74,7 @@ The separate `Core Metrics UI Tests` scheme covers status-item and dashboard act
 
 ## Architecture
 
-The app separates system acquisition, pure calculation, sampling/history, preferences, and SwiftUI presentation:
+The app separates system acquisition, pure calculation, sampling, preferences, and SwiftUI presentation:
 
 ```text
 Documented Apple APIs
@@ -83,9 +83,9 @@ Metric providers
         ↓
 Pure calculations and snapshots
         ↓
-MetricsStore + bounded in-memory history
+MetricsStore current snapshots
         ↓
-Menu bar · Native menu · Dashboard · Settings
+Menu bar · Persistent status panel · Dashboard · Settings
 ```
 
 Additional documentation:
@@ -99,7 +99,7 @@ Additional documentation:
 
 ## Privacy
 
-Core Metrics reads aggregate CPU counters, aggregate virtual-memory counters, and startup-volume capacity locally. It does not inspect arbitrary processes or files, make network requests, persist metric history, or collect personal data.
+Core Metrics reads aggregate CPU counters, aggregate virtual-memory and swap counters, and startup-volume capacity locally. It does not inspect arbitrary processes or files, make network requests, retain metric history, or collect personal data.
 
 Only menu-bar preferences are stored in `UserDefaults`. The privacy manifest declares no tracking or collected data. See [docs/APP_STORE.md](docs/APP_STORE.md) for the current privacy and release audit.
 

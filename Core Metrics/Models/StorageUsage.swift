@@ -6,5 +6,4 @@ nonisolated struct StorageUsage: Equatable, Sendable {
     let usedBytes: UInt64
     let availableBytes: UInt64
     let totalBytes: UInt64
-    let usedFraction: Double
 }

@@ -22,6 +22,7 @@ struct MetricFormattingTests {
         (UInt64(1_024), "1K"),
         (UInt64(1_610_612_736), "1.5G"),
         (UInt64(12 * 1_024 * 1_024 * 1_024), "12G"),
+        (UInt64(13.86 * 1_024 * 1_024 * 1_024), "13.9G"),
     ])
     func formatsCompactMemory(_ bytes: UInt64, expected: String) {
         #expect(MetricFormatting.compactBytes(bytes, style: .memory, locale: locale) == expected)
@@ -38,90 +39,28 @@ struct MetricFormattingTests {
         )
     }
 
-    @Test("Formats each CPU menu value", arguments: [
-        (CPUMenuValueStyle.total, "40%"),
-        (.user, "15%"),
-        (.system, "25%"),
-        (.idle, "60%"),
-    ])
-    func formatsCPUMenuValues(style: CPUMenuValueStyle, expected: String) {
-        let cpu = CPUUsage(total: 0.4, user: 0.15, system: 0.25, idle: 0.6)
-        #expect(MenuValueFormatting.cpu(cpu, style: style, locale: locale) == expected)
-    }
-
-    @Test("Formats each memory menu value", arguments: [
-        (MemoryMenuValueStyle.percentage, "75%"),
-        (.used, "12G"),
-        (.available, "4G"),
-        (.appEstimate, "8G"),
-        (.wired, "3G"),
-        (.compressed, "1G"),
-        (.total, "16G"),
-    ])
-    func formatsMemoryMenuValues(style: MemoryMenuValueStyle, expected: String) {
-        let memory = MemoryUsage(
-            usedBytes: 12 * 1_024 * 1_024 * 1_024,
-            availableBytes: 4 * 1_024 * 1_024 * 1_024,
-            totalBytes: 16 * 1_024 * 1_024 * 1_024,
-            appEstimateBytes: 8 * 1_024 * 1_024 * 1_024,
-            wiredBytes: 3 * 1_024 * 1_024 * 1_024,
-            compressedBytes: 1 * 1_024 * 1_024 * 1_024,
-            usedFraction: 0.75
-        )
-
-        #expect(MenuValueFormatting.memory(memory, style: style, locale: locale) == expected)
-    }
-
-    @Test("Formats each storage menu value", arguments: [
-        (StorageMenuValueStyle.percentage, "86%"),
-        (.used, "857G"),
-        (.available, "143G"),
-        (.total, "1T"),
-    ])
-    func formatsStorageMenuValues(style: StorageMenuValueStyle, expected: String) {
-        let storage = StorageUsage(
-            usedBytes: 857_000_000_000,
-            availableBytes: 143_000_000_000,
-            totalBytes: 1_000_000_000_000,
-            usedFraction: 0.857
-        )
-
-        #expect(MenuValueFormatting.storage(storage, style: style, locale: locale) == expected)
-    }
-
     @Test("Routes every concrete menu-bar stat to its value", arguments: [
-        (MenuBarStat.cpuTotal, "40%"),
-        (.cpuUser, "15%"),
+        (MenuBarStat.cpuUser, "15%"),
         (.cpuSystem, "25%"),
         (.cpuIdle, "60%"),
-        (.memoryPercentage, "75%"),
         (.memoryUsed, "12G"),
-        (.memoryAvailable, "4G"),
-        (.memoryAppEstimate, "8G"),
-        (.memoryWired, "3G"),
-        (.memoryCompressed, "1G"),
-        (.memoryTotal, "16G"),
-        (.storagePercentage, "86%"),
+        (.memoryCached, "3G"),
+        (.memorySwap, "1G"),
         (.storageUsed, "857G"),
-        (.storageAvailable, "143G"),
+        (.storageFree, "143G"),
         (.storageTotal, "1T"),
     ])
     func formatsConcreteMenuBarStat(stat: MenuBarStat, expected: String) {
         let cpu = CPUUsage(total: 0.4, user: 0.15, system: 0.25, idle: 0.6)
         let memory = MemoryUsage(
             usedBytes: 12 * 1_024 * 1_024 * 1_024,
-            availableBytes: 4 * 1_024 * 1_024 * 1_024,
-            totalBytes: 16 * 1_024 * 1_024 * 1_024,
-            appEstimateBytes: 8 * 1_024 * 1_024 * 1_024,
-            wiredBytes: 3 * 1_024 * 1_024 * 1_024,
-            compressedBytes: 1 * 1_024 * 1_024 * 1_024,
-            usedFraction: 0.75
+            cachedBytes: 3 * 1_024 * 1_024 * 1_024,
+            swapUsedBytes: 1 * 1_024 * 1_024 * 1_024
         )
         let storage = StorageUsage(
             usedBytes: 857_000_000_000,
             availableBytes: 143_000_000_000,
-            totalBytes: 1_000_000_000_000,
-            usedFraction: 0.857
+            totalBytes: 1_000_000_000_000
         )
 
         #expect(
@@ -137,8 +76,85 @@ struct MetricFormattingTests {
 
     @Test("Unavailable values use a stable placeholder")
     func formatsUnavailableValues() {
-        #expect(MenuValueFormatting.cpu(nil, style: .idle, locale: locale) == "—")
-        #expect(MenuValueFormatting.memory(nil, style: .used, locale: locale) == "—")
-        #expect(MenuValueFormatting.storage(nil, style: .available, locale: locale) == "—")
+        let memoryWithoutSwap = MemoryUsage(
+            usedBytes: 12,
+            cachedBytes: 3,
+            swapUsedBytes: nil
+        )
+
+        #expect(formattedValue(for: .cpuIdle, cpu: nil) == "—")
+        #expect(formattedValue(for: .memoryUsed, memory: nil) == "—")
+        #expect(formattedValue(for: .memorySwap, memory: memoryWithoutSwap) == "—")
+        #expect(formattedValue(for: .storageFree, storage: nil) == "—")
+    }
+
+    @Test("Builds one complete text-only status label")
+    func buildsStatusLabel() {
+        #expect(
+            MenuBarLabelFormatting.text(
+                stats: [.cpuUser, .memoryUsed],
+                values: ["15%", "12G"],
+                displayMode: .compact
+            ) == "CU   15%  MU   12G"
+        )
+        #expect(
+            MenuBarLabelFormatting.text(
+                stats: [.cpuUser],
+                values: ["15%"],
+                displayMode: .labelAndValue
+            ) == "CPU User   15%"
+        )
+        #expect(
+            MenuBarLabelFormatting.text(
+                stats: [.storageTotal],
+                values: ["1T"],
+                displayMode: .labelAndValue
+            ) == "SSD Total    1T"
+        )
+        #expect(
+            MenuBarLabelFormatting.text(
+                stats: [.cpuUser],
+                values: ["9%"],
+                displayMode: .valueOnly
+            ) == "   9%"
+        )
+    }
+
+    @Test("Each live value keeps a stable menu-bar column width")
+    func reservesStableStatusValueWidth() {
+        let stats: [MenuBarStat] = [
+            .cpuUser,
+            .cpuSystem,
+            .memoryUsed,
+            .storageFree,
+            .memorySwap,
+        ]
+        let shorterValues = MenuBarLabelFormatting.text(
+            stats: stats,
+            values: ["9%", "1%", "2.1G", "9G", "—"],
+            displayMode: .compact
+        )
+        let longerValues = MenuBarLabelFormatting.text(
+            stats: stats,
+            values: ["100%", "99%", "13.9G", "999G", "8.8G"],
+            displayMode: .compact
+        )
+
+        #expect(shorterValues.count == longerValues.count)
+    }
+
+    private func formattedValue(
+        for stat: MenuBarStat,
+        cpu: CPUUsage? = nil,
+        memory: MemoryUsage? = nil,
+        storage: StorageUsage? = nil
+    ) -> String {
+        MenuValueFormatting.value(
+            for: stat,
+            cpuUsage: cpu,
+            memoryUsage: memory,
+            storageUsage: storage,
+            locale: locale
+        )
     }
 }

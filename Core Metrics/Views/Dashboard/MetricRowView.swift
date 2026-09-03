@@ -20,7 +20,7 @@ struct MetricRowView: View {
             Text(label)
                 .foregroundStyle(.secondary)
         }
-        .font(.subheadline)
+        .font(.body)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(label))
         .accessibilityValue(Text(accessibilityValue))

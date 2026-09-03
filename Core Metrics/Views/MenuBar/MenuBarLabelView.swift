@@ -8,24 +8,23 @@ struct MenuBarLabelView: View {
     var body: some View {
         let stats = preferencesStore.enabledStats
         let values = stats.map(value(for:))
+        let statusText = MenuBarLabelFormatting.text(
+            stats: stats,
+            values: values,
+            displayMode: preferencesStore.displayMode
+        )
 
-        HStack(spacing: 6) {
-            ForEach(stats.enumerated(), id: \.element) { index, stat in
-                MenuBarMetricLabelView(
-                    stat: stat,
-                    displayMode: preferencesStore.displayMode,
-                    value: values[index]
-                )
+        Text(verbatim: statusText)
+            .fontDesign(.monospaced)
+            .lineLimit(1)
+            .fixedSize()
+            .help(accessibilitySummary(stats: stats, values: values))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Core Metrics")
+            .accessibilityValue(accessibilitySummary(stats: stats, values: values))
+            .task {
+                metricsStore.start()
             }
-        }
-        .monospacedDigit()
-        .lineLimit(1)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Core Metrics")
-        .accessibilityValue(accessibilitySummary(stats: stats, values: values))
-        .task {
-            metricsStore.start()
-        }
     }
 
     private func value(for stat: MenuBarStat) -> String {

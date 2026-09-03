@@ -1,39 +1,41 @@
 # Design
 
-Core Metrics should feel like a restrained, independent macOS utility: dense enough to scan quickly, calm enough to live in the menu bar all day.
+Core Metrics should feel like a restrained macOS utility: fast to scan, calm enough to live in the menu bar all day, and visibly native rather than styled like a web dashboard.
 
 ## Principles
 
-- The menu bar shows only the enabled metrics and never the full app name.
-- The status menu uses one clear native hierarchy instead of a webpage-like grid of decorative cards.
-- Live numbers use monospaced digits, locale-aware formatting, and useful precision.
-- System typography, semantic colors, native controls, SF Symbols, separators, progress indicators, and Swift Charts are preferred.
-- The interface is strictly monochrome. Semantic primary, secondary, and separator styles establish hierarchy without chromatic accents. CPU, memory, and storage remain distinguishable through labels, SF Symbols, values, and structure rather than color.
-- Live samples update without a forced one-second animation loop, so Reduce Motion requires no alternate continuous-animation path.
-- Native Liquid Glass defines the macOS 27 status menu and platform chrome. Core Metrics lets the system render that material; it does not build decorative glass replicas or stack blur effects behind data content.
+- The menu bar shows only the enabled metrics and never an app icon or the full app name.
+- The status item uses locale-aware formatting, a monospaced system design, useful precision, and reserved width so ordinary updates do not move adjacent stats.
+- System typography, semantic monochrome colors, aligned native controls, SF Symbols, separators, and platform spacing establish hierarchy.
+- The interface contains no charts, decorative graphs, progress visualizations, colored status coding, branded cards, or imitation menu rows.
+- Samples update without a forced animation loop, so Reduce Motion needs no alternate continuous-animation path.
+- macOS owns Liquid Glass on the status panel and window chrome. Core Metrics does not stack blur materials or draw a decorative glass replica behind data.
 
-## Implemented visual system
+## Menu bar and status panel
 
-- The native menu-style extra provides the real macOS menu surface, hover selection, separators, nested menus, keyboard behavior, and Liquid Glass automatically.
-- The menu has no application icon, branded header, persistent live badge, custom card, or imitation menu row. It begins with the standard `Show Core Metrics` action, followed by the selected live stats.
-- `Customize Stats` exposes native nested menus and checkmark toggles for the supported CPU, memory, and storage representations. The display picker, About panel, Settings shortcut, and Quit remain standard macOS menu items.
-- The ordered menu-bar selection also appears as a flat summary in the on-demand dashboard window. Its values use fixed trailing columns, then CPU, memory, and storage remain stacked in one scrollable column with inset separators. There is no decorative card grid or per-metric background treatment.
-- Metric symbols, chart traces, progress, and controls use semantic monochrome styles. Native glass remains in system-owned chrome and the Settings preview rather than wrapping read-only data in additional effects.
-- Secondary labels and status text use semantic foreground styles, so light, dark, Increased Contrast, and Reduce Transparency remain system-managed.
-- The Settings window uses a grouped `Form`, a horizontally scrollable glass live preview, a native add menu, a segmented picker, compact order/removal buttons, help text, and a standard restore action.
+- The status item is one complete text value. This avoids partial rendering of a composed hierarchy and keeps every chosen stat visible when menu-bar space permits.
+- People can select and order one to five stats. Each formatted value reserves a five-character column; Label and Value, Value Only, and Compact remain the only representations.
+- The system-presented window-style `MenuBarExtra` stays open while checkboxes are changed, unlike a transient pull-down menu. It receives the platform's Liquid Glass presentation automatically.
+- The panel contains a clear Open Core Metrics action, the selected count, direct CPU/Memory/Storage checkboxes, a display-style picker, About, Settings, and Quit.
+- Panel controls show stat names and selection state only. Live numbers appear in the status item and detailed window, never duplicated beside selection controls.
+- There is no application icon, branded header, live badge, chart, or custom card in the panel.
 
-## Dashboard hierarchy
+## Detailed window
 
-- CPU: total utilization, quiet history line, and user/system/idle breakdown.
-- Memory: used percentage, App Estimate/Wired/Compressed breakdown, used/available/total values, and quiet history line.
-- Storage: startup volume usage with used/available/total and a native progress treatment.
+The detailed window uses a grouped native `Form`, standard body text, trailing-aligned numeric values, and a 540 × 460 point minimum content size. Its three sections contain exactly:
 
-When a live provider is unavailable, the status menu, selected summary, primary value, and detail rows display an unavailable state instead of retaining stale numbers. Each affected dashboard section explains that the read is temporary and automatically retrying. Valid chart history can remain visible as historical context. Initial CPU delta collection has a distinct neutral state so normal startup is not presented as an error.
+- CPU: User, System, and Idle percentages.
+- Memory: Memory Used, Cached Files, and Swap Used byte values.
+- Startup Disk: Free Space, Used Space, and Total Capacity byte values.
+
+The Settings window also has a useful minimum size. It offers the exact live status-text preview, ordering and removal controls, a native add menu, display-mode selection, and Restore Defaults.
+
+## Failure behavior
+
+When a provider is unavailable, its status item and detail rows show an em dash rather than retaining stale numbers. The affected detailed section explains that the read is temporary and retries automatically. Initial CPU delta collection has a separate neutral collecting state. If only the swap read fails, Memory Used and Cached Files remain available while Swap Used alone shows the placeholder.
 
 ## Accessibility checks
 
-Every metric group provides visible text and a combined VoiceOver description. Charts are a single accessibility element that summarizes sample count, latest value, minimum, and maximum rather than exposing every point. Menu-bar values and native menu items have explicit semantic descriptions, reorder buttons have action labels and help, and system menu controls retain standard keyboard focus behavior.
+Every numeric row exposes a combined VoiceOver label and value. Selection controls have explicit add/remove hints; ordering buttons have action labels and help. Native controls retain system keyboard behavior, and labels never rely on color alone.
 
-Menu-bar customization remains deliberately bounded. People can select and order up to five documented aggregate stats, including multiple details from one metric, and choose a compact display mode. Icon mode pairs the category symbol with a one-character detail qualifier; compact mode uses a unique two-character code. Each stat reserves a fixed percentage or byte-value column so updates do not shift neighboring slots. Core Metrics does not add arbitrary precision, threshold colors, or unrelated hardware/process statistics that would make the status item harder to scan.
-
-Before release, verify the running app in light and dark appearance, Increased Contrast, Reduce Transparency, and Reduce Motion; test keyboard traversal and VoiceOver; and inspect the fixed-width panel and Settings at larger accessibility text sizes for clipping or loss of hierarchy.
+Before release, verify the running app in light and dark appearance, Increased Contrast, Reduce Transparency, and Reduce Motion. Test repeated checkbox changes without panel dismissal, keyboard traversal, VoiceOver, all three status-text modes, one-to-five selections, constrained menu-bar space, and both windows at larger accessibility text sizes.

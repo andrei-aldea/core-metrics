@@ -19,7 +19,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("This uses the same fixed-width slots as the menu bar. Scroll horizontally when a five-stat layout is wider than the preview area.")
+                Text("This is the exact text sent to the menu bar. Each value reserves a five-character column, so live updates do not resize its slot.")
             }
 
             Section {
@@ -39,7 +39,7 @@ struct SettingsView: View {
             } header: {
                 Text("Menu Bar Stats")
             } footer: {
-                Text("Choose one to five aggregate stats. The two-character code appears in Compact mode. Each stat keeps a fixed-width slot while its value updates. Value Only is available for a single stat.")
+                Text("Choose and order one to five stats. Value Only is available when a single stat is selected.")
             }
 
             Section("Representation") {
@@ -62,7 +62,12 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(minWidth: 420, idealWidth: 480)
+        .frame(
+            minWidth: 520,
+            idealWidth: 580,
+            minHeight: 500,
+            idealHeight: 560
+        )
     }
 
     private var addStatMenu: some View {

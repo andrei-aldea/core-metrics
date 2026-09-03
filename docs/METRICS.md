@@ -24,29 +24,23 @@ The provider resets its baseline after sleep, wake, or a suspicious discontinuit
 
 ## Memory
 
-The provider calls Apple's documented [`host_statistics64`](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) with `HOST_VM_INFO64`, reads [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t), obtains the byte multiplier from [`host_page_size`](https://developer.apple.com/documentation/kernel/1502512-host_page_size), and obtains total physical memory from [`ProcessInfo.physicalMemory`](https://developer.apple.com/documentation/foundation/processinfo/physicalmemory).
+The provider calls Apple's documented [`host_statistics64`](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) with `HOST_VM_INFO64`, reads [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t), obtains the byte multiplier from [`host_page_size`](https://developer.apple.com/documentation/kernel/1502512-host_page_size), and obtains total physical memory from [`ProcessInfo.physicalMemory`](https://developer.apple.com/documentation/foundation/processinfo/physicalmemory). Swap Used comes from the public `CTL_VM` / `VM_SWAPUSAGE` sysctl and `xsw_usage.xsu_used` declared in Apple's public [XNU `sysctl.h`](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/sysctl.h).
 
 For nonnegative page counters and `pageSize` in bytes:
 
-`appEstimateBytes = max(internalPageCount - purgeablePageCount, 0) * pageSize`
+`cachedBytes = clamp(externalPageCount * pageSize, 0 ... totalBytes)`
 
-`wiredBytes = wirePageCount * pageSize`
+`freeBytes = clamp(freePageCount * pageSize, 0 ... totalBytes)`
 
-`compressedBytes = compressorPageCount * pageSize`
+`usedBytes = totalBytes - clamp(cachedBytes + freeBytes, 0 ... totalBytes)`
 
-`usedBytes = clamp(appEstimateBytes + wiredBytes + compressedBytes, 0 ... totalBytes)`
+`swapUsedBytes = xsw_usage.xsu_used`
 
-`availableBytes = totalBytes - usedBytes`
+Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) defines Memory Used as RAM in use, Cached Files as files cached into otherwise unused memory, and Swap Used as startup-disk space used by memory management. Apple's public XNU [`vm_statistics.h`](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/mach/vm_statistics.h) defines `external_page_count` as file-backed non-swap pages and `free_count` as free pages, so the formula follows the same visible categories.
 
-`usedPercent = usedBytes / totalBytes`
+Activity Monitor and Core Metrics sample independently, so displayed values can differ briefly even when their category definitions align. Core Metrics does not inspect Activity Monitor or use its private implementation. If the independent swap read fails, Memory Used and Cached Files remain available while Swap Used displays an unavailable placeholder.
 
-This is the **Core Metrics memory estimate**. It follows the App Memory + Wired + Compressed category model described in Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac), while using documented Mach counters. Apple doesn't publish Activity Monitor's exact counter formula, so Core Metrics does not claim numeric parity with Activity Monitor.
-
-Apple's public XNU [`vm_statistics.h`](https://github.com/apple-oss-distributions/xnu/blob/main/osfmk/mach/vm_statistics.h) defines `internal_page_count` as anonymous pages, `purgeable_count` as purgeable pages, `wire_count` as wired pages, and `compressor_page_count` as physical pages occupied by compressed data. `total_uncompressed_pages_in_compressor` is not physical usage and is excluded. Active, inactive, free, and speculative counters are not needed by this definition and are not read or added independently.
-
-Calculations use overflow-safe conversion and clamp inconsistent snapshots. A zero total produces no percentage.
-
-The dashboard exposes the calculated App Estimate, Wired, and Compressed byte counts as the transparent components of the Core Metrics estimate. The menu bar can show percentage used, used, available, App Estimate, Wired, Compressed, or total memory. Category values are formatted from the same snapshot and no additional counters are sampled for presentation.
+Calculations use overflow-safe conversion and clamp inconsistent snapshots. A zero physical-memory total produces no snapshot.
 
 ## Storage
 
@@ -54,11 +48,9 @@ Version 1 queries `URL(fileURLWithPath: "/")` for Foundation's [`volumeTotalCapa
 
 `usedBytes = clamp(totalCapacityBytes - availableCapacityBytes, 0 ... totalCapacityBytes)`
 
-`usedPercent = usedBytes / totalCapacityBytes`
+The UI says **Free Space** as the familiar user-facing name for Foundation's available-capacity value. Core Metrics doesn't perform directory or storage-category scans.
 
-The UI says **Available**, not Free. Core Metrics doesn't perform directory or storage-category scans.
-
-The menu bar can show percentage used, used bytes, available bytes, or total startup-volume capacity.
+The menu bar can show free space, used space, or total startup-volume capacity.
 
 [`volumeAvailableCapacityForImportantUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforimportantusagekey) and [`volumeAvailableCapacityForOpportunisticUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforopportunisticusagekey) aren't used for the dashboard. Apple's [volume-capacity guidance](https://developer.apple.com/documentation/foundation/checking-volume-storage-capacity) defines them as estimates for user-requested/app-required writes and predictive/nonessential writes, respectively, not as neutral disk-utilization values. Core Metrics neither derives nor displays purgeable space.
 
@@ -67,12 +59,12 @@ The menu bar can show percentage used, used bytes, available bytes, or total sta
 - CPU: approximately 1 second.
 - Memory: approximately 1 second.
 - Storage: approximately 30 seconds after valid reads; temporarily retries on the one-second cadence after a failure or invalid snapshot.
-- CPU and memory history: bounded, in memory, and not persisted.
+- History: not collected or retained.
 
 ## Menu-bar representations
 
-- CPU: Total Used, User, System, or Idle percentage from the current aggregate delta sample.
-- Memory: Percentage Used, Used, Available, App Estimate, Wired, Compressed, or Total from the current memory snapshot.
-- Storage: Percentage Used, Used, Available, or Total from the current startup-volume snapshot.
+- CPU: User, System, or Idle percentage from the current aggregate delta sample.
+- Memory: Memory Used, Cached Files, or Swap Used from the current memory snapshot.
+- Storage: Free Space, Used Space, or Total Capacity from the current startup-volume snapshot.
 
-One to five of these concrete stats can be selected and ordered independently, including multiple stats from the same metric. Each percentage or byte value uses a fixed-width menu-bar column so live updates do not resize its slot. Only this selection, order, and display mode are persisted. Metric values and history remain in memory and reset when the app exits.
+One to five of these concrete stats can be selected and ordered independently, including multiple stats from the same metric. The status item is emitted as one text value, and each formatted number reserves a fixed five-character column so live updates do not resize its slot. Compact byte values use at most one decimal place below 100 units, fitting useful precision such as `13.9G` into that column. Only the selection, order, and display mode are persisted. Metric values are current in-memory snapshots and reset when the app exits.

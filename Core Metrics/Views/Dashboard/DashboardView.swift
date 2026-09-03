@@ -1,58 +1,31 @@
 import SwiftUI
 
 struct DashboardView: View {
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(MetricsStore.self) private var metricsStore
-    @Environment(PreferencesStore.self) private var preferencesStore
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                DashboardSelectedStatsView(
-                    stats: preferencesStore.enabledStats,
-                    cpuUsage: metricsStore.cpuUsage,
-                    memoryUsage: metricsStore.memoryUsage,
-                    storageUsage: metricsStore.storageUsage
-                )
+        Form {
+            CPUSectionView(
+                usage: metricsStore.cpuUsage,
+                sampleState: metricsStore.cpuSampleState
+            )
 
-                Divider()
-                    .padding(.horizontal)
+            MemorySectionView(
+                usage: metricsStore.memoryUsage,
+                sampleState: metricsStore.memorySampleState
+            )
 
-                CPUSectionView(
-                    usage: metricsStore.cpuUsage,
-                    history: metricsStore.cpuHistory,
-                    sampleState: metricsStore.cpuSampleState
-                )
-
-                Divider()
-                    .padding(.horizontal)
-
-                MemorySectionView(
-                    usage: metricsStore.memoryUsage,
-                    history: metricsStore.memoryHistory,
-                    sampleState: metricsStore.memorySampleState
-                )
-
-                Divider()
-                    .padding(.horizontal)
-
-                StorageSectionView(
-                    usage: metricsStore.storageUsage,
-                    sampleState: metricsStore.storageSampleState
-                )
-            }
+            StorageSectionView(
+                usage: metricsStore.storageUsage,
+                sampleState: metricsStore.storageSampleState
+            )
         }
+        .formStyle(.grouped)
         .frame(
-            minHeight: DashboardLayout.contentMinimumHeight,
-            idealHeight: DashboardLayout.contentIdealHeight,
-            maxHeight: DashboardLayout.contentMaximumHeight
+            minWidth: DashboardLayout.minimumWindowWidth,
+            idealWidth: DashboardLayout.idealWindowWidth,
+            minHeight: DashboardLayout.minimumWindowHeight,
+            idealHeight: DashboardLayout.idealWindowHeight
         )
-        .frame(width: panelWidth)
-    }
-
-    private var panelWidth: Double {
-        dynamicTypeSize.isAccessibilitySize
-            ? DashboardLayout.accessiblePanelWidth
-            : DashboardLayout.panelWidth
     }
 }

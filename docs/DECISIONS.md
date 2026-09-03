@@ -2,11 +2,11 @@
 
 ## ADR-001 — Native dependency-free application
 
-**Decision:** Build Core Metrics with Swift, SwiftUI, Foundation, Swift Charts, SF Symbols, and documented Apple system APIs, with no third-party dependencies.
+**Decision:** Build Core Metrics with Swift, SwiftUI, Foundation, SF Symbols, and documented Apple system APIs, with no third-party dependencies.
 
 **Reasoning:** The product is small, privacy-sensitive, Mac App Store-bound, and fully covered by platform frameworks. A minimal dependency surface improves auditability, launch cost, and long-term maintenance.
 
-**Alternatives considered:** Cross-platform UI frameworks and third-party chart/system-monitor packages.
+**Alternatives considered:** Cross-platform UI frameworks and third-party system-monitor packages.
 
 **Consequences:** Platform behavior remains native and the code owns a few thin system API adapters. Any future dependency requires an explicit new decision.
 
@@ -20,19 +20,19 @@
 
 **Consequences:** There are several small focused types, but no broad framework or excessive protocol hierarchy.
 
-## ADR-003 — In-memory history only
+## ADR-003 — Current snapshots only
 
-**Decision:** Retain a bounded recent CPU and memory history in memory and never persist samples in version 1.
+**Decision:** Retain only the latest CPU, memory, and storage snapshots. Do not build or retain chart history in version 1.
 
-**Reasoning:** The dashboard needs short visual context, not telemetry. Persistence would add privacy, storage, migration, and lifecycle complexity without advancing the product goal.
+**Reasoning:** The menu-bar utility is most useful as a fast numeric glance. Removing charts and their buffers reduces sampling-side work, presentation code, memory use, and binary surface while matching the requested minimalist interface.
 
-**Alternatives considered:** UserDefaults arrays, files, SwiftData, and a database.
+**Alternatives considered:** Bounded in-memory charts, UserDefaults arrays, files, SwiftData, and a database.
 
-**Consequences:** History resets at launch and consumes a small fixed amount of memory.
+**Consequences:** The app presents current values only and has no historical trend view.
 
 ## ADR-004 — macOS 27 minimum and platform-native appearance
 
-**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. The status item uses the native menu presentation so macOS owns its Liquid Glass, selection, separators, keyboard behavior, and submenus. Custom dashboard content stays on one clear plane. Do not add custom blur stacks or decorative glass replicas.
+**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. The status item uses the native window presentation so macOS owns its Liquid Glass popover. Custom content stays on one clear plane. Do not add custom blur stacks or decorative glass replicas.
 
 **Reasoning:** The product explicitly requires macOS 27 and can therefore use one current UI baseline without availability branches for older releases. Apple's [Liquid Glass adoption guide](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) says standard controls adopt the current appearance automatically, and its [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) warns against excessive effects and containers.
 
@@ -42,23 +42,23 @@
 
 ## ADR-005 — Menu-bar-only primary lifecycle
 
-**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.menu)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. A suppressed-at-launch `Window` scene presents the detailed dashboard only when requested. Do not persist or expose an `isInserted` switch in version 1.
+**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.window)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. A suppressed-at-launch `Window` scene presents the detailed numeric overview only when requested. Do not persist or expose an `isInserted` switch in version 1.
 
-**Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and states that removing the only extra terminates the app. The menu style matches standard macOS status utilities and provides more consistent behavior than recreating a menu inside a custom popover. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
+**Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and identifies window style for data-rich extras with standard controls. A pull-down menu necessarily closes after a toggle on macOS; the window style keeps multi-selection controls available and still uses system presentation. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
 
 **Alternatives considered:** A permanent Dock icon, runtime activation-policy changes, AppKit `NSStatusItem`, and a persistently hideable extra.
 
-**Consequences:** Selected stats, direct customization, display mode, Settings, and Quit remain available in the status menu. Rich history and breakdowns move to an on-demand standard window. Removal, relaunch, menu updates, window activation, Settings activation, and behavior when menu-bar space is constrained require real-app testing.
+**Consequences:** Direct customization, display mode, Settings, and Quit remain available in a persistent status panel. Live values appear only in the status item, while the on-demand standard window provides aligned current values. Removal, relaunch, label updates, window activation, Settings activation, and behavior when menu-bar space is constrained require real-app testing.
 
-## ADR-006 — Activity Monitor-category-aligned memory estimate
+## ADR-006 — Activity Monitor-aligned memory categories
 
-**Decision:** Define App Estimate as `max(internal - purgeable, 0)`, Used as App Estimate + Wired + physical Compressor pages clamped to physical Total, and Available as Total - Used. Present this as Core Metrics' definition without claiming Activity Monitor parity.
+**Decision:** Define Cached Files from the public file-backed `external_page_count`, define Memory Used as physical total minus free and cached bytes, and read Swap Used through the public `CTL_VM` / `VM_SWAPUSAGE` sysctl. Clamp all physical-memory arithmetic defensively. Treat a failed swap read as a partial-value failure rather than discarding Memory Used and Cached Files.
 
-**Reasoning:** Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) explains Memory Used through App, Wired, and Compressed categories, while the documented [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t) exposes corresponding system counters. Apple doesn't publish Activity Monitor's exact implementation formula.
+**Reasoning:** Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) defines the three requested categories. The documented [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t) and Apple's public XNU `sysctl.h` expose corresponding aggregate counters without process inspection or private frameworks.
 
-**Alternatives considered:** Total minus the free list; treating inactive pages as available; independently summing active, inactive, speculative, and purgeable pages; claiming Activity Monitor equivalence.
+**Alternatives considered:** The former App Estimate + Wired + Compressor approximation, parsing command output, inspecting Activity Monitor, private frameworks, and treating swap failure as failure of the entire memory sample.
 
-**Consequences:** The formula is deterministic and testable but can differ from Activity Monitor. Documentation and accessibility labels must call it Core Metrics' estimate where ambiguity matters.
+**Consequences:** The categories and units align with Activity Monitor, but independently timed samples can differ briefly. Documentation must not claim that Core Metrics reads Activity Monitor's private implementation.
 
 ## ADR-007 — Conservative macOS privacy manifest
 

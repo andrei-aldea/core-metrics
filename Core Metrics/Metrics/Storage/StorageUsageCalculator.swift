@@ -14,8 +14,7 @@ nonisolated enum StorageUsageCalculator {
         return StorageUsage(
             usedBytes: usedBytes,
             availableBytes: availableBytes,
-            totalBytes: snapshot.totalBytes,
-            usedFraction: Double(usedBytes) / Double(snapshot.totalBytes)
+            totalBytes: snapshot.totalBytes
         )
     }
 }

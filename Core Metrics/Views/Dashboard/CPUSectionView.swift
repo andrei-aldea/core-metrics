@@ -4,23 +4,11 @@ struct CPUSectionView: View {
     @Environment(\.locale) private var locale
 
     let usage: CPUUsage?
-    let history: [CPUUsage]
     let sampleState: MetricSampleState
 
     var body: some View {
-        MetricSectionView(
-            title: "CPU",
-            systemImage: "cpu",
-            primaryLabel: "Total used",
-            primaryValue: formattedPercentage(usage?.total)
-        ) {
+        Section("CPU") {
             MetricAvailabilityView(metricName: "CPU", state: sampleState)
-
-            MetricHistoryChart(
-                metricName: "CPU usage",
-                samples: history,
-                value: \CPUUsage.total
-            )
 
             MetricRowView(
                 label: "User",

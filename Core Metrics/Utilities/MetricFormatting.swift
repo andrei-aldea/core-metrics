@@ -31,7 +31,7 @@ nonisolated enum MetricFormatting {
     }
 
     /// A deliberately short byte representation for the constrained menu bar.
-    /// It uses at most one decimal place below 10 units and omits whitespace.
+    /// It uses at most one decimal place below 100 units and omits whitespace.
     static func compactBytes(
         _ bytes: UInt64,
         style: MetricByteStyle,
@@ -48,7 +48,7 @@ nonisolated enum MetricFormatting {
         }
 
         let number: String
-        if suffixIndex > 0, value < 10 {
+        if suffixIndex > 0, value < 100 {
             number = value.formatted(
                 .number
                     .precision(.fractionLength(0...1))

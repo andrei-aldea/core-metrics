@@ -28,7 +28,7 @@ The Xcode beta currently prints an App Intents metadata-extraction warning even 
 ## Verified platform decisions
 
 - App Sandbox is mandatory for Mac App Store distribution. The app carries only `com.apple.security.app-sandbox = true`; version 1 needs no network, broad file-access, hardware, Apple Events, helper-tool, or temporary-exception entitlement. See Apple's [App Sandbox overview](https://developer.apple.com/documentation/security/app-sandbox) and [Xcode configuration guide](https://developer.apple.com/documentation/xcode/configuring-the-macos-app-sandbox).
-- CPU and memory acquisition uses Apple's documented [`host_statistics`](https://developer.apple.com/documentation/kernel/1502546-host_statistics) and [`host_statistics64`](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) Mach APIs. They require no documented entitlement, privileged helper, or private framework.
+- CPU and physical-memory acquisition uses Apple's documented [`host_statistics`](https://developer.apple.com/documentation/kernel/1502546-host_statistics) and [`host_statistics64`](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) Mach APIs. Swap Used comes from the public `CTL_VM` / `VM_SWAPUSAGE` sysctl and `xsw_usage` structure declared in Apple's public [XNU `sysctl.h`](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/sysctl.h). These aggregate reads require no documented entitlement, privileged helper, or private framework.
 - Storage acquisition uses Foundation's documented [`volumeTotalCapacityKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumetotalcapacitykey) and [`volumeAvailableCapacityKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacitykey). It reads volume metadata for `/` and does not scan files.
 - Release audits must apply the current [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), especially sections 2.4.5 (sandboxed, self-contained Mac apps), 2.5.1 (public APIs), and 5.1.1(i) (privacy-policy access and metadata).
 
@@ -79,4 +79,4 @@ Development or ad-hoc signing may inject `com.apple.security.get-task-allow = tr
 - Inspect the signed archive's effective entitlements and confirm `get-task-allow` is absent.
 - Archive with the publisher's local signing configuration and validate through a supported stable Xcode.
 - Confirm no personal data or signing information is present in tracked files, Git author metadata, project user data, or archive source.
-- Before making the repository public, audit the complete Git history as well as the working tree and select an explicit repository license.
+- Before each public release, audit the complete Git history as well as the working tree and select an explicit repository license.

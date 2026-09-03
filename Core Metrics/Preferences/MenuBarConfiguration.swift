@@ -15,8 +15,8 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
 
     static var defaultValue: MenuBarConfiguration {
         MenuBarConfiguration(
-            enabledStats: [.cpuTotal],
-            displayMode: .iconAndValue
+            enabledStats: [.cpuUser],
+            displayMode: .labelAndValue
         )
     }
 
@@ -31,8 +31,8 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     init(
-        enabledStats: [MenuBarStat] = [.cpuTotal],
-        displayMode: MenuBarDisplayMode = .iconAndValue
+        enabledStats: [MenuBarStat] = [.cpuUser],
+        displayMode: MenuBarDisplayMode = .labelAndValue
     ) {
         let normalizedStats = Self.normalized(enabledStats)
         self.enabledStats = normalizedStats
@@ -129,7 +129,7 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         let displayMode = try container.decodeIfPresent(
             MenuBarDisplayMode.self,
             forKey: .displayMode
-        ) ?? .iconAndValue
+        ) ?? .labelAndValue
 
         if let enabledStats = try container.decodeIfPresent(
             [MenuBarStat].self,
@@ -181,7 +181,7 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         var seen: Set<MenuBarStat> = []
         let uniqueStats = stats.filter { seen.insert($0).inserted }
         let boundedStats = Array(uniqueStats.prefix(Self.maximumEnabledStatCount))
-        return boundedStats.isEmpty ? [.cpuTotal] : boundedStats
+        return boundedStats.isEmpty ? [.cpuUser] : boundedStats
     }
 
     private static func validatedDisplayMode(

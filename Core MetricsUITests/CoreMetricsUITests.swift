@@ -20,35 +20,57 @@ final class CoreMetricsUITests: XCTestCase {
 
         statusItem.click()
 
-        let showDashboard = app.menuItems["Show Core Metrics"]
+        let showDashboard = app.buttons["openDashboard"]
         XCTAssertTrue(
             showDashboard.waitForExistence(timeout: 5),
-            "The status item should open the native Core Metrics menu"
+            "The status item should open the persistent Core Metrics panel"
         )
         XCTAssertTrue(
-            app.menuItems.matching(
-                NSPredicate(format: "label BEGINSWITH %@", "CPU Used —")
-            ).firstMatch.exists,
-            "The native menu should show the default configured stat"
+            app.descendants(matching: .any)["menuBarPanel"].exists,
+            "The panel should expose stat customization"
+        )
+        XCTAssertTrue(
+            app.checkBoxes["menuBarStat.cpuSystem"].exists,
+            "CPU System should be directly selectable without a transient submenu"
         )
         XCTAssertFalse(
-            app.menuItems["Live"].exists,
+            app.staticTexts["Live"].exists,
             "The removed sampling badge should not be present"
         )
         XCTAssertTrue(
-            app.menuItems["About Core Metrics"].exists,
+            app.buttons["About"].exists,
             "The menu-only app should expose the standard About panel"
         )
         XCTAssertTrue(
-            app.menuItems["Settings…"].exists,
-            "Settings should remain directly available from the status menu"
+            app.buttons["Settings…"].exists,
+            "Settings should remain directly available from the status panel"
         )
+
+        let enabledControl = app.checkBoxes.allElementsBoundByIndex.first(
+            where: \.isEnabled
+        )
+        XCTAssertNotNil(enabledControl)
+        enabledControl?.click()
+        XCTAssertTrue(
+            showDashboard.waitForExistence(timeout: 2),
+            "Selecting a stat should keep the status panel open"
+        )
+        enabledControl?.click()
 
         showDashboard.click()
 
-        XCTAssertTrue(
-            app.windows["Core Metrics"].waitForExistence(timeout: 5),
-            "The native menu should open the detailed metrics window"
-        )
+        let dashboard = app.windows["Core Metrics"]
+        XCTAssertTrue(dashboard.waitForExistence(timeout: 5))
+        XCTAssertGreaterThanOrEqual(dashboard.frame.width, 540)
+        XCTAssertGreaterThanOrEqual(dashboard.frame.height, 460)
+        XCTAssertTrue(app.staticTexts["User"].exists)
+        XCTAssertTrue(app.staticTexts["System"].exists)
+        XCTAssertTrue(app.staticTexts["Idle"].exists)
+        XCTAssertTrue(app.staticTexts["Memory Used"].exists)
+        XCTAssertTrue(app.staticTexts["Cached Files"].exists)
+        XCTAssertTrue(app.staticTexts["Swap Used"].exists)
+        XCTAssertTrue(app.staticTexts["Free Space"].exists)
+        XCTAssertTrue(app.staticTexts["Used Space"].exists)
+        XCTAssertTrue(app.staticTexts["Total Capacity"].exists)
     }
 }

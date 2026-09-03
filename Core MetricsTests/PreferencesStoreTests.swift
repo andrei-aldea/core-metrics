@@ -15,11 +15,11 @@ struct PreferencesStoreTests {
             persistenceKey: fixture.persistenceKey
         )
 
-        #expect(store.setStat(.cpuUser, enabled: true))
+        #expect(store.setStat(.cpuSystem, enabled: true))
         #expect(store.setStat(.memoryUsed, enabled: true))
         store.displayMode = .compact
 
-        #expect(store.enabledStats == [.cpuTotal, .cpuUser, .memoryUsed])
+        #expect(store.enabledStats == [.cpuUser, .cpuSystem, .memoryUsed])
         #expect(store.displayMode == .compact)
 
         let data = try #require(fixture.defaults.data(forKey: fixture.persistenceKey))
@@ -38,7 +38,7 @@ struct PreferencesStoreTests {
             persistenceKey: fixture.persistenceKey
         )
         firstStore.configuration = MenuBarConfiguration(
-            enabledStats: [.storageAvailable, .cpuUser, .memoryCompressed],
+            enabledStats: [.storageFree, .cpuUser, .memoryCached],
             displayMode: .compact
         )
 

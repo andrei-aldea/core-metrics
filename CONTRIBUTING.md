@@ -35,14 +35,14 @@ xcodebuild \
   test
 ```
 
-For UI changes, also run the app and verify the status item, native menu, dashboard, and Settings in light and dark appearance. Check keyboard focus, VoiceOver labels, Increased Contrast, Reduce Motion, Reduce Transparency, accessibility text sizes, and live-value width stability.
+For UI changes, also run the app and verify the status item, persistent status panel, dashboard, and Settings in light and dark appearance. Check repeated panel selections, keyboard focus, VoiceOver labels, Increased Contrast, Reduce Motion, Reduce Transparency, accessibility text sizes, and live-value width stability.
 
 ## Implementation guidelines
 
-- Use Swift, SwiftUI, Foundation, Swift Charts, SF Symbols, and documented public Apple APIs.
+- Use Swift, SwiftUI, Foundation, SF Symbols, and documented public Apple APIs.
 - Keep App Sandbox enabled and do not add an entitlement without a documented need.
 - Do not add a third-party dependency without prior discussion and a strong justification.
-- Keep system acquisition out of views and preserve the separation between providers, calculations, history, preferences, and presentation.
+- Keep system acquisition out of views and preserve the separation between providers, calculations, current snapshots, preferences, and presentation.
 - Treat warnings, concurrency diagnostics, deprecations, sandbox issues, and privacy-manifest diagnostics as defects.
 - Update `docs/METRICS.md` when a formula or metric meaning changes.
 - Record meaningful architectural choices in `docs/DECISIONS.md`.

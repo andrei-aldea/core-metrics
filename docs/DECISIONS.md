@@ -42,13 +42,13 @@
 
 ## ADR-005 — Menu-bar-only primary lifecycle
 
-**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.window)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. A suppressed-at-launch `Window` scene presents the detailed numeric overview only when requested. Do not persist or expose an `isInserted` switch in version 1.
+**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.window)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. Keep live metric values in the status item and configuration in the persistent panel or Settings; do not retain a separate detailed window or expose an `isInserted` switch in version 1.
 
 **Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and identifies window style for data-rich extras with standard controls. A pull-down menu necessarily closes after a toggle on macOS; the window style keeps multi-selection controls available and still uses system presentation. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
 
-**Alternatives considered:** A permanent Dock icon, runtime activation-policy changes, AppKit `NSStatusItem`, and a persistently hideable extra.
+**Alternatives considered:** A permanent Dock icon, runtime activation-policy changes, AppKit `NSStatusItem`, a separate on-demand metrics window, and a persistently hideable extra.
 
-**Consequences:** Direct customization, display mode, Settings, and Quit remain available in a persistent status panel. Live values appear only in the status item, while the on-demand standard window provides aligned current values. Removal, relaunch, label updates, window activation, Settings activation, and behavior when menu-bar space is constrained require real-app testing.
+**Consequences:** Direct customization, display mode, Settings, and Quit remain available in a persistent status panel, while live values appear only in the status item. Relaunch, label updates, Settings activation, fixed-width behavior, and behavior when menu-bar space is constrained require real-app testing.
 
 ## ADR-006 — Activity Monitor-aligned memory categories
 

@@ -16,10 +16,10 @@ Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate 
 ## Highlights
 
 - **Native macOS panel:** The system-presented `MenuBarExtra` window supplies current Liquid Glass while keeping all selection controls open for repeated changes.
-- **Customizable status item:** Choose and order one to five stats. One text-only label and fixed five-character value columns prevent partial labels and width jitter.
+- **Customizable status item:** Choose up to seven stats. They always follow the panel's CPU → Memory → Storage order, and one-decimal values use fixed seven-character columns inside a fixed-width status item to prevent width jitter.
 - **Focused system values:** CPU User/System/Idle, Memory Used/Cached Files/Swap Used, and startup-disk Free/Used/Total are available—without charts or duplicated values in the panel.
 - **Local and private:** Samples stay on the Mac, no metric history is retained, and nothing is transmitted or persisted as telemetry.
-- **Graceful failure handling:** An unavailable provider clears its current reading, explains the recovery state, and retries automatically instead of presenting stale data as live.
+- **Graceful failure handling:** An unavailable provider clears its current reading, shows a stable placeholder, and retries automatically instead of presenting stale data as live.
 - **Mac App Store-oriented:** App Sandbox is enabled, the app uses documented public Apple APIs, and privacy-manifest declarations are kept narrow and truthful.
 
 ## Metrics
@@ -55,7 +55,7 @@ xcodebuild \
   build
 ```
 
-After launching, Core Metrics appears only in the menu bar. Select **Open Core Metrics** for the aligned numeric overview or use the persistent panel and **Settings…** to change the status-item layout.
+After launching, Core Metrics appears only in the menu bar. Use the persistent panel and **Settings…** to change the status-item layout.
 
 ## Test
 
@@ -70,7 +70,7 @@ xcodebuild \
   test
 ```
 
-The separate `Core Metrics UI Tests` scheme covers status-item and dashboard activation. UI tests require a signed local build and an interactive macOS session with working automation permissions.
+The separate `Core Metrics UI Tests` scheme covers status-item launch and persistent-panel interaction. UI tests require a signed local build and an interactive macOS session with working automation permissions.
 
 ## Architecture
 
@@ -85,7 +85,7 @@ Pure calculations and snapshots
         ↓
 MetricsStore current snapshots
         ↓
-Menu bar · Persistent status panel · Dashboard · Settings
+Menu bar · Persistent status panel · Settings
 ```
 
 Additional documentation:

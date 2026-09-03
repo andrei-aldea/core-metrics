@@ -35,7 +35,7 @@ xcodebuild \
   test
 ```
 
-For UI changes, also run the app and verify the status item, persistent status panel, dashboard, and Settings in light and dark appearance. Check repeated panel selections, keyboard focus, VoiceOver labels, Increased Contrast, Reduce Motion, Reduce Transparency, accessibility text sizes, and live-value width stability.
+For UI changes, also run the app and verify the status item, persistent status panel, and Settings in light and dark appearance. Check repeated panel selections, keyboard focus, VoiceOver labels, Increased Contrast, Reduce Motion, Reduce Transparency, accessibility text sizes, and live-value width stability.
 
 ## Implementation guidelines
 

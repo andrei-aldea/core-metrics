@@ -52,7 +52,7 @@ The UI says **Free Space** as the familiar user-facing name for Foundation's ava
 
 The menu bar can show free space, used space, or total startup-volume capacity.
 
-[`volumeAvailableCapacityForImportantUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforimportantusagekey) and [`volumeAvailableCapacityForOpportunisticUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforopportunisticusagekey) aren't used for the dashboard. Apple's [volume-capacity guidance](https://developer.apple.com/documentation/foundation/checking-volume-storage-capacity) defines them as estimates for user-requested/app-required writes and predictive/nonessential writes, respectively, not as neutral disk-utilization values. Core Metrics neither derives nor displays purgeable space.
+[`volumeAvailableCapacityForImportantUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforimportantusagekey) and [`volumeAvailableCapacityForOpportunisticUsageKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacityforopportunisticusagekey) aren't used. Apple's [volume-capacity guidance](https://developer.apple.com/documentation/foundation/checking-volume-storage-capacity) defines them as estimates for user-requested/app-required writes and predictive/nonessential writes, respectively, not as neutral disk-utilization values. Core Metrics neither derives nor displays purgeable space.
 
 ## Sampling
 
@@ -67,4 +67,4 @@ The menu bar can show free space, used space, or total startup-volume capacity.
 - Memory: Memory Used, Cached Files, or Swap Used from the current memory snapshot.
 - Storage: Free Space, Used Space, or Total Capacity from the current startup-volume snapshot.
 
-One to five of these concrete stats can be selected and ordered independently, including multiple stats from the same metric. The status item is emitted as one text value, and each formatted number reserves a fixed five-character column so live updates do not resize its slot. Compact byte values use at most one decimal place below 100 units, fitting useful precision such as `13.9G` into that column. Only the selection, order, and display mode are persisted. Metric values are current in-memory snapshots and reset when the app exits.
+One to seven of these concrete stats can be selected, including multiple stats from the same metric. Selected values always follow the panel's CPU → Memory → Storage order, regardless of click or persisted order. The status item is emitted as one text value, and each formatted number reserves a fixed seven-character column so live updates do not resize its slot. Memory and storage values always use one decimal place, such as `13.9G` or `143.0G`. Only the selection and display mode are persisted. Metric values are current in-memory snapshots and reset when the app exits.

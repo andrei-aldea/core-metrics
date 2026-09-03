@@ -8,18 +8,17 @@ Core Metrics uses a small layered architecture designed to keep system acquisiti
 2. Pure calculation types convert raw values into validated snapshots.
 3. `MetricsStore` coordinates independent refresh cadences and handles CPU delta discontinuities.
 4. A main-actor observable metrics store publishes only the current validated snapshots.
-5. SwiftUI menu-bar and dashboard views render the metrics store, while Settings and the status label observe a dedicated preferences store.
+5. The SwiftUI status label renders the metrics store, while the panel and Settings observe a dedicated preferences store.
 
-The UI never calls Mach or volume-capacity APIs directly. Provider errors clear the affected current snapshot so an old reading is never represented as live. The UI renders an unavailable value and the affected section explains that recovery is automatic. A separate collecting state represents normal first-sample latency.
+The UI never calls Mach or volume-capacity APIs directly. Provider errors clear the affected current snapshot so an old reading is never represented as live. The status label renders an unavailable placeholder until automatic retry produces a fresh value. Normal first-sample CPU latency uses the same neutral placeholder without being logged as a failure.
 
 ## Application surfaces
 
 - `MenuBarExtra` is the primary scene and uses the native window style so its controls remain open during multi-selection and macOS supplies the surrounding Liquid Glass presentation.
-- The label shows an ordered, validated selection of one to five concrete stats as one text value. Each numeric value reserves a five-character column in a monospaced design, so updates cannot drop part of a composed label or resize an individual slot.
-- The status panel shows stat names and selection state—but no duplicate live values—and provides direct checkbox controls, a segmented display-mode picker, About, Settings, and Quit.
-- `Open Core Metrics` opens a suppressed-at-launch standard window containing three grouped, aligned sections for CPU, memory, and startup disk. It has a 540-point minimum width and 460-point minimum height, uses system body text, and contains no charts or progress visualizations.
-- A native `Settings` scene adds, removes, and orders menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar slot view without forcing the Settings window wider.
-- `LSUIElement` keeps the app out of the Dock and application switcher. The dashboard window activates the app only when explicitly opened. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
+- The label shows a validated selection of one to seven concrete stats as one text value. Selection is normalized to the same CPU → Memory → Storage order shown in the panel, independent of click order. Each numeric value reserves a seven-character column in an explicitly measured monospaced frame, so sampling updates cannot resize the status item.
+- The status panel begins with the CPU section, shows stat names and selection state—but no duplicate live values—and provides direct checkbox controls, a segmented display-mode picker, About, Settings, and Quit.
+- A native `Settings` scene adds and removes menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar label without forcing the Settings window wider.
+- `LSUIElement` keeps the app out of the Dock and application switcher. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
 
 ## Concurrency
 
@@ -31,11 +30,11 @@ CPU and memory normally refresh once per second. Storage refreshes every 30 seco
 
 ## Failure and stale-data behavior
 
-- A thrown provider error clears that metric's current value immediately and marks sampling as limited.
+- A thrown provider error clears that metric's current value immediately and records an internal unavailable transition.
 - The first CPU read, a reset baseline, or a zero-tick delta can temporarily produce no current CPU snapshot without being treated as a provider failure.
 - A missing swap value affects only Swap Used; the rest of the memory snapshot remains live.
 - Thrown read failures and later recovery are logged once per state transition with `OSLog`. A provider that returns no sample marks the value unavailable without repetitive error logging. Metric values, paths, and machine identity are not logged.
-- Recovery publishes a fresh value and clears the affected failure state without requiring an app restart.
+- Recovery publishes a fresh value and clears the internal failure state without requiring an app restart.
 
 ## State and persistence
 

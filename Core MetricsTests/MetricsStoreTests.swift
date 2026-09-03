@@ -121,7 +121,6 @@ struct MetricsStoreTests {
     }
 
     fileprivate nonisolated static let cpuUsage = CPUUsage(
-        total: 0.5,
         user: 0.3,
         system: 0.2,
         idle: 0.5

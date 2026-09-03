@@ -59,12 +59,24 @@ final class PreferencesStore {
         }
     }
 
+    var availableStats: [MenuBarStat] {
+        configuration.availableStats
+    }
+
+    var availableDisplayModes: [MenuBarDisplayMode] {
+        configuration.availableDisplayModes
+    }
+
     func isStatEnabled(_ stat: MenuBarStat) -> Bool {
         configuration.isStatEnabled(stat)
     }
 
     func canDisable(_ stat: MenuBarStat) -> Bool {
         configuration.canDisable(stat)
+    }
+
+    func canEnable(_ stat: MenuBarStat) -> Bool {
+        configuration.canEnable(stat)
     }
 
     @discardableResult
@@ -76,30 +88,6 @@ final class PreferencesStore {
 
         configuration = updatedConfiguration
         return true
-    }
-
-    @discardableResult
-    func moveStat(
-        _ stat: MenuBarStat,
-        direction: MenuBarConfiguration.MoveDirection
-    ) -> Bool {
-        var updatedConfiguration = configuration
-        guard updatedConfiguration.moveStat(stat, direction: direction) else {
-            return false
-        }
-
-        configuration = updatedConfiguration
-        return true
-    }
-
-    @discardableResult
-    func moveStatUp(_ stat: MenuBarStat) -> Bool {
-        moveStat(stat, direction: .up)
-    }
-
-    @discardableResult
-    func moveStatDown(_ stat: MenuBarStat) -> Bool {
-        moveStat(stat, direction: .down)
     }
 
     func reset() {

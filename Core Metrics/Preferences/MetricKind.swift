@@ -31,16 +31,4 @@ nonisolated enum MetricKind: String, CaseIterable, Codable, Hashable, Identifiab
             "internaldrive"
         }
     }
-
-    /// Stable, deliberately terse text for the compact menu-bar mode.
-    var shortCode: String {
-        switch self {
-        case .cpu:
-            "C"
-        case .memory:
-            "M"
-        case .storage:
-            "S"
-        }
-    }
 }

@@ -5,7 +5,7 @@ nonisolated enum CPUUsageCalculator {
     /// Calculates normalized CPU usage between two cumulative counter samples.
     ///
     /// Returns `nil` when no ticks elapsed. Mach's `nice` ticks are folded into
-    /// `user`, which keeps the four values shown by Core Metrics consistent.
+    /// `user`, which keeps the three percentages shown by Core Metrics consistent.
     static func calculate(previous: CPUTicks, current: CPUTicks) -> CPUUsage? {
         let userDelta = delta(from: previous.user, to: current.user)
         let systemDelta = delta(from: previous.system, to: current.system)
@@ -23,7 +23,6 @@ nonisolated enum CPUUsageCalculator {
 
         let denominator = Double(totalDelta)
         return CPUUsage(
-            total: Double(usedDelta) / denominator,
             user: Double(effectiveUserDelta) / denominator,
             system: Double(systemDelta) / denominator,
             idle: Double(idleDelta) / denominator

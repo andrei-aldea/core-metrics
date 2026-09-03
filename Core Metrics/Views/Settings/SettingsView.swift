@@ -19,7 +19,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("This is the exact text sent to the menu bar. Each value reserves a five-character column, so live updates do not resize its slot.")
+                Text("This is the exact text sent to the menu bar. Each value reserves a seven-character column, so live updates do not resize its slot.")
             }
 
             Section {
@@ -29,7 +29,7 @@ struct SettingsView: View {
 
                 HStack {
                     addStatMenu
-                        .disabled(availableStats.isEmpty)
+                        .disabled(preferencesStore.availableStats.isEmpty)
 
                     Spacer()
 
@@ -39,12 +39,12 @@ struct SettingsView: View {
             } header: {
                 Text("Menu Bar Stats")
             } footer: {
-                Text("Choose and order one to five stats. Value Only is available when a single stat is selected.")
+                Text("Choose one to seven stats. Their order always matches the CPU, Memory, and Storage order in the status panel. Value Only is available when a single stat is selected.")
             }
 
             Section("Representation") {
                 Picker("Display", selection: $preferences.displayMode) {
-                    ForEach(availableDisplayModes) { mode in
+                    ForEach(preferencesStore.availableDisplayModes) { mode in
                         Text(mode.displayName)
                             .tag(mode)
                     }
@@ -71,7 +71,9 @@ struct SettingsView: View {
     }
 
     private var addStatMenu: some View {
-        Menu {
+        let availableStats = preferencesStore.availableStats
+
+        return Menu {
             ForEach(MetricKind.allCases) { metric in
                 Menu(metric.displayName) {
                     ForEach(availableStats.filter { $0.metric == metric }) { stat in
@@ -85,21 +87,5 @@ struct SettingsView: View {
         } label: {
             Label("Add Stat", systemImage: "plus")
         }
-    }
-
-    private var availableStats: [MenuBarStat] {
-        guard preferencesStore.enabledStats.count < MenuBarConfiguration.maximumEnabledStatCount else {
-            return []
-        }
-
-        return MenuBarStat.allCases.filter { !preferencesStore.isStatEnabled($0) }
-    }
-
-    private var availableDisplayModes: [MenuBarDisplayMode] {
-        if preferencesStore.enabledStats.count > 1 {
-            return MenuBarDisplayMode.allCases.filter { $0 != .valueOnly }
-        }
-
-        return MenuBarDisplayMode.allCases
     }
 }

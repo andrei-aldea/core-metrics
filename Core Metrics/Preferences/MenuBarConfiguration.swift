@@ -2,16 +2,11 @@ import Foundation
 
 /// Durable, validated menu-bar preferences.
 ///
-/// `enabledStats` is always unique, ordered, and contains between one and five
-/// concrete aggregate statistics. All mutations preserve this invariant,
-/// including values decoded from UserDefaults.
+/// `enabledStats` is always unique, follows the widget's canonical order, and
+/// contains between one and seven concrete aggregate statistics. All mutations
+/// preserve this invariant, including values decoded from UserDefaults.
 nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
-    static let maximumEnabledStatCount = 5
-
-    enum MoveDirection: Sendable {
-        case up
-        case down
-    }
+    static let maximumEnabledStatCount = 7
 
     static var defaultValue: MenuBarConfiguration {
         MenuBarConfiguration(
@@ -46,22 +41,34 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         enabledStats.contains(stat)
     }
 
+    func canEnable(_ stat: MenuBarStat) -> Bool {
+        !isStatEnabled(stat)
+            && enabledStats.count < Self.maximumEnabledStatCount
+    }
+
     func canDisable(_ stat: MenuBarStat) -> Bool {
         isStatEnabled(stat) && enabledStats.count > 1
+    }
+
+    var availableStats: [MenuBarStat] {
+        MenuBarStat.allCases.filter(canEnable)
+    }
+
+    var availableDisplayModes: [MenuBarDisplayMode] {
+        enabledStats.count > 1
+            ? MenuBarDisplayMode.allCases.filter { $0 != .valueOnly }
+            : MenuBarDisplayMode.allCases
     }
 
     /// Returns `true` only when the configuration actually changed.
     @discardableResult
     mutating func setStat(_ stat: MenuBarStat, enabled: Bool) -> Bool {
         if enabled {
-            guard
-                !isStatEnabled(stat),
-                enabledStats.count < Self.maximumEnabledStatCount
-            else {
+            guard canEnable(stat) else {
                 return false
             }
 
-            enabledStats.append(stat)
+            enabledStats = Self.normalized(enabledStats + [stat])
             if displayMode == .valueOnly {
                 displayMode = .compact
             }
@@ -74,43 +81,6 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
 
         enabledStats.remove(at: index)
         return true
-    }
-
-    /// Moves an enabled stat one position and returns whether it moved.
-    @discardableResult
-    mutating func moveStat(_ stat: MenuBarStat, direction: MoveDirection) -> Bool {
-        guard let sourceIndex = enabledStats.firstIndex(of: stat) else {
-            return false
-        }
-
-        let destinationIndex: Int
-        switch direction {
-        case .up:
-            destinationIndex = sourceIndex - 1
-        case .down:
-            destinationIndex = sourceIndex + 1
-        }
-
-        guard enabledStats.indices.contains(destinationIndex) else {
-            return false
-        }
-
-        enabledStats.swapAt(sourceIndex, destinationIndex)
-        return true
-    }
-
-    @discardableResult
-    mutating func moveStatUp(_ stat: MenuBarStat) -> Bool {
-        moveStat(stat, direction: .up)
-    }
-
-    @discardableResult
-    mutating func moveStatDown(_ stat: MenuBarStat) -> Bool {
-        moveStat(stat, direction: .down)
-    }
-
-    mutating func reset() {
-        self = .defaultValue
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -144,15 +114,15 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             forKey: .enabledMetrics
         ) ?? [.cpu]
         let cpuStyle = try container.decodeIfPresent(
-            CPUMenuValueStyle.self,
+            LegacyCPUValueStyle.self,
             forKey: .cpuValueStyle
         ) ?? .total
         let memoryStyle = try container.decodeIfPresent(
-            MemoryMenuValueStyle.self,
+            LegacyMemoryValueStyle.self,
             forKey: .memoryValueStyle
         ) ?? .percentage
         let storageStyle = try container.decodeIfPresent(
-            StorageMenuValueStyle.self,
+            LegacyStorageValueStyle.self,
             forKey: .storageValueStyle
         ) ?? .percentage
 
@@ -160,11 +130,23 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             enabledStats: enabledMetrics.map { metric in
                 switch metric {
                 case .cpu:
-                    MenuBarStat(cpuStyle: cpuStyle)
+                    switch cpuStyle {
+                    case .total, .user: .cpuUser
+                    case .system: .cpuSystem
+                    case .idle: .cpuIdle
+                    }
                 case .memory:
-                    MenuBarStat(memoryStyle: memoryStyle)
+                    switch memoryStyle {
+                    case .available: .memoryCached
+                    case .percentage, .used, .appEstimate, .wired,
+                         .compressed, .total: .memoryUsed
+                    }
                 case .storage:
-                    MenuBarStat(storageStyle: storageStyle)
+                    switch storageStyle {
+                    case .available: .storageFree
+                    case .percentage, .used: .storageUsed
+                    case .total: .storageTotal
+                    }
                 }
             },
             displayMode: displayMode
@@ -178,9 +160,11 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     private static func normalized(_ stats: [MenuBarStat]) -> [MenuBarStat] {
-        var seen: Set<MenuBarStat> = []
-        let uniqueStats = stats.filter { seen.insert($0).inserted }
-        let boundedStats = Array(uniqueStats.prefix(Self.maximumEnabledStatCount))
+        let selectedStats = Set(stats)
+        let widgetOrderedStats = MenuBarStat.allCases.filter(selectedStats.contains)
+        let boundedStats = Array(
+            widgetOrderedStats.prefix(Self.maximumEnabledStatCount)
+        )
         return boundedStats.isEmpty ? [.cpuUser] : boundedStats
     }
 
@@ -193,5 +177,31 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
         }
 
         return displayMode
+    }
+
+    /// Version 1 representation enums remain private because they only decode
+    /// preferences written by older builds.
+    private enum LegacyCPUValueStyle: String, Decodable {
+        case total
+        case user
+        case system
+        case idle
+    }
+
+    private enum LegacyMemoryValueStyle: String, Decodable {
+        case percentage
+        case used
+        case available
+        case appEstimate
+        case wired
+        case compressed
+        case total
+    }
+
+    private enum LegacyStorageValueStyle: String, Decodable {
+        case percentage
+        case used
+        case available
+        case total
     }
 }

@@ -12,17 +12,20 @@ struct MetricFormattingTests {
         (1.0, "100%"),
         (-1.0, "0%"),
         (2.0, "100%"),
+        (Double.nan, "0%"),
+        (Double.infinity, "0%"),
     ])
     func formatsPercentages(_ fraction: Double, expected: String) {
         #expect(MetricFormatting.percentage(fraction, locale: locale) == expected)
     }
 
     @Test("Formats compact memory values", arguments: [
-        (UInt64(0), "0B"),
-        (UInt64(1_024), "1K"),
+        (UInt64(0), "0.0B"),
+        (UInt64(1_024), "1.0K"),
         (UInt64(1_610_612_736), "1.5G"),
-        (UInt64(12 * 1_024 * 1_024 * 1_024), "12G"),
+        (UInt64(12 * 1_024 * 1_024 * 1_024), "12.0G"),
         (UInt64(13.86 * 1_024 * 1_024 * 1_024), "13.9G"),
+        (UInt64(1023.96 * 1_024 * 1_024 * 1_024), "1.0T"),
     ])
     func formatsCompactMemory(_ bytes: UInt64, expected: String) {
         #expect(MetricFormatting.compactBytes(bytes, style: .memory, locale: locale) == expected)
@@ -35,7 +38,20 @@ struct MetricFormattingTests {
                 143_000_000_000,
                 style: .storage,
                 locale: locale
-            ) == "143G"
+            ) == "143.0G"
+        )
+    }
+
+    @Test("Byte decimals follow the requested locale")
+    func formatsByteDecimalsForLocale() {
+        let romanianLocale = Locale(identifier: "ro_RO")
+
+        #expect(
+            MetricFormatting.compactBytes(
+                143_000_000_000,
+                style: .storage,
+                locale: romanianLocale
+            ) == "143,0G"
         )
     }
 
@@ -43,15 +59,15 @@ struct MetricFormattingTests {
         (MenuBarStat.cpuUser, "15%"),
         (.cpuSystem, "25%"),
         (.cpuIdle, "60%"),
-        (.memoryUsed, "12G"),
-        (.memoryCached, "3G"),
-        (.memorySwap, "1G"),
-        (.storageUsed, "857G"),
-        (.storageFree, "143G"),
-        (.storageTotal, "1T"),
+        (.memoryUsed, "12.0G"),
+        (.memoryCached, "3.0G"),
+        (.memorySwap, "1.0G"),
+        (.storageUsed, "857.0G"),
+        (.storageFree, "143.0G"),
+        (.storageTotal, "1.0T"),
     ])
     func formatsConcreteMenuBarStat(stat: MenuBarStat, expected: String) {
-        let cpu = CPUUsage(total: 0.4, user: 0.15, system: 0.25, idle: 0.6)
+        let cpu = CPUUsage(user: 0.15, system: 0.25, idle: 0.6)
         let memory = MemoryUsage(
             usedBytes: 12 * 1_024 * 1_024 * 1_024,
             cachedBytes: 3 * 1_024 * 1_024 * 1_024,
@@ -93,30 +109,60 @@ struct MetricFormattingTests {
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser, .memoryUsed],
-                values: ["15%", "12G"],
+                values: ["15%", "12.0G"],
                 displayMode: .compact
-            ) == "CU   15%  MU   12G"
+            ) == "CU     15%  MU   12.0G"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["15%"],
                 displayMode: .labelAndValue
-            ) == "CPU User   15%"
+            ) == "CPU User     15%"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.storageTotal],
-                values: ["1T"],
+                values: ["1.0T"],
                 displayMode: .labelAndValue
-            ) == "SSD Total    1T"
+            ) == "SSD Total    1.0T"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["9%"],
                 displayMode: .valueOnly
-            ) == "   9%"
+            ) == "     9%"
+        )
+        #expect(
+            MenuBarLabelFormatting.text(
+                stats: [.cpuUser],
+                values: [],
+                displayMode: .compact
+            ) == MetricFormatting.unavailable
+        )
+    }
+
+    @Test("Every display mode fills its reserved character width", arguments: [
+        ([MenuBarStat.cpuUser], ["9%"], MenuBarDisplayMode.labelAndValue),
+        ([.cpuUser], ["99%"], .valueOnly),
+        ([.cpuUser, .memoryUsed], ["9%", "2.1G"], .compact),
+    ])
+    func fillsReservedCharacterWidth(
+        stats: [MenuBarStat],
+        values: [String],
+        displayMode: MenuBarDisplayMode
+    ) {
+        let text = MenuBarLabelFormatting.text(
+            stats: stats,
+            values: values,
+            displayMode: displayMode
+        )
+        #expect(
+            text.count == MenuBarLabelFormatting.reservedCharacterCount(
+                stats: stats,
+                displayMode: displayMode
+            )
         )
     }
 
@@ -125,21 +171,30 @@ struct MetricFormattingTests {
         let stats: [MenuBarStat] = [
             .cpuUser,
             .cpuSystem,
+            .cpuIdle,
             .memoryUsed,
-            .storageFree,
             .memorySwap,
+            .storageUsed,
+            .storageFree,
         ]
         let shorterValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["9%", "1%", "2.1G", "9G", "—"],
+            values: ["9%", "1%", "90%", "2.1G", "—", "9.0G", "1.0T"],
             displayMode: .compact
         )
         let longerValues = MenuBarLabelFormatting.text(
             stats: stats,
-            values: ["100%", "99%", "13.9G", "999G", "8.8G"],
+            values: ["100%", "99%", "100%", "1023.9G", "88.8G", "999.9G", "999.9T"],
             displayMode: .compact
         )
 
+        #expect(MenuBarLabelFormatting.valueColumnWidth == 7)
+        #expect(
+            MenuBarLabelFormatting.reservedCharacterCount(
+                stats: stats,
+                displayMode: .compact
+            ) == shorterValues.count
+        )
         #expect(shorterValues.count == longerValues.count)
     }
 

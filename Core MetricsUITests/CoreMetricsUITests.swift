@@ -20,14 +20,15 @@ final class CoreMetricsUITests: XCTestCase {
 
         statusItem.click()
 
-        let showDashboard = app.buttons["openDashboard"]
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
         XCTAssertTrue(
-            showDashboard.waitForExistence(timeout: 5),
+            panel.waitForExistence(timeout: 5),
             "The status item should open the persistent Core Metrics panel"
         )
+        XCTAssertFalse(app.staticTexts["Selected"].exists)
         XCTAssertTrue(
-            app.descendants(matching: .any)["menuBarPanel"].exists,
-            "The panel should expose stat customization"
+            app.staticTexts["CPU"].exists,
+            "The panel should begin directly with the CPU section"
         )
         XCTAssertTrue(
             app.checkBoxes["menuBarStat.cpuSystem"].exists,
@@ -52,25 +53,9 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertNotNil(enabledControl)
         enabledControl?.click()
         XCTAssertTrue(
-            showDashboard.waitForExistence(timeout: 2),
+            panel.waitForExistence(timeout: 2),
             "Selecting a stat should keep the status panel open"
         )
         enabledControl?.click()
-
-        showDashboard.click()
-
-        let dashboard = app.windows["Core Metrics"]
-        XCTAssertTrue(dashboard.waitForExistence(timeout: 5))
-        XCTAssertGreaterThanOrEqual(dashboard.frame.width, 540)
-        XCTAssertGreaterThanOrEqual(dashboard.frame.height, 460)
-        XCTAssertTrue(app.staticTexts["User"].exists)
-        XCTAssertTrue(app.staticTexts["System"].exists)
-        XCTAssertTrue(app.staticTexts["Idle"].exists)
-        XCTAssertTrue(app.staticTexts["Memory Used"].exists)
-        XCTAssertTrue(app.staticTexts["Cached Files"].exists)
-        XCTAssertTrue(app.staticTexts["Swap Used"].exists)
-        XCTAssertTrue(app.staticTexts["Free Space"].exists)
-        XCTAssertTrue(app.staticTexts["Used Space"].exists)
-        XCTAssertTrue(app.staticTexts["Total Capacity"].exists)
     }
 }

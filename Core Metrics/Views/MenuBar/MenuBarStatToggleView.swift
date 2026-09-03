@@ -1,13 +1,13 @@
 import SwiftUI
 
-/// A native panel toggle that preserves the one-to-five stat invariant.
+/// A native panel toggle that preserves the one-to-seven stat invariant.
 struct MenuBarStatToggleView: View {
     @Environment(PreferencesStore.self) private var preferencesStore
 
     let stat: MenuBarStat
 
     var body: some View {
-        Toggle(stat.dashboardName, isOn: selection)
+        Toggle(stat.panelName, isOn: selection)
             .disabled(isDisabled)
             .toggleStyle(.checkbox)
             .accessibilityIdentifier("menuBarStat.\(stat.rawValue)")
@@ -26,8 +26,7 @@ struct MenuBarStatToggleView: View {
             return !preferencesStore.canDisable(stat)
         }
 
-        return preferencesStore.enabledStats.count
-            >= MenuBarConfiguration.maximumEnabledStatCount
+        return !preferencesStore.canEnable(stat)
     }
 
     private var accessibilityHint: String {

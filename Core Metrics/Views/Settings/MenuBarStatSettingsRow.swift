@@ -16,48 +16,20 @@ struct MenuBarStatSettingsRow: View {
                 .foregroundStyle(.secondary)
                 .accessibilityHidden(true)
 
-            HStack(spacing: 4) {
-                Button("Move \(stat.displayName) earlier", systemImage: "arrow.up") {
-                    preferencesStore.moveStatUp(stat)
-                }
-                .disabled(isFirst)
-                .labelStyle(.iconOnly)
-                .help("Move earlier")
-
-                Button("Move \(stat.displayName) later", systemImage: "arrow.down") {
-                    preferencesStore.moveStatDown(stat)
-                }
-                .disabled(isLast)
-                .labelStyle(.iconOnly)
-                .help("Move later")
-
-                Button("Remove \(stat.displayName)", systemImage: "minus.circle") {
-                    preferencesStore.setStat(stat, enabled: false)
-                }
-                .disabled(!preferencesStore.canDisable(stat))
-                .labelStyle(.iconOnly)
-                .help("Remove from menu bar")
-            }
+            Button(
+                "Remove \(stat.displayName)",
+                systemImage: "minus.circle",
+                action: removeStat
+            )
+            .disabled(!preferencesStore.canDisable(stat))
+            .labelStyle(.iconOnly)
             .buttonStyle(.borderless)
             .controlSize(.small)
+            .help("Remove from menu bar")
         }
     }
 
-    private var enabledIndex: Int? {
-        preferencesStore.enabledStats.firstIndex(of: stat)
-    }
-
-    private var isFirst: Bool {
-        enabledIndex == preferencesStore.enabledStats.startIndex
-    }
-
-    private var isLast: Bool {
-        guard let enabledIndex else {
-            return false
-        }
-
-        return enabledIndex == preferencesStore.enabledStats.index(
-            before: preferencesStore.enabledStats.endIndex
-        )
+    private func removeStat() {
+        preferencesStore.setStat(stat, enabled: false)
     }
 }

@@ -1,6 +1,15 @@
+import AppKit
 import SwiftUI
 
 struct MenuBarLabelView: View {
+    private static let statusFont = NSFont.monospacedSystemFont(
+        ofSize: NSFont.systemFontSize,
+        weight: .regular
+    )
+    private static let characterAdvance = ("0" as NSString).size(
+        withAttributes: [.font: statusFont]
+    ).width
+
     @Environment(\.locale) private var locale
     @Environment(MetricsStore.self) private var metricsStore
     @Environment(PreferencesStore.self) private var preferencesStore
@@ -13,18 +22,34 @@ struct MenuBarLabelView: View {
             values: values,
             displayMode: preferencesStore.displayMode
         )
+        let reservedWidth = statusWidth(
+            stats: stats,
+            displayMode: preferencesStore.displayMode
+        )
+        let spokenSummary = accessibilitySummary(stats: stats, values: values)
 
         Text(verbatim: statusText)
-            .fontDesign(.monospaced)
+            .font(Font(Self.statusFont))
             .lineLimit(1)
-            .fixedSize()
-            .help(accessibilitySummary(stats: stats, values: values))
+            .frame(width: reservedWidth, alignment: .leading)
+            .help(spokenSummary)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Core Metrics")
-            .accessibilityValue(accessibilitySummary(stats: stats, values: values))
+            .accessibilityValue(spokenSummary)
             .task {
                 metricsStore.start()
             }
+    }
+
+    private func statusWidth(
+        stats: [MenuBarStat],
+        displayMode: MenuBarDisplayMode
+    ) -> CGFloat {
+        let characterCount = MenuBarLabelFormatting.reservedCharacterCount(
+            stats: stats,
+            displayMode: displayMode
+        )
+        return ceil(Self.characterAdvance * CGFloat(characterCount)) + 1
     }
 
     private func value(for stat: MenuBarStat) -> String {

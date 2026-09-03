@@ -53,8 +53,8 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         }
     }
 
-    /// Wording used for aligned rows in the detailed metrics window.
-    var dashboardName: String {
+    /// Concise wording used inside the metric-grouped status panel.
+    var panelName: String {
         switch self {
         case .cpuUser:
             "User"
@@ -128,33 +128,6 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
 
     static func values(for metric: MetricKind) -> [MenuBarStat] {
         allCases.filter { $0.metric == metric }
-    }
-
-    init(cpuStyle: CPUMenuValueStyle) {
-        self = switch cpuStyle {
-        case .total: .cpuUser
-        case .user: .cpuUser
-        case .system: .cpuSystem
-        case .idle: .cpuIdle
-        }
-    }
-
-    init(memoryStyle: MemoryMenuValueStyle) {
-        self = switch memoryStyle {
-        case .percentage: .memoryUsed
-        case .used: .memoryUsed
-        case .available: .memoryCached
-        case .appEstimate, .wired, .compressed, .total: .memoryUsed
-        }
-    }
-
-    init(storageStyle: StorageMenuValueStyle) {
-        self = switch storageStyle {
-        case .percentage: .storageUsed
-        case .used: .storageUsed
-        case .available: .storageFree
-        case .total: .storageTotal
-        }
     }
 
     init(from decoder: any Decoder) throws {

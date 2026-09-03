@@ -18,19 +18,6 @@ struct CoreMetricsApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        Window("Core Metrics", id: DashboardLayout.windowIdentifier) {
-            DashboardView()
-                .environment(metricsStore)
-                .environment(preferencesStore)
-                .tint(Color.primary)
-        }
-        .defaultLaunchBehavior(.suppressed)
-        .defaultSize(
-            width: DashboardLayout.idealWindowWidth,
-            height: DashboardLayout.idealWindowHeight
-        )
-        .windowResizability(.contentMinSize)
-
         Settings {
             SettingsView()
                 .environment(metricsStore)

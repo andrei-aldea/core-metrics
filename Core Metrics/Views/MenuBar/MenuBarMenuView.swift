@@ -4,6 +4,8 @@ import SwiftUI
 /// unlike a pull-down menu, the panel remains open while several stats are
 /// selected and macOS still owns the surrounding Liquid Glass material.
 struct MenuBarMenuView: View {
+    var writeToClipboard: @MainActor (String) -> Bool = { CurrentReadingsPasteboard.write($0, to: .general) }
+
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(PreferencesStore.self) private var preferencesStore
     @State private var isShowingMetricHelp = false
@@ -44,6 +46,8 @@ struct MenuBarMenuView: View {
             Divider()
 
             HStack(alignment: .top) {
+                CopyCurrentReadingsButton(writeToClipboard: writeToClipboard)
+
                 Spacer()
 
                 Button("Metric Help…") {

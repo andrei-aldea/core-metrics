@@ -24,6 +24,7 @@ final class CoreMetricsUITests: XCTestCase {
         app.launchEnvironment = [
             "CORE_METRICS_UI_TESTING": "1",
             "CORE_METRICS_UI_APPEARANCE": appearance,
+            "CORE_METRICS_UI_COPY_FAILURE": appearance == "dark" ? "1" : "0",
         ]
         app.launch()
         defer { app.terminate() }
@@ -153,6 +154,24 @@ final class CoreMetricsUITests: XCTestCase {
         panelScreenshot.name = "Persistent status panel - \(appearance)"
         panelScreenshot.lifetime = .keepAlways
         add(panelScreenshot)
+
+        app.buttons["menuBar.copyCurrentReadings"].click()
+        if appearance == "dark" {
+            let failure = app.staticTexts["Couldn’t Copy Readings"]
+            XCTAssertTrue(failure.waitForExistence(timeout: 3))
+            app.buttons["OK"].click()
+            XCTAssertTrue(failure.waitForNonExistence(timeout: 3))
+        } else {
+            XCTAssertTrue(app.staticTexts["menuBar.copyConfirmation"].waitForExistence(timeout: 3))
+        }
+        XCTAssertTrue(panel.exists)
+        let panelWindow = app.windows.containing(.button, identifier: "menuBar.copyCurrentReadings").firstMatch
+        if panelWindow.exists {
+            let actionsScreenshot = XCTAttachment(screenshot: panelWindow.screenshot())
+            actionsScreenshot.name = "Panel actions - \(appearance)"
+            actionsScreenshot.lifetime = .keepAlways
+            add(actionsScreenshot)
+        }
 
         app.buttons["menuBar.metricHelp"].click()
         try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: false)

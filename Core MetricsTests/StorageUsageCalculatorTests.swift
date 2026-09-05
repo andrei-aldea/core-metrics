@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Core_Metrics
 
@@ -28,5 +29,20 @@ struct StorageUsageCalculatorTests {
     func rejectsZeroTotal() {
         let snapshot = StorageCapacitySnapshot(totalBytes: 0, availableBytes: 0)
         #expect(StorageUsageCalculator.calculate(from: snapshot) == nil)
+    }
+}
+
+@Suite("Startup-volume sampling")
+struct RootVolumeStorageProviderTests {
+    @Test("Each poll replaces cached capacity values with a fresh volume read")
+    func discardsCachedCapacityValues() throws {
+        var rootURL = URL(fileURLWithPath: "/", isDirectory: true)
+        rootURL.setTemporaryResourceValue(0, forKey: .volumeTotalCapacityKey)
+        rootURL.setTemporaryResourceValue(0, forKey: .volumeAvailableCapacityKey)
+
+        let provider = RootVolumeStorageProvider(rootURL: rootURL)
+        let usage = try #require(try provider.sample())
+
+        #expect(usage.totalBytes > 0)
     }
 }

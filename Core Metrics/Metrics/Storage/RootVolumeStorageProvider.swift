@@ -14,7 +14,11 @@ nonisolated struct RootVolumeStorageProvider: StorageMetricsProviding {
     }
 
     func sample() throws -> StorageUsage? {
-        let values = try rootURL.resourceValues(forKeys: [
+        // Resource values are cached on URL instances. Off-main sampling has
+        // no main-run-loop invalidation, so every poll must discard that cache.
+        var sampleURL = rootURL
+        sampleURL.removeAllCachedResourceValues()
+        let values = try sampleURL.resourceValues(forKeys: [
             .volumeTotalCapacityKey,
             .volumeAvailableCapacityKey,
         ])

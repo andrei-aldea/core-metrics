@@ -28,6 +28,39 @@ struct PreferencesStoreTests {
     }
 
     @MainActor
+    @Test("No-op changes preserve the stored preference data")
+    func noOpChangesDoNotPersist() throws {
+        let fixture = try makeDefaultsFixture()
+        defer { fixture.defaults.removePersistentDomain(forName: fixture.suiteName) }
+
+        // Whitespace makes this valid payload distinct from JSONEncoder's
+        // output, so the assertions detect an unnecessary rewrite without
+        // replacing UserDefaults with a test-only persistence abstraction.
+        let storedData = Data(
+            """
+            {
+              "enabledStats": ["cpuUser"],
+              "displayMode": "iconAndValue"
+            }
+            """.utf8
+        )
+        fixture.defaults.set(storedData, forKey: fixture.persistenceKey)
+        let store = PreferencesStore(
+            defaults: fixture.defaults,
+            persistenceKey: fixture.persistenceKey
+        )
+
+        store.displayMode = .labelAndValue
+        #expect(fixture.defaults.data(forKey: fixture.persistenceKey) == storedData)
+
+        store.configuration = .defaultValue
+        #expect(fixture.defaults.data(forKey: fixture.persistenceKey) == storedData)
+
+        store.reset()
+        #expect(fixture.defaults.data(forKey: fixture.persistenceKey) == storedData)
+    }
+
+    @MainActor
     @Test("A new store restores the saved configuration")
     func reloadsConfiguration() throws {
         let fixture = try makeDefaultsFixture()

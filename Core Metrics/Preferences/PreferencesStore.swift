@@ -8,7 +8,9 @@ import Observation
 final class PreferencesStore {
     var configuration: MenuBarConfiguration {
         didSet {
-            persistConfiguration()
+            if configuration != oldValue {
+                persistConfiguration()
+            }
         }
     }
 

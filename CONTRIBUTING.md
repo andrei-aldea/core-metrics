@@ -1,62 +1,23 @@
 # Contributing to Core Metrics
 
-Thank you for helping improve Core Metrics. Contributions should preserve its focus as a small, private, native macOS menu-bar utility.
+Keep changes focused on aggregate CPU, memory, startup-volume information, native presentation, accessibility, reliability, or release preparation. The canonical scope and engineering rules are in [AGENTS.md](AGENTS.md); setup and checks are in [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
 
-## Before opening an issue
+## Workflow
 
-- Search existing issues for the same problem or proposal.
-- Confirm the request belongs to aggregate CPU, memory, startup-volume storage, menu-bar presentation, accessibility, reliability, or App Store readiness.
-- Do not post credentials, signing identities, provisioning information, personal paths, device names, or sensitive logs.
+1. Read the existing code and docs, inspect the working tree, and preserve unrelated edits.
+2. Use Xcode 27, the macOS 27 SDK, and the existing Swift 6 settings. Open `Core Metrics.xcodeproj`; use the shared `Core Metrics` scheme.
+3. Implement the smallest supported change. Keep system acquisition out of views and retain the provider/calculator/state/preferences separation. New dependencies require explicit review and a written justification.
+4. Add focused Swift Testing regressions for changed calculations, persistence, or lifecycle behavior. Use XCTest for native UI automation.
+5. Build Debug and Release, run relevant tests, inspect diagnostics and the final diff. Exercise UI changes in the running app, including Settings, keyboard navigation, appearance, and accessibility.
+6. Update metric formulas, architecture decisions, development instructions, and the remediation report when the corresponding behavior or validation status changes.
 
-Fan control, SMC/private APIs, temperature probing, privileged helpers, daemons, kernel extensions, cleaning, process inspection, file scanning, malware features, hardware tuning, battery/network monitoring, accounts, cloud features, analytics, ads, subscriptions, and purchases are outside the project scope.
+No formatting/lint dependency is configured. Follow neighboring Swift style and use `git diff --check`. Do not suppress warnings or relax concurrency, privacy, sandbox, or test requirements.
 
-## Development setup
+## Issues and pull requests
 
-Requirements:
+Search existing issues before filing one. Describe a reproducible symptom or the smallest useful proposal. Include the macOS/Xcode version and a sanitized revision/build reference. PRs should explain the resulting behavior, relevant validation, and any remaining limitations; screenshots help when appearance changes.
 
-- macOS 27 or later
-- Xcode 27 or later
-
-Open `Core Metrics.xcodeproj` in Xcode or use the command line:
-
-```sh
-xcodebuild -list -project "Core Metrics.xcodeproj"
-xcodebuild \
-  -project "Core Metrics.xcodeproj" \
-  -scheme "Core Metrics" \
-  -destination 'platform=macOS' \
-  CODE_SIGNING_ALLOWED=NO \
-  build
-xcodebuild \
-  -project "Core Metrics.xcodeproj" \
-  -scheme "Core Metrics" \
-  -destination 'platform=macOS' \
-  CODE_SIGNING_ALLOWED=NO \
-  test
-```
-
-For UI changes, also run the app and verify the status item, persistent status panel, and Settings in light and dark appearance. Check repeated panel selections, keyboard focus, VoiceOver labels, Increased Contrast, Reduce Motion, Reduce Transparency, accessibility text sizes, and live-value width stability.
-
-## Implementation guidelines
-
-- Use Swift, SwiftUI, Foundation, SF Symbols, and documented public Apple APIs.
-- Keep App Sandbox enabled and do not add an entitlement without a documented need.
-- Do not add a third-party dependency without prior discussion and a strong justification.
-- Keep system acquisition out of views and preserve the separation between providers, calculations, current snapshots, preferences, and presentation.
-- Treat warnings, concurrency diagnostics, deprecations, sandbox issues, and privacy-manifest diagnostics as defects.
-- Update `docs/METRICS.md` when a formula or metric meaning changes.
-- Record meaningful architectural choices in `docs/DECISIONS.md`.
-
-## Pull requests
-
-Keep each pull request focused and buildable. Include:
-
-- A concise description of the user-visible or architectural change.
-- Tests for changed pure logic or preference behavior.
-- Manual verification notes for UI work.
-- Documentation updates when behavior, scope, privacy, or architecture changes.
-
-Before committing, inspect both the working and staged diffs and confirm no personal names, email addresses, usernames, home paths, device names, developer team IDs, certificates, provisioning profiles, credentials, tokens, or Xcode user data are included.
+Never post secrets, personal paths, device identifiers, signing information, sensitive logs, or unredacted test bundles. Before any requested commit, inspect the working and staged diffs, scan staged content for private material, and verify that the change is coherent and buildable. Do not publish, push, commit, or alter signing as part of an unrequested cleanup.
 
 ## License
 

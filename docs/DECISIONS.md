@@ -1,71 +1,53 @@
-# Architecture Decisions
+# Architecture decisions
 
-## ADR-001 — Native dependency-free application
+These decisions describe the current product. Implementation evidence and validation limits are in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md).
 
-**Decision:** Build Core Metrics with Swift, SwiftUI, Foundation, SF Symbols, and documented Apple system APIs, with no third-party dependencies.
+## ADR-001 — Native, dependency-free application
 
-**Reasoning:** The product is small, privacy-sensitive, Mac App Store-bound, and fully covered by platform frameworks. A minimal dependency surface improves auditability, launch cost, and long-term maintenance.
+Use Swift, SwiftUI, AppKit, Foundation, Observation, OSLog and public Darwin APIs. Native frameworks cover this small utility without a cross-platform layer or monitoring SDK. A new dependency needs explicit review and a written justification.
 
-**Alternatives considered:** Cross-platform UI frameworks and third-party system-monitor packages.
+## ADR-002 — Providers and pure calculations
 
-**Consequences:** Platform behavior remains native and the code owns a few thin system API adapters. Any future dependency requires an explicit new decision.
+Keep raw acquisition behind injectable providers, math in pure calculators, immutable snapshots in Models, and observable state on the main actor. This localizes unsafe pointer/Mach work and permits deterministic fixtures. No global monitoring singleton or general-purpose dependency container is needed.
 
-## ADR-002 — Layered providers with pure calculations
+## ADR-003 — Current values only
 
-**Decision:** Separate raw system acquisition, pure snapshot calculations, sampling coordination, observable application state, and presentation.
+Retain only the latest CPU, memory and storage snapshots. There are no charts, history buffers, database or telemetry persistence. Historical migrations for menu-bar preferences remain necessary and are retained.
 
-**Reasoning:** Mach counters are cumulative and error-prone; keeping their math pure allows deterministic fixtures and fast parallel tests. UI code remains readable and sandbox/API audits stay localized.
+## ADR-004 — Existing macOS 27 baseline
 
-**Alternatives considered:** Reading metrics directly from SwiftUI views or a single global monitoring singleton.
+Keep macOS 27 across all targets. This minimum predates the remediation; compatibility was reviewed, not expanded or lowered. Standard controls and system window presentation supply current native materials. There are no older-system fallback claims and no decorative blur stacks. Revalidate on a stable supported Xcode before submission. See Apple's [Liquid Glass adoption guidance](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass).
 
-**Consequences:** There are several small focused types, but no broad framework or excessive protocol hierarchy.
+## ADR-005 — Menu-bar-only lifecycle
 
-## ADR-003 — Current snapshots only
+Use [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) with window style and `LSUIElement`. The persistent panel contains selectors; the status label contains live values. Settings uses native SettingsLink, and About uses the standard AppKit panel. Do not persist an invisible status item with no recovery surface. Sampling starts idempotently from the label and continues while configuration surfaces are closed.
 
-**Decision:** Retain only the latest CPU, memory, and storage snapshots. Do not build or retain chart history in version 1.
+## ADR-006 — Explicit aggregate memory semantics
 
-**Reasoning:** The menu-bar utility is most useful as a fast numeric glance. Removing charts and their buffers reduces sampling-side work, presentation code, memory use, and binary surface while matching the requested minimalist interface.
+Use public VM counters for cached/free/wired/compressed memory, physicalMemory for total RAM, and the public VM_SWAPUSAGE sysctl for swap. Memory Used is physical total minus clamped cached/free memory; compressed memory is occupied compressed RAM, not its logical uncompressed size. Treat swap failure independently. These are aggregate estimates aligned with Activity Monitor category names, not its private implementation. Exact formulas and caveats live in [METRICS.md](METRICS.md).
 
-**Alternatives considered:** Bounded in-memory charts, UserDefaults arrays, files, SwiftData, and a database.
+## ADR-007 — Narrow privacy declaration
 
-**Consequences:** The app presents current values only and has no historical trend view.
+Retain the existing manifest with Disk Space `85F4.1`, User Defaults `CA92.1`, and no collected data/tracking. Apple's macOS-specific applicability must be checked at release; current declarations truthfully describe use rather than inventing reasons. See [APP_STORE.md](APP_STORE.md) for official sources and release review obligations.
 
-## ADR-004 — macOS 27 minimum and platform-native appearance
+Expose factual local privacy information from Settings in a native, scrollable sheet. Describe the implemented aggregate reads, local persistence, and diagnostics. Keep publisher-controlled policy/support URLs and legal decisions in the release workflow; do not invent them or introduce networking to display local information.
 
-**Decision:** Set the minimum deployment target to macOS 27 across the app, unit-test, and UI-test configurations. Build the interface from standard SwiftUI controls and platform chrome, letting the system provide its current material appearance. The status item uses the native window presentation so macOS owns its Liquid Glass popover. Custom content stays on one clear plane. Do not add custom blur stacks or decorative glass replicas.
+## ADR-008 — Reject obsolete work and refresh metadata
 
-**Reasoning:** The product explicitly requires macOS 27 and can therefore use one current UI baseline without availability branches for older releases. Apple's [Liquid Glass adoption guide](https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass) says standard controls adopt the current appearance automatically, and its [custom-view guidance](https://developer.apple.com/documentation/swiftui/applying-liquid-glass-to-custom-views) warns against excessive effects and containers.
+Give each sampling generation an identity checked on the main actor before publication. Cancelling does not interrupt an already-running synchronous system call; identity validation prevents its late result from updating a restarted store. Return the cancelled task from `stop()` when completion must be awaited. This preserves the existing provider contracts and avoids locks in app state.
 
-**Alternatives considered:** Retaining the former macOS 14 compatibility range; adding version-specific appearance branches; manually recreating platform materials.
+Clear cached URL resource values before each background storage sample. Apple [documents URL caching](https://developer.apple.com/documentation/foundation/url/resourcevalues(forkeys:)); main-thread automatic invalidation does not cover the app's background loop. The small local invalidation is preferable to accepting stale disk values or adding a separate cache abstraction.
 
-**Consequences:** The binary cannot launch on macOS 26 or earlier. UI code and testing are simpler, but every release must validate the platform glass, semantic monochrome hierarchy, and legibility on macOS 27 with light/dark appearance, Increased Contrast, Reduce Transparency, Reduce Motion, and supported accessibility text sizes.
+## ADR-009 — Separate interactive and unit validation
 
-## ADR-005 — Menu-bar-only primary lifecycle
+Keep the UI-test target and its shared scheme, but remove its redundant build entry from the unit-test scheme. Unsigned unit runs should not build an unused desktop automation runner. Local UI signing and publisher distribution signing remain separate validation concerns.
 
-**Decision:** Use [`MenuBarExtra`](https://developer.apple.com/documentation/swiftui/menubarextra) as the primary scene with `.menuBarExtraStyle(.window)`, set [`LSUIElement`](https://developer.apple.com/documentation/bundleresources/information-property-list/lsuielement) to `true`, and expose a SwiftUI [`Settings`](https://developer.apple.com/documentation/swiftui/settings) scene through [`SettingsLink`](https://developer.apple.com/documentation/swiftui/settingslink) inside the extra. Keep live metric values in the status item and configuration in the persistent panel or Settings; do not retain a separate detailed window or expose an `isInserted` switch in version 1.
+Guard explicit UI-test launch configuration with `#if DEBUG`. Test launches reset a dedicated preferences suite and may set only the app's appearance through public AppKit APIs; normal launches continue using the person's configuration. An explicit test relaunch flag preserves that isolated suite so startup with saved selections can be exercised. Keep live providers active so tests exercise actual status updates. Start interactive flows with one stat, then add seven selections through the panel. The dark scenario relaunches with those saved selections and checks status availability and its full accessible summary. This protects normal preferences while covering both Settings/privacy flows and restoration; it does not establish behavior on every crowded desktop.
 
-**Reasoning:** Apple explicitly supports a menu-bar-only `MenuBarExtra`, recommends `LSUIElement` for hiding its Dock and app-switcher presence, and identifies window style for data-rich extras with standard controls. A pull-down menu necessarily closes after a toggle on macOS; the window style keeps multi-selection controls available and still uses system presentation. Persisting `isInserted = false` could leave a relaunched menu-only app with no recoverable scene.
+## ADR-010 — Bound status text with a native template image
 
-**Alternatives considered:** A permanent Dock icon, runtime activation-policy changes, AppKit `NSStatusItem`, a separate on-demand metrics window, and a persistently hideable extra.
+Keep the existing window-style `MenuBarExtra`, established English names/codes, and padded values. Render the status text with the system monospaced font into a fixed-width `CGImage` using public [ImageRenderer](https://developer.apple.com/documentation/swiftui/imagerenderer). Native adaptation of both a font-modified Text and an attributed-font Text still allowed live width changes during repeated UI testing. A template image preserves the rendered dimensions without introducing a custom status-item controller or private view introspection. SwiftUI [template rendering](https://developer.apple.com/documentation/swiftui/image/renderingmode(_:)) lets native presentation supply the tint.
 
-**Consequences:** Direct customization, display mode, Settings, and Quit remain available in a persistent status panel, while live values appear only in the status item. Relaunch, label updates, Settings activation, fixed-width behavior, and behavior when menu-bar space is constrained require real-app testing.
+Measure locale glyph advances independently of current readings and cache the layout in view state until the locale changes. Cap the rendered text width at 320 points and truncate long selections at the tail. Retain only the latest image in view state, keyed by formatted text, capped width, display scale, and spoken summary. Settings keeps the full uncapped text in an attributed monospaced font inside a focusable horizontal scroll area with native indicators.
 
-## ADR-006 — Activity Monitor-aligned memory categories
-
-**Decision:** Define Cached Files from the public file-backed `external_page_count`, define Memory Used as physical total minus free and cached bytes, expose Wired and Compressed Memory from `wire_count` and `compressor_page_count`, expose Physical Memory from `ProcessInfo.physicalMemory`, and read Swap Used through the public `CTL_VM` / `VM_SWAPUSAGE` sysctl. Derive Memory Used Percentage from the validated snapshot. Clamp all physical-memory arithmetic defensively. Treat a failed swap read as a partial-value failure rather than discarding the other memory values.
-
-**Reasoning:** Apple's [Activity Monitor guide](https://support.apple.com/guide/activity-monitor/view-memory-usage-actmntr1004/mac) defines these aggregate categories. The documented [`vm_statistics64_data_t`](https://developer.apple.com/documentation/kernel/vm_statistics64_data_t), [`ProcessInfo.physicalMemory`](https://developer.apple.com/documentation/foundation/processinfo/physicalmemory), and Apple's public XNU `sysctl.h` expose corresponding values without process inspection or private frameworks.
-
-**Alternatives considered:** Reintroducing an estimated App Memory category, using the uncompressed logical page total as Compressed Memory, parsing command output, inspecting Activity Monitor, private frameworks, and treating swap failure as failure of the entire memory sample.
-
-**Consequences:** The categories and units align with Activity Monitor, but independently timed samples can differ briefly. Documentation must not claim that Core Metrics reads Activity Monitor's private implementation.
-
-## ADR-007 — Conservative macOS privacy manifest
-
-**Decision:** Include `PrivacyInfo.xcprivacy` with Disk Space reason `85F4.1`, User Defaults reason `CA92.1`, and `NSPrivacyTracking = false`; declare no collected data or tracking domains.
-
-**Reasoning:** Apple's [privacy manifest overview](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files) currently omits macOS from its Required Reason mandate, but the covered Foundation APIs give generic declaration warnings and Apple defines a macOS manifest location. These two approved reasons exactly describe user-visible disk capacity and app-only settings; no reason is invented.
-
-**Alternatives considered:** Omitting a manifest from the macOS-only target; adding unrelated File Timestamp or System Boot Time reasons.
-
-**Consequences:** The manifest and Apple's [`NSPrivacyAccessedAPIType`](https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitype) list must be re-audited at submission and whenever covered APIs change.
+Supply the rendered image, its scale, and an intrinsic label through SwiftUI's [Image initializer](https://developer.apple.com/documentation/swiftui/image/init(_:scale:orientation:label:)). The label includes “Core Metrics” and the full metric/value summary, so visual truncation does not intentionally omit accessible values. Formatting and layout tests cover the requested frame; native UI tests must also check actual width, accessible naming through the status item's `title`, and saved seven-stat startup. These checks require runtime evidence recorded in the report. macOS still decides how much menu-bar space is available, so visibility on every crowded desktop is not guaranteed.

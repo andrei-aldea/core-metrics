@@ -47,6 +47,11 @@ body:
     validations:
       required: true
   - type: input
+    id: xcode
+    attributes:
+      label: Xcode version (for build or test problems)
+      placeholder: Xcode 27 beta 6
+  - type: input
     id: build
     attributes:
       label: Core Metrics revision or build

@@ -1,4 +1,4 @@
-# Metric Definitions
+# Metric definitions and acquisition
 
 This document is the source of truth for Core Metrics formulas. Acquisition stays behind thin providers; calculations use independently testable integer or floating-point inputs.
 
@@ -22,7 +22,7 @@ Core Metrics folds `nice` into User so the displayed User, System, and Idle valu
 
 CPU Used is the derived `totalUsedPercent`; exposing it adds no acquisition work or additional sampling.
 
-The provider resets its baseline after sleep, wake, or a suspicious discontinuity rather than presenting a long or invalid interval as current load. Aggregate host statistics are sufficient; [`host_processor_info`](https://developer.apple.com/documentation/kernel/1502854-host_processor_info) is reserved for a future per-core feature.
+The sampling coordinator resets the baseline when the wall-clock gap is negative or exceeds five seconds. This catches common sleep/wake gaps without a dedicated observer. Aggregate host statistics are sufficient; per-process and per-core inspection are outside version 1.
 
 ## Memory
 
@@ -58,6 +58,8 @@ Version 1 queries `URL(fileURLWithPath: "/")` for Foundation's [`volumeTotalCapa
 
 `usedFraction = usedBytes / totalCapacityBytes`
 
+Each off-main poll first discards URL cached resource values so a previous capacity value is not reused. Apple documents [URL resource caching](https://developer.apple.com/documentation/foundation/url/resourcevalues(forkeys:)) and [explicit invalidation](https://developer.apple.com/documentation/foundation/url/removeallcachedresourcevalues()).
+
 The UI says **Free Space** as the familiar user-facing name for Foundation's available-capacity value. Core Metrics doesn't perform directory or storage-category scans.
 
 The menu bar can show used percentage, free space, used space, or total startup-volume capacity. The percentage is derived from the existing capacity snapshot and adds no volume query.
@@ -77,4 +79,10 @@ The menu bar can show used percentage, free space, used space, or total startup-
 - Memory: Memory Used, Used Percentage, Wired Memory, Compressed Memory, Cached Files, Swap Used, or Physical Memory from the current memory snapshot.
 - Storage: Used Space, Used Percentage, Free Space, or Total Capacity from the current startup-volume snapshot.
 
-One to seven of these concrete stats can be selected, including multiple stats from the same metric. Selected values always follow the panel's CPU → Memory → Storage order, regardless of click or persisted order. The status item is emitted as one text value, and each formatted number reserves a fixed eight-character column so live updates do not resize its slot. Memory and storage values always use one decimal place and full unit abbreviations, such as `13.9GB` or `143.0GB`. Only the selection and display mode are persisted. Metric values are current in-memory snapshots and reset when the app exits.
+Formatting uses binary scaling (1,024) for memory and decimal scaling (1,000) for storage. The existing short byte labels remain B/KB/MB/GB/TB/PB/EB; memory labels are a compact convention, not a claim of decimal scaling.
+
+One to seven of these concrete stats can be selected, including multiple stats from the same metric. Selected values always follow the panel's CPU → Memory → Storage order, regardless of click or persisted order. The status item is emitted as one text value, and each formatted number reserves an eight-character column with locale-aware point-width allowance so live updates do not resize its slot. Memory and storage values always use one decimal place and full unit abbreviations, such as `13.9GB` or `143.0GB`. Only the selection and display mode are persisted. Metric values are current in-memory snapshots and reset when the app exits.
+
+## Interpretation limits
+
+These are aggregate system estimates sampled independently from other utilities. Capacity describes the filesystem volume containing `/`, not a file scan or a promise about APFS reclaimable space. The app does not calculate true memory pressure or promise exact equality with Activity Monitor. Missing/invalid snapshots are shown as unavailable. Snapshot validation and saturation prevent arithmetic overflow but cannot make independently changing counters atomic.

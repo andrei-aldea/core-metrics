@@ -1,82 +1,58 @@
-# Mac App Store Readiness
+# App Store, privacy, and release preparation
 
-Core Metrics is designed for App Sandbox distribution through the Mac App Store.
+Core Metrics is development-ready only within the validation recorded in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md). It is not yet submission-ready. No archive for distribution, upload, signing-account change or App Store Connect action was performed during remediation.
 
-## Baseline policy
+## Repository configuration
 
-- Public documented APIs only.
-- No root access, helper tools, private frameworks, injected code, broad file access, network entitlement, or unnecessary capability.
-- No telemetry, analytics, tracking, ads, account, or network service.
-- The repository uses a neutral placeholder bundle identifier. Xcode's automatic signing mode is present, but no publisher team, certificate, identity, or provisioning profile is committed; unsigned command-line builds use `CODE_SIGNING_ALLOWED=NO`.
-- Publisher-controlled bundle identity, team and distribution signing, App Store Connect configuration, and submission metadata remain release-time local steps.
+The app targets macOS 27 with version 1.0/build 1, a neutral placeholder bundle identifier, generated Info.plist, Utilities category, AppIcon, and `LSUIElement = true`. Debug and Release both enable App Sandbox and hardened runtime. The source entitlement file contains only `com.apple.security.app-sandbox = true`.
 
-## Current development audit
+Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) includes only Apple silicon Macs. Intel hardware validation is outside this deployment target's supported device matrix; it is not an unresolved release gate. The native arm64 app still needs final validation on supported Macs and the accepted release toolchain.
 
-The MVP was most recently validated with Xcode 27.0 beta (build `27A5252f`), Apple Swift 6.4, and the macOS 27 SDK on Apple silicon. The project compiles in Swift 6 mode with complete concurrency checking and warnings as errors, while targeting macOS 27.
+The existing `ITSAppUsesNonExemptEncryption = false` setting was preserved. Source contains no custom cryptography or third-party SDK. Reconfirm this declaration against the shipping app and Apple's [encryption-key documentation](https://developer.apple.com/documentation/bundleresources/information-property-list/itsappusesnonexemptencryption); the publisher remains responsible for export-compliance answers.
 
-This development audit found:
+No network client/server entitlement, ATS exception, URL handler, associated domain, push environment, background mode, helper, extension, purchase framework, remote configuration, or sensitive permission usage string is present or required by current behavior.
 
-- The generated product has `LSUIElement = true`, a macOS 27 minimum version, the selected `AppIcon` asset, and the Utilities application category.
-- The repository entitlement file contains only `com.apple.security.app-sandbox = true`; hardened runtime is enabled by the project.
-- The privacy manifest is valid and is copied to `Contents/Resources/PrivacyInfo.xcprivacy` in the app bundle.
-- Linked application frameworks are public Apple frameworks. There are no third-party packages, private frameworks, privileged helpers, nested executables, or network capabilities.
-- CPU, memory, and startup-volume APIs are present in the public SDK and are isolated behind provider boundaries.
-- Tracked source and project files contain no publisher signing identity, developer team, credential, home path, or Xcode user data.
+The native `MenuBarExtra` uses a template `CGImage` rendered in memory by SwiftUI `ImageRenderer`. Status content is capped at 320 points with an ellipsis for long text; Settings retains the full scrollable preview, and the image carries the full accessibility summary. This presentation change adds no persisted metric data, networking or entitlement.
 
-The Xcode beta currently prints an App Intents metadata-extraction warning even though Core Metrics has no App Intents dependency. Treat this as a beta-toolchain issue to recheck rather than suppressing metadata warnings. A submission archive must be produced and validated without warnings using a stable Xcode version supported by App Store Connect.
+## Manual privacy and security review
 
-## Verified platform decisions
+No Codex Security Scan or dedicated security-scanning workflow was started. The review used source/configuration inspection, local build tools, tests, and official Apple documentation. No repository or application data was uploaded to a third-party scanner.
 
-- App Sandbox is mandatory for Mac App Store distribution. The app carries only `com.apple.security.app-sandbox = true`; version 1 needs no network, broad file-access, hardware, Apple Events, helper-tool, or temporary-exception entitlement. See Apple's [App Sandbox overview](https://developer.apple.com/documentation/security/app-sandbox) and [Xcode configuration guide](https://developer.apple.com/documentation/xcode/configuring-the-macos-app-sandbox).
-- CPU and physical-memory acquisition uses Apple's documented [`host_statistics`](https://developer.apple.com/documentation/kernel/1502546-host_statistics) and [`host_statistics64`](https://developer.apple.com/documentation/kernel/1502863-host_statistics64) Mach APIs, including public wired, compressor, cached-file, and free-page counters. Installed physical memory comes from [`ProcessInfo.physicalMemory`](https://developer.apple.com/documentation/foundation/processinfo/physicalmemory). Swap Used comes from the public `CTL_VM` / `VM_SWAPUSAGE` sysctl and `xsw_usage` structure declared in Apple's public [XNU `sysctl.h`](https://github.com/apple-oss-distributions/xnu/blob/main/bsd/sys/sysctl.h). These aggregate reads require no documented entitlement, privileged helper, or private framework.
-- Storage acquisition uses Foundation's documented [`volumeTotalCapacityKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumetotalcapacitykey) and [`volumeAvailableCapacityKey`](https://developer.apple.com/documentation/foundation/urlresourcekey/volumeavailablecapacitykey). It reads volume metadata for `/` and does not scan files.
-- Release audits must apply the current [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), especially sections 2.4.5 (sandboxed, self-contained Mac apps), 2.5.1 (public APIs), and 5.1.1(i) (privacy-policy access and metadata).
+Reviewed areas include provider pointer/port ownership, input arithmetic, concurrency/cancellation, UserDefaults schema repair/migration, logging, resources, target membership, signing assumptions, entitlements, build settings, manifest use, linked frameworks, bundled executables and source hygiene. No account, authentication/token/Keychain flow, database, web view, file import/export, arbitrary command execution, backend authorization, analytics, ad SDK or dependency network exists in this app.
 
-Apple doesn't publish an API-by-API App Review allowlist. Documentation in the public SDK and the absence of special entitlements support these choices, but a signed sandboxed archive must still be validated before submission.
+Current data flow is aggregate CPU/memory/swap and startup-volume capacity → current in-memory snapshots → local display. Only menu-bar configuration is persisted in app-scoped UserDefaults. Failure/recovery logging contains metric category/state only. Metrics are not transmitted, retained as history, or persisted. System-wide aggregates are visible in the status label and therefore can appear in ordinary user screenshots; there are no secrets or personal identifiers in those values.
+
+Settings → Privacy now opens a native sheet describing aggregate readings, local preferences, no metric history or network connections, and category-only diagnostics. It is available without a network request and closes with Done, Return or Escape. These are factual implementation statements; a publisher identity, contact, legal policy or public URL has not been invented.
+
+The release follow-up checked current repository files and all reachable historical source blobs for known personal-path, credential, private-key, signing-team and token patterns. No confirmed sensitive source material was found; apparent email matches were icon filenames ending in `@2x.png`. This bounded check does not prove the absence of arbitrary secrets or replace author/committer metadata review before a public push.
+
+Public interfaces include `host_statistics`, `host_statistics64`, `host_page_size`, `mach_host_self`/`mach_port_deallocate`, `ProcessInfo.physicalMemory`, Foundation URL volume resource keys and the public VM_SWAPUSAGE sysctl. Sources and formulas are linked in [METRICS.md](METRICS.md). Documented APIs and a minimal entitlement surface support these choices; they are not an App Review allowlist or a guarantee of security.
 
 ## Privacy manifest
 
-Core Metrics includes `PrivacyInfo.xcprivacy` as a conservative, truthful declaration. Apple's [privacy manifest overview](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files) currently requires collected-data declarations on all platforms but lists Required Reason API declarations for iOS, iPadOS, tvOS, visionOS, and watchOS, omitting macOS. Individual Foundation API pages nevertheless instruct apps to declare covered API use, and Apple defines the [macOS manifest bundle location](https://developer.apple.com/documentation/bundleresources/placing-content-in-a-bundle). The repository therefore declares actual use and rechecks the policy before submission.
+`Core Metrics/PrivacyInfo.xcprivacy` is bundled at `Contents/Resources/PrivacyInfo.xcprivacy`. It declares no tracking, tracking domains or collected data, with two accessed-API categories:
 
-Required Reason API entries:
-
-| Category | Reason | Core Metrics use |
+| Category | Approved reason | Actual use |
 | --- | --- | --- |
-| `NSPrivacyAccessedAPICategoryDiskSpace` | `85F4.1` | Display startup-volume capacity to the person using the Mac; values and derivatives remain on-device. |
-| `NSPrivacyAccessedAPICategoryUserDefaults` | `CA92.1` | Store app-only menu-bar preferences through `UserDefaults`. |
+| Disk Space | `85F4.1` | Show local startup-volume capacity to the person using the Mac. |
+| User Defaults | `CA92.1` | Read/write the app's menu-bar preferences. |
 
-The approved categories, covered APIs, and reason text are defined by Apple under [`NSPrivacyAccessedAPIType`](https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitype).
+Reasons were checked against Apple's [accessed API category/reason list](https://developer.apple.com/documentation/bundleresources/app-privacy-configuration/nsprivacyaccessedapitypes/nsprivacyaccessedapitype). Apple's [manifest overview](https://developer.apple.com/documentation/bundleresources/privacy-manifest-files) currently names Required Reason requirements for several platforms while omitting macOS; the existing conservative truthful declaration is retained. Recheck policy at submission and after any covered API change. Do not add speculative File Timestamp or System Boot Time reasons. URL cache invalidation adds no new reason category.
 
-- Do not declare file-timestamp access unless product code starts using a covered creation/modification-date, `stat`, or related API. Core Metrics currently has no such use.
-- Avoid direct `ProcessInfo.systemUptime` and `mach_absolute_time()` use. If either becomes necessary for in-app elapsed-time calculation, add System Boot Time reason `35F9.1`.
-- The Mach host-statistics APIs and `ProcessInfo.physicalMemory` aren't in Apple's current Required Reason API list.
-- Declare `NSPrivacyTracking = false`; don't add tracking domains or collected-data declarations while the app performs no tracking or collection.
-- Validate the manifest with Xcode's privacy report and Apple's [TN3181](https://developer.apple.com/documentation/technotes/tn3181-debugging-invalid-privacy-manifest) guidance.
+Use Xcode's archive privacy report and [TN3181](https://developer.apple.com/documentation/technotes/tn3181-debugging-invalid-privacy-manifest) when validating a final distribution artifact. Plist syntax checks do not replace archive validation.
 
-## Release blockers
+## Release gates requiring publisher action
 
-The current source tree is intentionally development-ready rather than submission-ready. Complete all of the following before uploading a build:
+1. Validate with a stable Xcode/macOS SDK accepted by App Store Connect at submission. Current testing used Xcode 27 beta 6, and deployment remains macOS 27.
+2. Choose a publisher-controlled identifier and configure local distribution signing/provisioning. Do not commit team IDs, certificates, profiles or credentials. Coordinate any identifier change with the UI test's existing app-instance lookup.
+3. Supply reviewed publisher privacy-policy and support pages at stable public URLs, and configure the required App Store metadata. The native Privacy sheet already provides factual local information; reconcile its content and policy access with the final publisher policy. Apple's [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) require privacy-policy access in metadata and within the app.
+4. Confirm App Store privacy answers against the final binary. Current implementation supports “no data collected,” but the publisher must re-audit before submitting.
+5. Prepare screenshots, description, review notes, copyright, age rating and current metadata. Preserve legal notices; the repository currently has no selected license.
+6. Review icons at all system/App Store sizes, native layouts, accessibility, runtime behavior and the remaining test limitations in the report. The capped status label and seven-stat relaunch are covered on the reviewed desktop; broader crowded/notched display testing remains in the release matrix.
+7. Only after explicit release authorization, archive through Xcode Organizer, inspect effective entitlements, generate the privacy report, validate and submit through the current Apple workflow.
 
-- Review the integrated original icon at all Finder, Settings, and App Store sizes. The flattened asset catalog is valid and selected; optionally recreate the retained master as a layered Icon Composer source for platform-managed material effects before the final archive.
-- Replace `org.example.CoreMetrics` with a bundle identifier controlled by the publisher, then configure the publisher's team, App Store distribution certificate, and provisioning profile outside the public repository.
-- Publish a privacy policy and support page at stable public URLs. Add the privacy-policy URL to App Store Connect and expose it in an easily accessible in-app location as required by App Review Guideline 5.1.1(i).
-- Complete the App Store privacy label truthfully. If the implementation remains local-only, with no transmission or third-party SDKs, the expected declaration is that no data is collected; re-audit before answering.
-- Supply screenshots, description, support URL, copyright, age rating, review notes, and other current App Store Connect metadata.
-- Build and archive with a non-beta Xcode version that App Store Connect supports at submission time. Re-run all tests and real-app visual/accessibility checks against that toolchain.
-- Generate Xcode's privacy report and validate the archive through Organizer or the current App Store validation workflow.
+Unsigned builds cannot prove effective sandbox entitlements. Local ad-hoc Debug runs may inject `get-task-allow`; UI-test instrumentation may also inject testing exceptions. Never treat those artifacts as distribution approval. The signed shipping archive must preserve sandboxing and omit debugger/test exceptions, test fixtures, private paths and unintended nested executables.
 
-Development or ad-hoc signing may inject `com.apple.security.get-task-allow = true` as a base entitlement. The final distribution archive must not contain `get-task-allow`; App Sandbox must remain present, and every effective capability must be expected for the publisher's distribution configuration.
+The UI test launch configuration is guarded by `#if DEBUG`. Only an explicit test launch selects its separate preference suite and app appearance; ordinary launches keep the person's settings, and Release compiles out this configuration. Both tests initially launch with one Value Only statistic; the dark test selects seven through the native panel, then uses `CORE_METRICS_UI_RELAUNCH=1` to relaunch with the same isolated preferences and open the panel again. Both scenarios check bounded width, accessibility and Privacy. Consult the report for final execution results, including the corrected image accessibility assertions; the presence of tests does not establish a pass.
 
-## Final audit checklist
-
-- Confirm App Sandbox entitlement is enabled and minimal.
-- Audit linked frameworks and symbols for private API use.
-- Re-check deployment target and current App Store Review Guidelines.
-- Review `PrivacyInfo.xcprivacy` and Required Reason API use against Apple's current list.
-- Confirm the privacy manifest contains Disk Space `85F4.1` and User Defaults `CA92.1`, with no unsupported or unused reasons.
-- Confirm the in-app privacy-policy link and public privacy/support URLs work.
-- Confirm the App Store privacy label matches the shipping binary and policy.
-- Inspect the signed archive's effective entitlements and confirm `get-task-allow` is absent.
-- Archive with the publisher's local signing configuration and validate through a supported stable Xcode.
-- Confirm no personal data or signing information is present in tracked files, Git author metadata, project user data, or archive source.
-- Before each public release, audit the complete Git history as well as the working tree and select an explicit repository license.
+No backend, authentication provider, purchase service or remote operational checklist applies. Remaining organizational work is publisher configuration, legal/privacy content, App Store metadata and real release validation. App Store approval and complete security are not claimed.

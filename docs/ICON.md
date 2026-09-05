@@ -1,14 +1,16 @@
-# App Icon
+# App icon and provenance
 
 Core Metrics uses an original, flattened macOS app icon selected through the `AppIcon` asset catalog. The strictly monochrome mark uses three aggregate-metric pillars in neutral gray on charcoal, with no graph line, endpoint dot, decorative ribbon, text, third-party mark, or baked-in system mask. Its simple silhouette is designed to remain recognizable at the 16-pixel menu/Finder scale.
 
 ## Sources
 
-- Editable generation master: `docs/assets/Core-Metrics-AppIcon-Master.png` at 1024 × 1024.
+- Retained raster generation master: `docs/assets/Core-Metrics-AppIcon-Master.png` at 1024 × 1024.
 - Shipping variants: `Core Metrics/Assets.xcassets/AppIcon.appiconset` at every macOS 1× and 2× size from 16 through 512 points.
 - Xcode build setting: `ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon` for Debug and Release.
 
-The asset catalog route is a supported flattened-icon workflow. Icon Composer is installed with the current beta Xcode but requires its own first-run agreement. That agreement was intentionally left for the publisher to review and accept. If layered effects are desired before submission, import or recreate the retained master in Icon Composer and compare the result at every system-provided appearance.
+All ten catalog entries resolve to correctly sized opaque PNGs. Equal pixel dimensions serve distinct macOS scale slots and are not unused duplicate assets. The documentation master is outside the app target. The review retained the complete artwork and catalog unchanged.
+
+Layered Icon Composer artwork is optional future design work, not part of this remediation. Any tool agreement and final artwork/legal review belongs to the publisher. Compare any replacement at every supported system appearance before release.
 
 ## Generation prompt
 

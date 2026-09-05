@@ -1,115 +1,94 @@
-<p align="center">
-  <img src="docs/assets/Core-Metrics-AppIcon-Master.png" width="128" height="128" alt="Core Metrics app icon">
-</p>
+<p align="center"><img src="docs/assets/Core-Metrics-AppIcon-Master.png" width="128" height="128" alt="Core Metrics app icon"></p>
 
-<h1 align="center">Core Metrics</h1>
+# Core Metrics
 
-<p align="center">
-  A lightweight, private macOS menu-bar utility for CPU, memory, and startup-disk usage.
-</p>
+Core Metrics is a native macOS menu-bar utility for aggregate CPU, memory, and startup-volume usage. Select one to seven statistics in a persistent status panel or Settings. The status label is capped at 320 points and truncates long text with an ellipsis; the scrollable Settings preview shows the full selection. There are no charts or retained metric history.
 
-Core Metrics is a native SwiftUI app that keeps a small set of useful aggregate system metrics visible without becoming an optimizer or an Activity Monitor replacement. It has no account, network service, telemetry, analytics, advertising, or third-party dependency.
+The app is local-only, sandboxed, and has no accounts, networking, tracking, analytics, purchases, or third-party dependencies. It is under development and is not ready for App Store submission yet.
 
-> [!NOTE]
-> Core Metrics is under active development and does not yet have a downloadable release. The project currently requires macOS 27 and Xcode 27.
+## Requirements and targets
 
-## Highlights
+- macOS **27.0 or later** on a compatible **Apple silicon Mac**. Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) excludes Intel Macs. There is no iPhone, iPad, Catalyst, widget, or extension target.
+- Xcode **27** with the macOS 27 SDK. The verified environment is Xcode 27.0 beta 6 (`27A5252f`), Apple Swift 6.4, on Apple silicon.
+- Swift **6 language mode**, complete strict concurrency, and MainActor default isolation for the app. SwiftUI, AppKit, Foundation, Observation, OSLog, and public Darwin APIs supply all functionality.
+- Project: `Core Metrics.xcodeproj`. Targets: `Core Metrics`, `Core MetricsTests` (Swift Testing), and `Core MetricsUITests` (XCTest).
+- Shared schemes: `Core Metrics` for build/run/unit tests and `Core Metrics UI Tests` for interactive UI tests. Configurations: Debug and Release; there is no staging configuration.
 
-- **Native macOS panel:** The system-presented `MenuBarExtra` window supplies current Liquid Glass while keeping all selection controls open for repeated changes.
-- **Customizable status item:** Choose up to seven stats. They always follow the panel's CPU → Memory → Storage order, and one-decimal values with full unit abbreviations use fixed eight-character columns inside a fixed-width status item to prevent width jitter.
-- **Focused system values:** Choose aggregate CPU utilization and breakdowns, Activity Monitor-style memory totals and categories, or startup-disk capacity and percentages—without charts or duplicated live values in the panel.
-- **Local and private:** Samples stay on the Mac, no metric history is retained, and nothing is transmitted or persisted as telemetry.
-- **Graceful failure handling:** An unavailable provider clears its current reading, shows a stable placeholder, and retries automatically instead of presenting stale data as live.
-- **Mac App Store-oriented:** App Sandbox is enabled, the app uses documented public Apple APIs, and privacy-manifest declarations are kept narrow and truthful.
+The macOS minimum and publisher configuration must not be changed as incidental cleanup. Release requires a stable toolchain accepted by Apple at submission time.
 
-## Metrics
+## Setup, build, and launch
 
-| Category | Available representations |
-| --- | --- |
-| CPU | Used, user, system, and idle percentages |
-| Memory | Memory Used, used percentage, Wired Memory, Compressed Memory, Cached Files, Swap Used, and Physical Memory |
-| Storage | Used space, used percentage, free space, and total capacity for the startup volume |
-
-The exact formulas and storage semantics are documented in [docs/METRICS.md](docs/METRICS.md).
-
-## Requirements
-
-- macOS 27 or later
-- Xcode 27 or later
-
-The current development baseline is Xcode 27.0 beta (`27A5252f`) with Apple Swift 6.4. A future App Store archive must be produced with a stable Xcode version accepted by App Store Connect.
-
-## Build
-
-Clone the repository and open `Core Metrics.xcodeproj`, or build without signing from Terminal:
+Clone your repository checkout, enter its root, and open `Core Metrics.xcodeproj`. There are no environment files, service credentials, package installations, or code-generation steps. Dependency resolution is a no-op today:
 
 ```sh
-git clone <repository-url>
-cd core-metrics
 xcodebuild -list -project "Core Metrics.xcodeproj"
-xcodebuild \
-  -project "Core Metrics.xcodeproj" \
-  -scheme "Core Metrics" \
-  -destination 'platform=macOS' \
-  CODE_SIGNING_ALLOWED=NO \
-  build
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -resolvePackageDependencies
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -configuration Release -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO build
 ```
 
-After launching, Core Metrics appears only in the menu bar. Use the persistent panel and **Settings…** to change the status-item layout.
+Unsigned builds validate compilation. For interactive development, select `Core Metrics` / `My Mac` in Xcode and Run using a local signing configuration. The app appears in the menu bar, not the Dock. Click its live value to select statistics, choose a text mode, open About or Settings, or Quit. No launch-at-login registration is installed.
 
-## Test
+Only menu-bar preferences are persisted in app-scoped UserDefaults. Existing preference schemas migrate on read. Debug enables debugging/testability; Release enables optimization, dead-code stripping, and compact asset processing. Both keep sandboxing, hardened runtime, and strict compiler checks. Signing identities and publisher credentials belong outside the public repository.
 
-Run the repeatable unit suite without code signing:
+## Tests and checks
 
 ```sh
-xcodebuild \
-  -project "Core Metrics.xcodeproj" \
-  -scheme "Core Metrics" \
-  -destination 'platform=macOS' \
-  CODE_SIGNING_ALLOWED=NO \
-  test
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO test
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -destination 'platform=macOS' CODE_SIGNING_ALLOWED=NO analyze
+xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics UI Tests" -destination 'platform=macOS' CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test
 ```
 
-The separate `Core Metrics UI Tests` scheme covers status-item launch and persistent-panel interaction. UI tests require a signed local build and an interactive macOS session with working automation permissions.
+UI tests use local ad-hoc signing, require an interactive desktop and existing automation permissions, and are separate from repeatable unsigned unit tests. Both initially launch with one Value Only statistic in a dedicated test preference suite. The light test keeps that selection; the dark test selects seven through the native panel, then relaunches with those saved test preferences and checks that the status item opens the panel. DEBUG-only launch controls isolate preferences and app appearance, leaving normal preferences and system appearance unchanged. The flows also cover bounded label width, Settings representation, accessibility text and Privacy; final results are recorded in the [report](docs/PROJECT_ANALYSIS_REPORT.md).
 
-## Architecture
+There is no configured SwiftLint, formatter, snapshot suite, CI workflow, or performance suite. Do not weaken checks or introduce a formatter dependency just to satisfy a generic checklist.
 
-The app separates system acquisition, pure calculation, sampling, preferences, and SwiftUI presentation:
+For UI changes, verify the running status item, panel and Settings, immediate preference updates, keyboard focus, VoiceOver, light/dark appearances, accessibility display settings, large text, and constrained menu-bar space. The seven-stat relaunch flow covers the reviewed desktop; the wider crowded/notched display matrix remains release work. See the [development runbook](docs/DEVELOPMENT.md) for exact workflows and limitations.
+
+## Metrics and architecture
+
+| Category | Choices |
+| --- | --- |
+| CPU | Used, User, System, Idle percentages |
+| Memory | Used bytes/percentage, Wired, Compressed, Cached Files, Swap Used, Physical Memory |
+| Storage | Used bytes/percentage, Free Space, Total Capacity for `/` |
+
+Providers acquire raw aggregate values off the main actor; pure calculators validate them; `MetricsStore` publishes current snapshots; views format the selected values. CPU/memory refresh about every two seconds, storage every 30 seconds with faster retries after failure. An unavailable reading clears the live value and displays an em dash. No metric data is persisted or sent anywhere.
+
+The native `MenuBarExtra` remains the status-item host. `MenuBarStatusLabel` uses SwiftUI `ImageRenderer` to produce a template image at the reserved width, capped at 320 points, so the native host preserves its size and applies the system tint. Settings retains the full text preview.
 
 ```text
-Documented Apple APIs
-        ↓
-Metric providers
-        ↓
-Pure calculations and snapshots
-        ↓
-MetricsStore current snapshots
-        ↓
-Menu bar · Persistent status panel · Settings
+Core Metrics/Core_MetricsApp.swift   Scene composition
+Core Metrics/Application/           Observable sampling state and lifecycle
+Core Metrics/Metrics/               Providers, raw counters, pure calculators
+Core Metrics/Models/                Immutable metric snapshots
+Core Metrics/Preferences/           Validated configuration and persistence
+Core Metrics/Utilities/             Shared metric/status formatting
+Core Metrics/Views/                 Menu-bar panel, label, Settings
+Core MetricsTests/                  Swift Testing unit/provider fixtures
+Core MetricsUITests/                Native desktop UI automation
+docs/                              Product, engineering and release guidance
 ```
 
-Additional documentation:
+## Privacy, release, and maintenance
 
-- [Architecture](docs/ARCHITECTURE.md)
-- [Design principles](docs/DESIGN.md)
-- [Architecture decisions](docs/DECISIONS.md)
-- [Metric definitions](docs/METRICS.md)
-- [App Store readiness](docs/APP_STORE.md)
+Core Metrics uses documented public Apple APIs and the App Sandbox entitlement. The privacy manifest declares disk-space display and app-only UserDefaults access, with no tracking or collected data. Settings → Privacy explains aggregate readings, saved preferences, the absence of network connections, and local diagnostic messages. Logging contains only metric-category failure/recovery transitions. Fan control, process inspection, file scanning, cleaning, privileged helpers, private APIs, and cloud features are outside product scope.
+
+A publisher-controlled bundle identity, signing setup, stable toolchain validation, public publisher privacy/support pages, policy review, metadata, and signed archive validation are still required. The native Privacy sheet supplies factual app information; final publisher policy and App Store requirements still need review. See [App Store and privacy preparation](docs/APP_STORE.md); repository checks cannot guarantee approval.
+
+No simulator is needed for this macOS target. Do not erase simulators or delete installed runtimes because this app does not use them. Inventory Xcode caches before cleanup, retain archives/dSYMs/signing material, and remove only verified stale reproducible artifacts. Cache deletion makes the next build slower.
+
+If builds fail, check `xcode-select -p`, `xcodebuild -version`, and `xcrun swift --version`, then choose a compatible local Xcode without altering project signing. If UI automation fails, distinguish desktop/signing permissions from app defects. A missing Dock icon is intentional; reopen the app and use its status item. Detailed troubleshooting is in the [development runbook](docs/DEVELOPMENT.md).
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) and [decisions](docs/DECISIONS.md)
+- [Metric definitions](docs/METRICS.md) and [design/accessibility](docs/DESIGN.md)
+- [Development, testing, and Xcode maintenance](docs/DEVELOPMENT.md)
+- [App Store, manual privacy/security review, and release](docs/APP_STORE.md)
 - [Icon provenance](docs/ICON.md)
-
-## Privacy
-
-Core Metrics reads aggregate CPU counters, aggregate virtual-memory and swap counters, and startup-volume capacity locally. It does not inspect arbitrary processes or files, make network requests, retain metric history, or collect personal data.
-
-Only menu-bar preferences are stored in `UserDefaults`. The privacy manifest declares no tracking or collected data. See [docs/APP_STORE.md](docs/APP_STORE.md) for the current privacy and release audit.
-
-## Scope
-
-Core Metrics intentionally excludes process inspection, temperature probing, fan control, SMC or private APIs, privileged helpers, cleaning, file scanning, malware features, hardware tuning, battery/network monitoring, accounts, cloud services, analytics, ads, subscriptions, and purchases.
-
-## Contributing
-
-Issues and focused pull requests are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and keep proposals within the product scope above.
+- [Remediation report and validation evidence](docs/PROJECT_ANALYSIS_REPORT.md)
+- [Contributing](CONTRIBUTING.md) and [agent instructions](AGENTS.md)
 
 ## License
 

@@ -1,47 +1,49 @@
 # Architecture
 
-Core Metrics uses a small layered architecture designed to keep system acquisition thin, calculations independently testable, and the menu-bar presentation free of low-level system code.
+Core Metrics has one native app target and two test targets. SwiftUI owns the scenes; small providers own public system API calls; pure calculators own metric math. No package, service container, coordinator, repository framework, database, or networking layer is needed.
 
-## Data flow
+## Flow and ownership
 
-1. System providers acquire aggregate raw counters from documented Apple APIs.
-2. Pure calculation types convert raw values into validated snapshots.
-3. `MetricsStore` coordinates independent refresh cadences and handles CPU delta discontinuities.
-4. A main-actor observable metrics store publishes only the current validated snapshots.
-5. The SwiftUI status label renders the metrics store, while the panel and Settings observe a dedicated preferences store.
+`CoreMetricsApp` owns one `MetricsStore` and one `PreferencesStore` as `@State`. It injects both into the status label/panel and Settings. `MenuBarLabelView.task` starts sampling idempotently, including when the label is used as the Settings preview. Sampling continues while the panel is closed because the menu-bar value remains live.
 
-The UI never calls Mach or volume-capacity APIs directly. Provider errors clear the affected current snapshot so an old reading is never represented as live. The status label renders an unavailable placeholder until automatic retry produces a fresh value. Normal first-sample CPU latency uses the same neutral placeholder without being logged as a failure.
+Providers in `Metrics/` read aggregate CPU ticks, physical-memory/swap counters, and startup-volume capacity. Calculators validate raw inputs and produce immutable Sendable snapshots in `Models/`. Low-level code never appears in views. `Utilities/` formats values centrally; `Views/` reads only metric categories selected for presentation, reducing unrelated invalidations.
 
-## Application surfaces
+The native window-style `MenuBarExtra` keeps selections open. `LSUIElement` hides the Dock/app-switcher entry. Settings opens through `SettingsLink`; About uses the standard AppKit panel; Quit uses normal application termination. Settings owns the presentation state for a native privacy-information sheet. There is no persisted hidden-status-item state, launch-at-login helper, deep link, or background service.
 
-- `MenuBarExtra` is the primary scene and uses the native window style so its controls remain open during multi-selection and macOS supplies the surrounding Liquid Glass presentation.
-- The label shows a validated selection of one to seven concrete stats as one text value. Selection is normalized to the same CPU → Memory → Storage order shown in the panel, independent of click order. Each numeric value reserves an eight-character column in an explicitly measured monospaced frame, so sampling updates cannot resize the status item.
-- The status panel begins with the CPU section, shows stat names and selection state—but no duplicate live values—and provides direct checkbox controls, a segmented display-mode picker, About, Settings, and Quit.
-- A native `Settings` scene adds and removes menu-bar stats chosen from the supported CPU, memory, and storage representations. Its horizontally scrollable live preview reuses the production menu-bar label without forcing the Settings window wider.
-- `LSUIElement` keeps the app out of the Dock and application switcher. The extra does not persist an inserted/hidden state, avoiding an unrecoverable hidden configuration on relaunch.
+## Concurrency and lifetime
 
-## Concurrency
+`MetricsStore` is main-actor observable state. Its owned utility-priority task starts off-main and owns two result-discarding child loops: CPU/memory and storage. Providers run synchronously off-main; publication hops to the main actor. Each Mach host send right is released with `mach_port_deallocate`.
 
-Sampling uses structured concurrency with one owned utility-priority task and cancellable, result-discarding child loops. The loops suspend with `Task.sleep(for:)`; they never busy-wait or retain an ever-growing list of child results. CPU and memory acquisition is completed off the main actor and published through one main-actor hop per fast cycle. Mutable observable state is main-actor isolated. Pure calculation value types have no global state and are safe to test in parallel.
+CPU and memory refresh approximately every two seconds. Storage refreshes every 30 seconds after a valid read and retries every two seconds when unavailable. Suspensions use cancellable task sleeps. Weak captures prevent the task from retaining the store; deinitialization cancels work. No timer array, sample queue, chart buffer, or history accumulates.
 
-Each Mach provider balances the send right returned by `mach_host_self()` with `mach_port_deallocate()` after its host call. The menu-bar view observes only the metric categories represented by its enabled slots, so an unshown storage or memory refresh cannot invalidate a CPU-only label. The memory provider treats its public swap sysctl as independent: an unavailable swap value becomes `nil` without hiding valid physical-memory values.
+Each start creates a sampling identity. `stop()` invalidates it immediately and cancels the task; publication checks identity and cancellation on the main actor. Thus a synchronous read that finishes after stop/restart cannot overwrite the next generation. `stop()` returns the cancelled task when a caller needs to await cooperative shutdown. System calls already in progress cannot be forcibly interrupted.
 
-CPU and memory normally refresh every two seconds. Storage refreshes every 30 seconds after a valid sample, but a failed or invalid storage read temporarily retries on the two-second cadence until it recovers. A wall-clock discontinuity longer than the configured threshold invalidates the CPU baseline, so a suspended interval is not presented as current load. The next valid delta resumes CPU presentation.
+CPU discontinuity detection compares sample wall-clock dates. A negative gap or a gap above five seconds resets its baseline; the next valid delta restores the reading. This is a sampling-gap heuristic, not a dedicated sleep/wake observer.
 
-## Failure and stale-data behavior
+Foundation caches resource values on URL instances. The storage provider clears cached values on a local URL copy before each off-main capacity read, ensuring each poll asks for fresh metadata.
 
-- A thrown provider error clears that metric's current value immediately and records an internal unavailable transition.
-- The first CPU read, a reset baseline, or a zero-tick delta can temporarily produce no current CPU snapshot without being treated as a provider failure.
-- A missing swap value affects only Swap Used; the rest of the memory snapshot remains live.
-- Thrown read failures and later recovery are logged once per state transition with `OSLog`. A provider that returns no sample marks the value unavailable without repetitive error logging. Metric values, paths, and machine identity are not logged.
-- Recovery publishes a fresh value and clears the internal failure state without requiring an app restart.
+## Failure boundaries
 
-## State and persistence
+A failed CPU call resets the baseline and clears the current value. Initial CPU sampling or zero tick deltas may return no value without a failure log. Missing/throwing memory or storage snapshots clear that category. A missing swap result clears only Swap Used.
 
-Version 1 retains no history, has no database, and persists no telemetry. Only user-facing menu-bar preferences are stored in `UserDefaults` as a validated configuration. The preferences model owns the serialization boundary, repairs decoded uniqueness/count invariants, replaces a malformed stored payload with defaults, migrates both earlier schemas into the current fifteen concrete stat choices, and publishes changes immediately to the status label, panel, and Settings.
+Unavailable/recovery transitions are logged once per category with OSLog; samples, errors containing paths, machine identity, and preference payloads are never logged. The UI renders an em dash and an accessible “Unavailable” value. Recovery requires no restart.
 
-## Dependency policy
+## Preferences and presentation
 
-The application has no third-party dependencies. SwiftUI, Foundation, Observation, OSLog, and public Darwin/Mach APIs cover the lifecycle, UI, preferences, diagnostics, and system metrics needed by this focused product.
+`MenuBarConfiguration` enforces one to seven unique stats in CPU → Memory → Storage order. Value Only is allowed for one stat; adding another changes it to Compact. Raw persisted identifiers and both earlier preference schemas are preserved. Legacy decoding is live compatibility code, not dead code.
 
-Release builds enable dead-code stripping and the asset catalog's space optimization. Standard Swift whole-module optimization remains enabled because measurement showed it produced a smaller executable than `-Osize` for this project while preserving the normal Release performance profile.
+`PreferencesStore` loads app-only JSON from UserDefaults, repairs malformed/wrongly typed values, and immediately persists meaningful changes. Equal assignments skip encoding and disk-preference writes. Unit persistence fixtures use unique suites; interactive tests use the separate launch configuration described below.
+
+`MenuBarLabelView` shares formatting, selection order, and the full spoken summary between the status item and Settings. For the native status item, `MenuBarStatusLabel` uses public `ImageRenderer` to render monospaced text into a fixed-width `CGImage`. SwiftUI `Image` receives that image, its display scale, and an intrinsic accessibility label, then uses template rendering so the system supplies its menu-bar tint. Its content width is the smaller of the locale-aware reservation and 320 points; longer text truncates at the tail. The existing window-style `MenuBarExtra` still owns the status item and panel. The image label includes “Core Metrics” and the full metric summary.
+
+`MenuBarLabelLayout` measures locale-specific digit, decimal-separator, and percent glyphs to calculate a stable frame reservation. The label holds this layout in state and refreshes it when the locale changes. The status renderer retains only its latest image, rebuilding it when formatted text, capped width, display scale, or the spoken summary changes. No images or samples are written to disk. Layout fixtures check text against the requested frame, while native UI tests check the actual status item. Menu-bar space remains controlled by macOS.
+
+Settings presents the full, uncapped text using an `AttributedString` with the measured monospaced font. Its focusable horizontal ScrollView retains native scroll indicators and explains how to see the complete selection. `PrivacyInformationView` presents static, localization-ready descriptions of aggregate reads, local preferences, current-only readings, absent network features, and category-only diagnostics. Its scrollable content and Done/Return/Escape dismissal require no provider, persistence, or network work. Keep these descriptions synchronized with changes to data handling. Descriptive names and accessibility text use localization-aware APIs; compact status codes retain their current English contract. No translations are bundled yet. See [design](DESIGN.md) for accessibility validation constraints.
+
+## Configuration and tests
+
+All targets use macOS 27 and Swift 6. The app additionally uses MainActor default isolation. Debug is unoptimized/testable; Release uses standard whole-module optimization, dead-code stripping, and asset space optimization. Sandbox and hardened runtime remain enabled in both.
+
+`UITestLaunchConfiguration` and its app-entry invocation are guarded by `#if DEBUG`. An explicit `CORE_METRICS_UI_TESTING=1` launch uses a dedicated UI-test UserDefaults suite. It resets that suite and starts with one Value Only statistic unless `CORE_METRICS_UI_RELAUNCH=1` requests preservation of the test preferences. The optional `CORE_METRICS_UI_APPEARANCE` flag applies light or dark appearance to this application through public AppKit APIs. Normal launches retain standard preferences and system appearance; Release excludes these test hooks. Providers continue to acquire real aggregate metrics during UI tests. The dark seven-stat scenario adds selections through the panel, then relaunches with the saved test preferences to exercise status-item availability and its full accessible summary at startup. Available menu-bar space still varies by desktop configuration; test outcomes belong in the report.
+
+The main shared scheme builds the app and unit tests. The separate UI scheme builds the app and XCTest runner. Native status-item accessibility assertions inspect its XCTest `title` attribute. Provider protocols permit deterministic fixtures; Swift Testing covers calculations, migrations, persistence, cancellation, recovery, formatting, and cached resource invalidation. See [DEVELOPMENT.md](DEVELOPMENT.md) for validation commands and [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md) for measured results.

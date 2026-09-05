@@ -44,7 +44,8 @@ struct MenuBarMenuView: View {
                 SettingsLink {
                     Text("Settings…")
                 }
-                .keyboardShortcut(",", modifiers: .command)
+                .buttonStyle(ActivatingSettingsLinkStyle())
+                .accessibilityIdentifier("menuBar.settings")
 
                 Spacer()
 

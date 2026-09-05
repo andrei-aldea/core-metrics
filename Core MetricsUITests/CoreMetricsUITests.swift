@@ -41,6 +41,10 @@ final class CoreMetricsUITests: XCTestCase {
         )
 
         let panel = app.descendants(matching: .any)["menuBarPanel"]
+        // Menu-bar commands must work while another application is active.
+        // Finder is only activated; the test does not browse or modify files.
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
         // Menu-bar activation can race the first window/label layout on launch.
         // Retry once only when no panel appeared; never toggle an open panel.
         statusItem.click()
@@ -51,6 +55,24 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("The status item should open the persistent Core Metrics panel")
             return
         }
+
+        // Exercise Settings before any About/Help/alert could activate this
+        // menu-bar agent and hide an activation defect in the Settings button.
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        app.buttons["menuBar.settings"].click()
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        guard settingsWindow.waitForExistence(timeout: 5) else {
+            XCTFail("The first Settings click should open the native Settings window")
+            return
+        }
+        XCTAssertTrue(settingsWindow.isHittable)
+        XCTAssertTrue(settingsWindow.radioButtons["Compact"].isHittable)
+        settingsWindow.typeKey("w", modifierFlags: .command)
+        XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        statusItem.click()
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
 
         XCTAssertFalse(app.staticTexts["Selected"].exists)
         XCTAssertTrue(
@@ -163,16 +185,19 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(panel.exists)
         XCTAssertTrue(app.buttons["Settings…"].isHittable)
 
-        app.buttons["Settings…"].click()
-        app.activate()
+        app.buttons["menuBar.settings"].click()
+        XCTAssertTrue(
+            app.wait(for: .runningForeground, timeout: 5),
+            "Settings must activate the app without test-side assistance"
+        )
         XCTAssertTrue(
             app.staticTexts["Live Preview"].waitForExistence(timeout: 5),
             "Settings should expose the live status preview"
         )
         XCTAssertTrue(app.buttons["Restore Defaults"].exists)
 
-        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settingsWindow.exists)
+        XCTAssertTrue(settingsWindow.isHittable)
         let preview = app.scrollViews["settings.livePreview"]
         XCTAssertTrue(preview.exists)
         XCTAssertTrue(settingsWindow.staticTexts["Menu Bar Text"].exists)
@@ -265,6 +290,23 @@ final class CoreMetricsUITests: XCTestCase {
         settingsScreenshot.name = "Settings - \(appearance)"
         settingsScreenshot.lifetime = .keepAlways
         add(settingsScreenshot)
+
+        // Close a previously created Settings window and reopen it from the
+        // panel. Neither path may call app.activate() to compensate for focus.
+        settingsWindow.typeKey("w", modifierFlags: .command)
+        XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        statusItem.click()
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        if configuration == "single-stat" {
+            app.buttons["menuBar.settings"].typeKey(",", modifierFlags: .command)
+        } else {
+            app.buttons["menuBar.settings"].click()
+        }
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        XCTAssertTrue(settingsWindow.isHittable)
 
         if configuration == "seven-stats" {
             app.terminate()

@@ -15,12 +15,15 @@ struct SettingsView: View {
                         .padding(.vertical, 6)
                         .glassEffect(.regular, in: .capsule)
                 }
-                .scrollIndicators(.hidden)
                 .frame(maxWidth: .infinity)
+                .focusable()
+                .accessibilityIdentifier("settings.livePreview")
+                .accessibilityLabel("Live Preview")
+                .accessibilityHint("Scroll horizontally to read all selected stats.")
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("This is the exact text sent to the menu bar. Each value reserves an eight-character column, so live updates do not resize its slot.")
+                Text("This matches your menu-bar text. Scroll horizontally to see all selected stats when they extend beyond the preview.")
             }
 
             Section {

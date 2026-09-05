@@ -56,6 +56,8 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
             }
 
+            LaunchAtLoginSection()
+
             Section {
                 HStack {
                     Button("Privacy…", action: showPrivacy)

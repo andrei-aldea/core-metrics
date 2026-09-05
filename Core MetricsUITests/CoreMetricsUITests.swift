@@ -195,6 +195,19 @@ final class CoreMetricsUITests: XCTestCase {
         app.radioButtons[originalMode].click()
         XCTAssertEqual(statusItem.frame.width, originalWidth, accuracy: 1)
 
+        let launchAtLogin = app.checkBoxes["settings.launchAtLogin"]
+        reveal(launchAtLogin, in: settingsWindow.scrollViews.firstMatch)
+        XCTAssertTrue(launchAtLogin.isEnabled)
+        XCTAssertFalse(app.staticTexts["settings.launchAtLoginStatus"].exists)
+        launchAtLogin.click()
+        XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForExistence(timeout: 3))
+        XCTAssertEqual(
+            app.staticTexts["settings.launchAtLoginStatus"].label,
+            "Core Metrics will open when you log in."
+        )
+        launchAtLogin.click()
+        XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForNonExistence(timeout: 3))
+
         let privacyButton = app.buttons["settings.privacyInformation"]
         reveal(privacyButton, in: settingsWindow.scrollViews.firstMatch)
         privacyButton.click()
@@ -206,7 +219,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Core Metrics works entirely on your Mac."].exists)
         let privacyContent = app.scrollViews["privacyInformation.content"]
         XCTAssertTrue(privacyContent.exists)
-        privacyContent.scroll(byDeltaX: 0, deltaY: -300)
+        privacyContent.scroll(byDeltaX: 0, deltaY: -600)
         let diagnostics = privacyContent.staticTexts["Local Diagnostics"].firstMatch
         XCTAssertTrue(diagnostics.isHittable)
         let privacyScreenshot = XCTAttachment(screenshot: app.sheets.firstMatch.screenshot())

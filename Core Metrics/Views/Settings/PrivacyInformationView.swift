@@ -28,6 +28,7 @@ struct PrivacyInformationView: View {
                             .font(.headline)
                             .accessibilityAddTraits(.isHeader)
                         Text("Current readings are kept in memory while the app runs. No metric history is saved. Your menu-bar selections and display style are saved locally and can be reset with Restore Defaults.")
+                        Text("The optional Launch at Login setting is managed separately by macOS.")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {

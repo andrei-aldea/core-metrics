@@ -33,7 +33,7 @@ Use native scene navigation and SettingsLink. No coordinator or dependency conta
 
 Mac App Store compatibility and App Sandbox are requirements. Use documented public Apple APIs and verify important system APIs against official Apple sources. Keep hardened runtime and least-privilege entitlements. Recheck Apple's current Required Reason API policy when adopting a covered API; declarations must describe actual use.
 
-The app is local-only: no networking, tracking, analytics, accounts, telemetry or backend. Persist only menu-bar preferences. No Keychain or sensitive-data storage is needed. Never add root access, a private framework, or an undocumented system behavior.
+The app is local-only: no networking, tracking, analytics, accounts, telemetry or backend. Persist only menu-bar preferences. Optional Launch at Login uses public `SMAppService.mainApp` and the actual OS state, with no helper or shadow preference. Copy Current Readings writes only on an explicit action; automated tests must use a named pasteboard or injected writer and fake login service to preserve the person’s clipboard and login items. No Keychain or sensitive-data storage is needed. Never add root access, a private framework, or an undocumented system behavior.
 
 Do not start, invoke, suggest, or switch into a Codex Security Scan or dedicated security-scanning workflow. Manual source/privacy review and local Xcode analysis are permitted; do not upload repository data to external scanners.
 

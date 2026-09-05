@@ -4,7 +4,7 @@ These decisions describe the current product. Implementation evidence and valida
 
 ## ADR-001 — Native, dependency-free application
 
-Use Swift, SwiftUI, AppKit, Foundation, Observation, OSLog and public Darwin APIs. Native frameworks cover this small utility without a cross-platform layer or monitoring SDK. A new dependency needs explicit review and a written justification.
+Use Swift, SwiftUI, AppKit, Foundation, Observation, OSLog, ServiceManagement, Accessibility and public Darwin APIs. Native frameworks cover this small utility without a cross-platform layer or monitoring SDK. A new dependency needs explicit review and a written justification.
 
 ## ADR-002 — Providers and pure calculations
 
@@ -51,3 +51,18 @@ Keep the existing window-style `MenuBarExtra`, established English names/codes, 
 Measure locale glyph advances independently of current readings and cache the layout in view state until the locale changes. Cap the rendered text width at 320 points and truncate long selections at the tail. Retain only the latest image in view state, keyed by formatted text, capped width, display scale, and spoken summary. Settings keeps the full uncapped text in an attributed monospaced font inside a focusable horizontal scroll area with native indicators.
 
 Supply the rendered image, its scale, and an intrinsic label through SwiftUI's [Image initializer](https://developer.apple.com/documentation/swiftui/image/init(_:scale:orientation:label:)). The label includes “Core Metrics” and the full metric/value summary, so visual truncation does not intentionally omit accessible values. Formatting and layout tests cover the requested frame; native UI tests must also check actual width, accessible naming through the status item's `title`, and saved seven-stat startup. These checks require runtime evidence recorded in the report. macOS still decides how much menu-bar space is available, so visibility on every crowded desktop is not guaranteed.
+
+
+## ADR-011 — Optional main-app login registration
+
+Use public `SMAppService.mainApp` behind an injectable MainActor service. Read OS registration state on initialization, after operations, and when Settings becomes active. Never register automatically or persist a second flag. Display approval requirements and sanitized errors, and offer the documented Login Items settings action. An owned task serializes changes without retaining the store across a suspended unregister. No helper, daemon, entitlement, or signing change is needed. DEBUG UI tests inject a fake service; final signed installation and login behavior remain release validation.
+
+## ADR-012 — Explicit current-reading copy and local help
+
+Copy full selected names and formatted values on an explicit action, independent of menu-bar truncation or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success uses compact inline feedback; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
+
+Offer concise Metric Help from the panel and Settings as a native scrollable sheet. Its content follows the existing metric definitions, including overlapping memory categories and the difference between memory use and pressure. It adds no acquisition, networking, or history.
+
+## ADR-013 — Reproducible local validation
+
+Provide a dependency-free shell entry point with native Foundation artifact checks. Serialize app builds, unit tests, analysis and optional interactive UI tests to avoid competing native test hosts. Keep logs, DerivedData and result bundles outside the checkout, validate the built Release package, and report toolchain warnings honestly. This command neither archives for distribution nor changes publisher configuration.

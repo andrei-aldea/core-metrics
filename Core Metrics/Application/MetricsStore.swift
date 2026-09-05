@@ -28,6 +28,7 @@ final class MetricsStore {
     )
     @ObservationIgnored private var unavailableMetrics: Set<SampleKind> = []
     @ObservationIgnored private var samplingTask: Task<Void, Never>?
+    @ObservationIgnored private var samplingID: UUID?
 
     init(
         cpuProvider: any CPUMetricsProviding = CPUMetricsProvider(),
@@ -67,6 +68,8 @@ final class MetricsStore {
         let fastInterval = fastSamplingInterval
         let storageInterval = storageSamplingInterval
         let gapThreshold = longGapThreshold
+        let samplingID = UUID()
+        self.samplingID = samplingID
 
         samplingTask = Task(priority: .utility) { @concurrent [weak self] in
             await withDiscardingTaskGroup { group in
@@ -101,6 +104,10 @@ final class MetricsStore {
                             cpuFailed = true
                         }
 
+                        guard !Task.isCancelled else {
+                            return
+                        }
+
                         let memoryUsage: MemoryUsage?
                         let memoryFailed: Bool
                         do {
@@ -115,7 +122,8 @@ final class MetricsStore {
                             cpuUsage: cpuUsage,
                             cpuFailed: cpuFailed,
                             memoryUsage: memoryUsage,
-                            memoryFailed: memoryFailed
+                            memoryFailed: memoryFailed,
+                            samplingID: samplingID
                         )
 
                         do {
@@ -135,10 +143,10 @@ final class MetricsStore {
                         let shouldRetryQuickly: Bool
                         do {
                             let usage = try storageProvider.sample()
-                            await self?.recordStorage(usage)
+                            await self?.recordStorage(usage, samplingID: samplingID)
                             shouldRetryQuickly = usage == nil
                         } catch {
-                            await self?.recordStorageFailure()
+                            await self?.recordStorage(nil, samplingID: samplingID)
                             shouldRetryQuickly = true
                         }
 
@@ -155,9 +163,15 @@ final class MetricsStore {
         }
     }
 
-    func stop() {
-        samplingTask?.cancel()
+    /// Invalidates publication immediately. The returned task can be awaited
+    /// when a caller also needs in-flight synchronous acquisition to finish.
+    @discardableResult
+    func stop() -> Task<Void, Never>? {
+        let task = samplingTask
+        samplingID = nil
+        task?.cancel()
         samplingTask = nil
+        return task
     }
 
     /// Applies the fast CPU and memory results in one main-actor hop, keeping
@@ -166,8 +180,13 @@ final class MetricsStore {
         cpuUsage: CPUUsage?,
         cpuFailed: Bool,
         memoryUsage: MemoryUsage?,
-        memoryFailed: Bool
+        memoryFailed: Bool,
+        samplingID: UUID
     ) {
+        guard self.samplingID == samplingID, !Task.isCancelled else {
+            return
+        }
+
         if cpuFailed {
             recordCPUFailure()
         } else {
@@ -198,7 +217,11 @@ final class MetricsStore {
         markAvailable(.memory)
     }
 
-    private func recordStorage(_ usage: StorageUsage?) {
+    private func recordStorage(_ usage: StorageUsage?, samplingID: UUID) {
+        guard self.samplingID == samplingID, !Task.isCancelled else {
+            return
+        }
+
         storageUsage = usage
         guard usage != nil else {
             markUnavailable(.storage)
@@ -216,11 +239,6 @@ final class MetricsStore {
     private func recordMemoryFailure() {
         memoryUsage = nil
         markUnavailable(.memory)
-    }
-
-    private func recordStorageFailure() {
-        storageUsage = nil
-        markUnavailable(.storage)
     }
 
     private func markUnavailable(_ metric: SampleKind) {

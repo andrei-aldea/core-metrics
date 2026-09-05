@@ -2,6 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(PreferencesStore.self) private var preferencesStore
+    @State private var isShowingPrivacy = false
 
     var body: some View {
         @Bindable var preferences = preferencesStore
@@ -54,6 +55,9 @@ struct SettingsView: View {
 
             Section {
                 HStack {
+                    Button("Privacy…", action: showPrivacy)
+                        .accessibilityIdentifier("settings.privacyInformation")
+
                     Spacer()
                     Button("Restore Defaults") {
                         preferencesStore.reset()
@@ -68,6 +72,9 @@ struct SettingsView: View {
             minHeight: 500,
             idealHeight: 560
         )
+        .sheet(isPresented: $isShowingPrivacy) {
+            PrivacyInformationView()
+        }
     }
 
     private var addStatMenu: some View {
@@ -87,5 +94,9 @@ struct SettingsView: View {
         } label: {
             Label("Add Stat", systemImage: "plus")
         }
+    }
+
+    private func showPrivacy() {
+        isShowingPrivacy = true
     }
 }

@@ -1,5 +1,5 @@
-/// Builds one text-only status label. A single `Text` is more reliable than a
-/// hierarchy of images and independently framed values in a menu-bar scene.
+/// Builds the shared text for the full Settings preview and the bounded
+/// template status image. Formatting stays independent of presentation.
 nonisolated enum MenuBarLabelFormatting {
     /// Eight characters fit the largest one-decimal compact byte value
     /// (`1023.9GB`) while keeping every live slot stable.

@@ -23,7 +23,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("This matches your menu-bar text. Scroll horizontally to see all selected stats when they extend beyond the preview.")
+                Text("Your full selection is shown here. Scroll horizontally to see every stat. Long menu-bar text is shortened to leave room for other items.")
             }
 
             Section {

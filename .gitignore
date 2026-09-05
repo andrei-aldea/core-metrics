@@ -6,6 +6,12 @@
 # Xcode user state and build output
 DerivedData/
 build/
+*.dSYM/
+*.ipa
+*.pkg
+*.xcarchive/
+*.xcdistributionlogs/
+*.xcresult/
 *.xcuserstate
 *.xccheckout
 *.xcscmblueprint
@@ -23,6 +29,7 @@ Package.resolved
 *.p12
 *.mobileprovision
 *.provisionprofile
+ExportOptions.plist
 *.env
 .env.*
 !.env.example

@@ -35,20 +35,6 @@
                ReferencedContainer = "container:Core Metrics.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "NO"
-            buildForProfiling = "NO"
-            buildForArchiving = "NO"
-            buildForAnalyzing = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AE76B889304731AB009DDA0A"
-               BuildableName = "Core MetricsUITests.xctest"
-               BlueprintName = "Core MetricsUITests"
-               ReferencedContainer = "container:Core Metrics.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
       </BuildActionEntries>
    </BuildAction>
    <TestAction

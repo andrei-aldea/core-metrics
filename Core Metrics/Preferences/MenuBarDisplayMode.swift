@@ -12,11 +12,11 @@ nonisolated enum MenuBarDisplayMode: String, CaseIterable, Codable, Identifiable
     var displayName: String {
         switch self {
         case .labelAndValue:
-            "Label and Value"
+            String(localized: "Label and Value")
         case .valueOnly:
-            "Value Only"
+            String(localized: "Value Only")
         case .compact:
-            "Compact"
+            String(localized: "Compact")
         }
     }
 }

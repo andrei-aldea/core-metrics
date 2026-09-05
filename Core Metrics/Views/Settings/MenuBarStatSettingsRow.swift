@@ -26,6 +26,11 @@ struct MenuBarStatSettingsRow: View {
             .buttonStyle(.borderless)
             .controlSize(.small)
             .help("Remove from menu bar")
+            .accessibilityHint(
+                preferencesStore.canDisable(stat)
+                    ? String(localized: "Removes this value from the menu bar.")
+                    : String(localized: "At least one value must remain selected.")
+            )
         }
     }
 

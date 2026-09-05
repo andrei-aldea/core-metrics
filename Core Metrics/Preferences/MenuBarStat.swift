@@ -40,35 +40,35 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
     var displayName: String {
         switch self {
         case .cpuUsed:
-            "CPU Used"
+            String(localized: "CPU Used")
         case .cpuUser:
-            "CPU User"
+            String(localized: "CPU User")
         case .cpuSystem:
-            "CPU System"
+            String(localized: "CPU System")
         case .cpuIdle:
-            "CPU Idle"
+            String(localized: "CPU Idle")
         case .memoryUsed:
-            "Memory Used"
+            String(localized: "Memory Used")
         case .memoryUsedPercentage:
-            "RAM Used %"
+            String(localized: "RAM Used %")
         case .memoryWired:
-            "Wired Memory"
+            String(localized: "Wired Memory")
         case .memoryCompressed:
-            "Compressed Memory"
+            String(localized: "Compressed Memory")
         case .memoryCached:
-            "Cached Files"
+            String(localized: "Cached Files")
         case .memorySwap:
-            "Swap Used"
+            String(localized: "Swap Used")
         case .memoryTotal:
-            "Physical Memory"
+            String(localized: "Physical Memory")
         case .storageUsed:
-            "SSD Used Space"
+            String(localized: "SSD Used Space")
         case .storageUsedPercentage:
-            "SSD Used %"
+            String(localized: "SSD Used %")
         case .storageFree:
-            "SSD Free Space"
+            String(localized: "SSD Free Space")
         case .storageTotal:
-            "SSD Total Space"
+            String(localized: "SSD Total Space")
         }
     }
 
@@ -76,35 +76,35 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
     var panelName: String {
         switch self {
         case .cpuUsed:
-            "Used"
+            String(localized: "Used")
         case .cpuUser:
-            "User"
+            String(localized: "User")
         case .cpuSystem:
-            "System"
+            String(localized: "System")
         case .cpuIdle:
-            "Idle"
+            String(localized: "Idle")
         case .memoryUsed:
-            "Memory Used"
+            String(localized: "Memory Used")
         case .memoryUsedPercentage:
-            "Used %"
+            String(localized: "Used %")
         case .memoryWired:
-            "Wired Memory"
+            String(localized: "Wired Memory")
         case .memoryCompressed:
-            "Compressed Memory"
+            String(localized: "Compressed Memory")
         case .memoryCached:
-            "Cached Files"
+            String(localized: "Cached Files")
         case .memorySwap:
-            "Swap Used"
+            String(localized: "Swap Used")
         case .memoryTotal:
-            "Physical Memory"
+            String(localized: "Physical Memory")
         case .storageUsed:
-            "Used Space"
+            String(localized: "Used Space")
         case .storageUsedPercentage:
-            "Used %"
+            String(localized: "Used %")
         case .storageFree:
-            "Free Space"
+            String(localized: "Free Space")
         case .storageTotal:
-            "Total Capacity"
+            String(localized: "Total Capacity")
         }
     }
 

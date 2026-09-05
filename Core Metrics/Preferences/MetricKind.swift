@@ -13,11 +13,11 @@ nonisolated enum MetricKind: String, CaseIterable, Codable, Hashable, Identifiab
     var displayName: String {
         switch self {
         case .cpu:
-            "CPU"
+            String(localized: "CPU")
         case .memory:
-            "Memory"
+            String(localized: "Memory")
         case .storage:
-            "Storage"
+            String(localized: "Storage")
         }
     }
 

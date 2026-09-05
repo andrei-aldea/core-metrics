@@ -11,6 +11,7 @@ struct MenuBarStatToggleView: View {
             .disabled(isDisabled)
             .toggleStyle(.checkbox)
             .accessibilityIdentifier("menuBarStat.\(stat.rawValue)")
+            .accessibilityLabel(stat.displayName)
             .accessibilityHint(accessibilityHint)
     }
 
@@ -32,12 +33,12 @@ struct MenuBarStatToggleView: View {
     private var accessibilityHint: String {
         if preferencesStore.isStatEnabled(stat) {
             return preferencesStore.canDisable(stat)
-                ? "Removes this value from the menu bar."
-                : "At least one value must remain selected."
+                ? String(localized: "Removes this value from the menu bar.")
+                : String(localized: "At least one value must remain selected.")
         }
 
         return isDisabled
-            ? "Remove another value before selecting this one."
-            : "Adds this value to the menu bar."
+            ? String(localized: "Remove another value before selecting this one.")
+            : String(localized: "Adds this value to the menu bar.")
     }
 }

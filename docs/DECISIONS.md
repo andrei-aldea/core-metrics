@@ -1,6 +1,6 @@
 # Architecture decisions
 
-These decisions describe the current product. Implementation evidence and validation limits are in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md).
+These decisions describe the current product except where explicitly marked superseded. Implementation evidence and validation limits are in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md).
 
 ## ADR-001 — Native, dependency-free application
 
@@ -42,9 +42,11 @@ Clear cached URL resource values before each background storage sample. Apple [d
 
 Keep the UI-test target and its shared scheme, but remove its redundant build entry from the unit-test scheme. Unsigned unit runs should not build an unused desktop automation runner. Local UI signing and publisher distribution signing remain separate validation concerns.
 
-Guard explicit UI-test launch configuration with `#if DEBUG`. Test launches reset a dedicated preferences suite and may set only the app's appearance through public AppKit APIs; normal launches continue using the person's configuration. An explicit test relaunch flag preserves that isolated suite so startup with saved selections can be exercised. Keep live providers active so tests exercise actual status updates. Start interactive flows with one stat, then add seven selections through the panel. The dark scenario relaunches with those saved selections and checks status availability and its full accessible summary. This protects normal preferences while covering both Settings/privacy flows and restoration; it does not establish behavior on every crowded desktop.
+Guard explicit UI-test launch configuration with `#if DEBUG`. Test launches reset a dedicated preferences suite and may set only the app's appearance through public AppKit APIs; normal launches continue using the person's configuration. An explicit test relaunch flag preserves that isolated suite so startup with saved selections can be exercised. Keep live providers active so tests exercise actual status updates. Start interactive flows with one stat; the broad dark flow selects seven stats through the panel, then relaunches with those saved selections and checks status availability and its full accessible summary. A focused third test adds Memory Used and SSD Free Space through Settings in Label and Value mode, checks the three status names and frame growth, then verifies the selections after closing and reopening Settings. This protects normal preferences while covering Settings/privacy flows and restoration; it does not establish behavior on every crowded desktop.
 
 ## ADR-010 — Bound status text with a native template image
+
+**Superseded by [ADR-015](#adr-015--restore-native-status-text).** The following records the earlier implementation and its rationale, not current behavior.
 
 Keep the existing window-style `MenuBarExtra`, established English names/codes, and padded values. Render the status text with the system monospaced font into a fixed-width `CGImage` using public [ImageRenderer](https://developer.apple.com/documentation/swiftui/imagerenderer). Native adaptation of both a font-modified Text and an attributed-font Text still allowed live width changes during repeated UI testing. A template image preserves the rendered dimensions without introducing a custom status-item controller or private view introspection. SwiftUI [template rendering](https://developer.apple.com/documentation/swiftui/image/renderingmode(_:)) lets native presentation supply the tint.
 
@@ -59,7 +61,7 @@ Use public `SMAppService.mainApp` behind an injectable MainActor service. Read O
 
 ## ADR-012 — Explicit current-reading copy and local help
 
-Copy full selected names and formatted values on an explicit action, independent of menu-bar truncation or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success uses compact inline feedback; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
+Copy full selected names and formatted values on an explicit action, independent of menu-bar visibility or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success uses compact inline feedback; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
 
 Offer concise Metric Help from the panel and Settings as a native scrollable sheet. Its content follows the existing metric definitions, including overlapping memory categories and the difference between memory use and pressure. It adds no acquisition, networking, or history.
 
@@ -73,3 +75,11 @@ Provide a dependency-free shell entry point with native Foundation artifact chec
 Retain all metric checkboxes in the persistent panel, but configure Menu Bar Text only in Settings, immediately below its full live preview. This gives the panel more space for metric choices and removes its root display-mode binding. Selection limits, ordering, migration and value formatting are unchanged.
 
 Keep native [SettingsLink](https://developer.apple.com/documentation/swiftui/settingslink) navigation. Its scoped [PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) uses a native bordered Button to request public [application activation](https://developer.apple.com/documentation/appkit/nsapplication/activate()) and then forward the link’s original action. Preserve button roles, keyboard shortcuts and accessibility activation; do not replace them with tap gestures, private selectors or window enumeration. Desktop tests must open Settings before another modal can activate the app and must not call `XCUIApplication.activate()` to compensate for focus behavior.
+
+## ADR-015 — Restore native status text
+
+Restore the single native attributed Text label used before ADR-010. The user reported changed menu-bar typography and an inability to see additional selected readings in the installed app. The bitmap implementation imposed a 320-point cap and tail truncation, which could hide a third reading in the ordinary three-stat Label and Value configuration. The selection model still allowed seven; the cap affected presentation. Rendering the explicit monospaced font into pixels also bypassed the native text host's typography adaptation, although the precise visual difference requires runtime comparison.
+
+Keep [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra), the existing monospaced font, locale-aware width reservation, padded values, selection ordering and accessibility summary. Remove the status-only image renderer and width cap. Settings continues to show the same full string in a horizontal scroll area. No preference migration, metric formula or acquisition change is required.
+
+Prefer native text and complete supplied readings over enforcing bitmap dimensions. The host may adapt font and width, and previous native testing recorded width drift; the requested reservation is not a guarantee of fixed status-item size. macOS still controls menu-bar space, so crowded or notched displays may not fit long selections. Validate native typography, one/three/seven selections, representation changes, spoken context and saved-selection startup in the running app. Keep historical renderer measurements in the report as evidence for the superseded implementation.

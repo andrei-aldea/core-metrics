@@ -16,9 +16,26 @@ xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -resolvePack
 
 There are no Swift packages, Pods, Carthage artifacts, environment secrets, backend endpoints, generated sources, or install scripts. Dependency resolution should list no packages. Prefer a per-command `DEVELOPER_DIR` override when testing another installed Xcode; do not change the machine-wide selection or deployment target incidentally.
 
+## One-command validation
+
+From the repository root, run:
+
+```sh
+./scripts/validate.sh
+./scripts/validate.sh --ui --output-root /tmp
+```
+
+The second command includes the native UI suite and needs an interactive desktop with existing automation permissions. Close work in the app first because the UI suite terminates earlier app instances. The script also works from another working directory when invoked through its quoted path. `--help` explains the options without invoking Xcode; `--output-root` accepts an existing directory outside the checkout, including paths with spaces. Each run creates a new private directory under that location, or under `${TMPDIR:-/tmp}` by default, and prints its location.
+
+The script checks macOS 27/Apple silicon, Xcode 27+, the macOS 27+ SDK and Swift 6+, then serially lists the project, resolves dependencies, builds Debug, runs unit tests, builds Release and analyzes. It lints source and packaged property lists, verifies the reviewed sandbox/privacy declarations and packaged metadata against resolved build settings, and checks that Release excludes DEBUG UI-test markers and unexpected nested bundles. Hardened runtime must be enabled in both source app configurations and in resolved Release settings; a resolved Debug value of `NO` is explicitly reported as a development/test limitation. Project, source entitlement and privacy-manifest fingerprints must remain unchanged. Optional ad-hoc UI tests run afterward in separate DerivedData; their app's effective sandbox entitlement is checked. Final working and staged diff checks run even after a failed build step.
+
+`summary.tsv` records executed steps; `outcome.txt` records the overall result and diagnostic counts. Raw logs, resolved build settings, products and `.xcresult` bundles stay in the private run directory. Failed commands/checks stop dependent work and return nonzero. Unexpected warning lines also fail validation; the known AppIntents metadata-skipped warning is retained, counted and reported as an outstanding toolchain limitation. Passing commands do not resolve that warning, DisplayManager diagnostics, distribution signing or the wider runtime matrix. Redact raw local artifacts before sharing them.
+
+The script uses macOS Bash and Swift/Foundation without additional packages. It does not delete artifacts, alter Xcode selection or publisher configuration, create distribution archives, upload, or commit. Existing manual commands below remain useful for focused work; the script's isolated output is the repeatable full-validation path. Use the [report](PROJECT_ANALYSIS_REPORT.md) for actual execution evidence.
+
 ## Configuration and build
 
-The project has Debug and Release configurations. Debug enables testability and ordinary diagnostics. Release uses optimization, dSYMs, dead-code stripping, and asset space optimization. Both keep Swift warnings as errors, complete concurrency checks, App Sandbox and hardened runtime. The generated Info.plist declares a menu-bar agent (`LSUIElement`), Utilities category, AppIcon, version 1.0/build 1, and no non-exempt encryption.
+The project has Debug and Release configurations. Debug enables testability and ordinary diagnostics. Release uses optimization, dSYMs, dead-code stripping, and asset space optimization. Both keep Swift warnings as errors, complete concurrency checks and App Sandbox. Both source app configurations set `ENABLE_HARDENED_RUNTIME=YES`; the reviewed unsigned build settings resolve it to `NO` for Debug and `YES` for Release. This Debug development/test limitation does not establish effective runtime hardening. The project setting remains enabled, Release must resolve to `YES`, and the signed shipping archive still needs effective hardening validation. The generated Info.plist declares a menu-bar agent (`LSUIElement`), Utilities category, AppIcon, version 1.0/build 1, and no non-exempt encryption.
 
 Use an ignored `build/` directory when separate logs/products help reproduce a result:
 
@@ -45,7 +62,7 @@ Swift Testing covers pure CPU/memory/storage arithmetic, zero/overflow inputs, p
 
 Two native UI tests are defined: light appearance with one Value Only statistic, and dark appearance with seven statistics. Both initially launch with one Value Only statistic; the dark test selects seven through the open native panel, then relaunches and checks that the saved selection can open the panel. `UITestLaunchConfiguration` is compiled only in DEBUG and activates only when `CORE_METRICS_UI_TESTING=1`. The initial launch resets a dedicated UI-test UserDefaults suite; `CORE_METRICS_UI_RELAUNCH=1` preserves that suite for the relaunch check. `CORE_METRICS_UI_APPEARANCE` selects the app's light/dark appearance. Normal preferences and system appearance are not changed; ordinary development launches use the normal configuration, and Release excludes these controls.
 
-Each flow terminates earlier instances of the app's current bundle identity before launch, opens the persistent panel, checks accessible controls, toggles/restores a selection and representation, and opens Settings. Representation checks expect short labels to resize and long labels to stay within the width cap. Both flows open Privacy, check the local-data explanation, and exercise Return/Escape dismissal. Screenshots target the status item, panel, Settings window and Privacy sheet. The tests terminate their launched app on exit. Close work in the app before running them; the existing duplicate-instance cleanup can close a normal development instance.
+Each flow terminates earlier instances of the app's current bundle identity before launch, opens the persistent panel, checks accessible controls, toggles/restores a selection and representation, and opens Settings. Representation checks expect short labels to resize and long labels to stay within the width cap. Both flows exercise Metric Help from the panel and Settings, fake Launch at Login toggles, and injected copy success/failure. They open Privacy, check the local-data explanation, and exercise Return/Escape dismissal. Screenshots target finite status-item, panel/window, Settings and sheet elements. DEBUG test launches inject a fake login service and clipboard writer; they do not change actual login items or the general clipboard. A unit fixture separately writes to a private named pasteboard and releases it afterward. The tests terminate their launched app on exit. Close work in the app before running them; the existing duplicate-instance cleanup can close a normal development instance.
 
 `MenuBarStatusLabel` retains the native `MenuBarExtra` and renders the text into an in-memory `CGImage` with SwiftUI `ImageRenderer`. Its fixed content width is capped at 320 points, with tail ellipsis for longer text; the template image uses the system tint and display scale. The full text remains in the scrollable Settings preview, and the image's intrinsic accessibility label carries the full spoken summary. The native status frame also includes system padding. The seven-stat relaunch check exercises startup with saved selections on this desktop; testing across other crowded/notched displays remains release work. Finite element screenshots removed the observed screenshot-time infinite-rectangle diagnostics; synthetic keyboard/click diagnostics may still occur.
 
@@ -98,3 +115,8 @@ The September 2026 review found no confirmed stale/corrupt artifacts and removed
 | Newly added source missing | Project uses filesystem-synchronized groups; check scope/target membership before adding duplicate references. |
 
 Keep logs/result bundles outside tracked source. Redact private data before sharing. Release preparation belongs in [APP_STORE.md](APP_STORE.md).
+
+
+### UI runner initialization failures
+
+If XCTest reports “Timed out while enabling automation mode” before any test case starts, distinguish runner initialization from a failing app assertion. Retain the `.xcresult` and raw log, check the interactive session and Xcode Helper authorization using [Apple’s UI-testing guidance](https://developer.apple.com/documentation/XCUIAutomation/recording-ui-automation-for-testing), and avoid resetting system permissions or killing other projects’ test services as cleanup. A previously working DerivedData location did not resolve this timeout in the feature follow-up. The default validation command can still verify builds, units and packaged artifacts; it explicitly skips UI tests and cannot replace desktop validation. See the report for the current execution gap.

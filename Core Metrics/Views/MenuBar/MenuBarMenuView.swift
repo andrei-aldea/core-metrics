@@ -7,12 +7,9 @@ struct MenuBarMenuView: View {
     var writeToClipboard: @MainActor (String) -> Bool = { CurrentReadingsPasteboard.write($0, to: .general) }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(PreferencesStore.self) private var preferencesStore
     @State private var isShowingMetricHelp = false
 
     var body: some View {
-        @Bindable var preferences = preferencesStore
-
         VStack(spacing: 0) {
             Form {
                 ForEach(MetricKind.allCases) { metric in
@@ -25,23 +22,6 @@ struct MenuBarMenuView: View {
             }
             .formStyle(.grouped)
             .accessibilityIdentifier("menuBarPanel")
-
-            VStack(alignment: .leading) {
-                Text("Menu Bar Text")
-                    .font(.headline)
-
-                Picker("Menu Bar Text", selection: $preferences.displayMode) {
-                    ForEach(preferencesStore.availableDisplayModes) { mode in
-                        Text(mode.displayName)
-                            .tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .fixedSize(horizontal: true, vertical: false)
-                .frame(maxWidth: .infinity)
-            }
-            .padding()
 
             Divider()
 

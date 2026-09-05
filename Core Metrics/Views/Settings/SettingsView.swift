@@ -28,6 +28,21 @@ struct SettingsView: View {
             }
 
             Section {
+                Picker("Display", selection: $preferences.displayMode) {
+                    ForEach(preferencesStore.availableDisplayModes) { mode in
+                        Text(mode.displayName)
+                            .tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .accessibilityIdentifier("settings.displayMode")
+            } header: {
+                Text("Menu Bar Text")
+            } footer: {
+                Text("Choose how selected stats appear in the menu bar. Value Only is available when a single stat is selected.")
+            }
+
+            Section {
                 ForEach(preferencesStore.enabledStats) { stat in
                     MenuBarStatSettingsRow(stat: stat)
                 }
@@ -44,17 +59,7 @@ struct SettingsView: View {
             } header: {
                 Text("Menu Bar Stats")
             } footer: {
-                Text("Choose one to seven stats. Their order always matches the CPU, Memory, and Storage order in the status panel. Value Only is available when a single stat is selected.")
-            }
-
-            Section("Representation") {
-                Picker("Display", selection: $preferences.displayMode) {
-                    ForEach(preferencesStore.availableDisplayModes) { mode in
-                        Text(mode.displayName)
-                            .tag(mode)
-                    }
-                }
-                .pickerStyle(.segmented)
+                Text("Choose one to seven stats. Their order always matches the CPU, Memory, and Storage order in the status panel.")
             }
 
             LaunchAtLoginSection()

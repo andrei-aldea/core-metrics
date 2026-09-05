@@ -51,6 +51,7 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("The status item should open the persistent Core Metrics panel")
             return
         }
+
         XCTAssertFalse(app.staticTexts["Selected"].exists)
         XCTAssertTrue(
             app.staticTexts["CPU"].exists,
@@ -78,13 +79,10 @@ final class CoreMetricsUITests: XCTestCase {
             "The removed sampling badge should not be present"
         )
         XCTAssertFalse(
-            app.staticTexts["Style"].exists,
-            "The segmented display control should not repeat a Style label"
-        )
-        XCTAssertTrue(
             app.staticTexts["Menu Bar Text"].exists,
-            "The bare display-mode control should retain its section heading"
+            "Menu Bar Text belongs in Settings, not the selection panel"
         )
+        XCTAssertEqual(app.radioButtons.count, 0, "The panel should contain no display-mode selector")
         XCTAssertTrue(
             app.buttons["About"].exists,
             "The menu-only app should expose the standard About panel"
@@ -94,13 +92,6 @@ final class CoreMetricsUITests: XCTestCase {
             "Settings should remain directly available from the status panel"
         )
 
-        let valueOnlyControl = app.radioButtons["Value Only"]
-        let wasValueOnly = valueOnlyControl.exists
-            && (
-                valueOnlyControl.isSelected
-                    || (valueOnlyControl.value as? String) == "1"
-                    || (valueOnlyControl.value as? NSNumber)?.boolValue == true
-            )
         let enabledControl = app.checkBoxes.allElementsBoundByIndex.first(
             where: \.isEnabled
         )
@@ -111,12 +102,6 @@ final class CoreMetricsUITests: XCTestCase {
             "Selecting a stat should keep the status panel open"
         )
         enabledControl?.click()
-        if wasValueOnly {
-            // Adding a second stat changes Value Only to Compact. Restore the
-            // representation as well as the selection used by this UI test.
-            XCTAssertTrue(valueOnlyControl.waitForExistence(timeout: 2))
-            valueOnlyControl.click()
-        }
 
         if configuration == "seven-stats" {
             // Open the panel with a small status item, then exercise seven
@@ -190,6 +175,19 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(settingsWindow.exists)
         let preview = app.scrollViews["settings.livePreview"]
         XCTAssertTrue(preview.exists)
+        XCTAssertTrue(settingsWindow.staticTexts["Menu Bar Text"].exists)
+        XCTAssertTrue(
+            settingsWindow.radioButtons["Compact"].isHittable,
+            "Display choices should be reachable immediately below the preview"
+        )
+
+        if configuration == "single-stat" {
+            // Temporarily adding a second stat selects Compact. Value Only is
+            // restored here because representation now belongs to Settings.
+            let valueOnly = settingsWindow.radioButtons["Value Only"]
+            XCTAssertTrue(valueOnly.isHittable)
+            valueOnly.click()
+        }
 
         let originalMode = try XCTUnwrap(
             ["Label and Value", "Value Only", "Compact"].first { title in

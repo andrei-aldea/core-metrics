@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(PreferencesStore.self) private var preferencesStore
     @State private var isShowingPrivacy = false
+    @State private var isShowingMetricHelp = false
 
     var body: some View {
         @Bindable var preferences = preferencesStore
@@ -63,6 +64,11 @@ struct SettingsView: View {
                     Button("Privacy…", action: showPrivacy)
                         .accessibilityIdentifier("settings.privacyInformation")
 
+                    Button("Metric Help…") {
+                        isShowingMetricHelp = true
+                    }
+                    .accessibilityIdentifier("settings.metricHelp")
+
                     Spacer()
                     Button("Restore Defaults") {
                         preferencesStore.reset()
@@ -79,6 +85,9 @@ struct SettingsView: View {
         )
         .sheet(isPresented: $isShowingPrivacy) {
             PrivacyInformationView()
+        }
+        .sheet(isPresented: $isShowingMetricHelp) {
+            MetricHelpView()
         }
     }
 

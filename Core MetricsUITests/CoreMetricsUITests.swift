@@ -154,6 +154,11 @@ final class CoreMetricsUITests: XCTestCase {
         panelScreenshot.lifetime = .keepAlways
         add(panelScreenshot)
 
+        app.buttons["menuBar.metricHelp"].click()
+        try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: false)
+        XCTAssertTrue(panel.exists)
+        XCTAssertTrue(app.buttons["Settings…"].isHittable)
+
         app.buttons["Settings…"].click()
         app.activate()
         XCTAssertTrue(
@@ -208,6 +213,11 @@ final class CoreMetricsUITests: XCTestCase {
         launchAtLogin.click()
         XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForNonExistence(timeout: 3))
 
+        let helpButton = app.buttons["settings.metricHelp"]
+        reveal(helpButton, in: settingsWindow.scrollViews.firstMatch)
+        helpButton.click()
+        try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: true)
+
         let privacyButton = app.buttons["settings.privacyInformation"]
         reveal(privacyButton, in: settingsWindow.scrollViews.firstMatch)
         privacyButton.click()
@@ -251,6 +261,30 @@ final class CoreMetricsUITests: XCTestCase {
             restoredStatusItem.click()
             XCTAssertTrue(panel.waitForExistence(timeout: 5))
         }
+    }
+
+    @MainActor
+    private func verifyMetricHelp(
+        in app: XCUIApplication,
+        appearance: String,
+        dismissWithReturn: Bool
+    ) throws {
+        let title = app.staticTexts["metricHelp.title"]
+        guard title.waitForExistence(timeout: 3) else {
+            XCTFail("Metric Help should expose its accessible title")
+            return
+        }
+        let content = app.scrollViews["metricHelp.content"]
+        XCTAssertTrue(content.exists)
+        XCTAssertTrue(content.staticTexts["CPU"].firstMatch.isHittable)
+        content.scroll(byDeltaX: 0, deltaY: -700)
+        XCTAssertTrue(content.staticTexts["Reading Updates"].firstMatch.isHittable)
+        let screenshot = XCTAttachment(screenshot: app.sheets.firstMatch.screenshot())
+        screenshot.name = "Metric Help - \(appearance) - \(dismissWithReturn ? "Settings" : "Panel")"
+        screenshot.lifetime = .keepAlways
+        add(screenshot)
+        app.sheets.firstMatch.typeKey(dismissWithReturn ? .return : .escape, modifierFlags: [])
+        XCTAssertTrue(title.waitForNonExistence(timeout: 3))
     }
 
     @MainActor

@@ -6,6 +6,7 @@ import SwiftUI
 struct MenuBarMenuView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(PreferencesStore.self) private var preferencesStore
+    @State private var isShowingMetricHelp = false
 
     var body: some View {
         @Bindable var preferences = preferencesStore
@@ -42,6 +43,17 @@ struct MenuBarMenuView: View {
 
             Divider()
 
+            HStack(alignment: .top) {
+                Spacer()
+
+                Button("Metric Help…") {
+                    isShowingMetricHelp = true
+                }
+                .accessibilityIdentifier("menuBar.metricHelp")
+            }
+            .padding(.horizontal)
+            .padding(.top)
+
             HStack {
                 Button("About", action: showAbout)
 
@@ -59,6 +71,9 @@ struct MenuBarMenuView: View {
         }
         .frame(width: panelWidth)
         .frame(minHeight: 540, idealHeight: 580)
+        .sheet(isPresented: $isShowingMetricHelp) {
+            MetricHelpView()
+        }
     }
 
     private var panelWidth: Double {

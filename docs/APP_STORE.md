@@ -4,7 +4,7 @@ Core Metrics is development-ready only within the validation recorded in [PROJEC
 
 ## Repository configuration
 
-The app targets macOS 27 with version 1.0/build 1, a neutral placeholder bundle identifier, generated Info.plist, Utilities category, AppIcon, and `LSUIElement = true`. Debug and Release both enable App Sandbox and hardened runtime. The source entitlement file contains only `com.apple.security.app-sandbox = true`.
+The app targets macOS 27 with version 1.0/build 1, a neutral placeholder bundle identifier, generated Info.plist, Utilities category, AppIcon, and `LSUIElement = true`. Both source configurations enable App Sandbox and hardened runtime. The current Debug development configuration resolves hardened runtime to NO, while Release resolves YES; final shipping hardening still requires distribution-signature verification. The source entitlement file contains only `com.apple.security.app-sandbox = true`.
 
 Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) includes only Apple silicon Macs. Intel hardware validation is outside this deployment target's supported device matrix; it is not an unresolved release gate. The native arm64 app still needs final validation on supported Macs and the accepted release toolchain.
 

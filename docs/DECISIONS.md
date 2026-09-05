@@ -66,3 +66,10 @@ Offer concise Metric Help from the panel and Settings as a native scrollable she
 ## ADR-013 — Reproducible local validation
 
 Provide a dependency-free shell entry point with native Foundation artifact checks. Serialize app builds, unit tests, analysis and optional interactive UI tests to avoid competing native test hosts. Keep logs, DerivedData and result bundles outside the checkout, validate the built Release package, and report toolchain warnings honestly. This command neither archives for distribution nor changes publisher configuration.
+
+
+## ADR-014 — Settings owns representation and activation
+
+Retain all metric checkboxes in the persistent panel, but configure Menu Bar Text only in Settings, immediately below its full live preview. This gives the panel more space for metric choices and removes its root display-mode binding. Selection limits, ordering, migration and value formatting are unchanged.
+
+Keep native [SettingsLink](https://developer.apple.com/documentation/swiftui/settingslink) navigation. Its scoped [PrimitiveButtonStyle](https://developer.apple.com/documentation/swiftui/primitivebuttonstyle) uses a native bordered Button to request public [application activation](https://developer.apple.com/documentation/appkit/nsapplication/activate()) and then forward the link’s original action. Preserve button roles, keyboard shortcuts and accessibility activation; do not replace them with tap gestures, private selectors or window enumeration. Desktop tests must open Settings before another modal can activate the app and must not call `XCUIApplication.activate()` to compensate for focus behavior.

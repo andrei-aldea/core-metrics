@@ -8,7 +8,7 @@ Core Metrics has one native app target and two test targets. SwiftUI owns the sc
 
 Providers in `Metrics/` read aggregate CPU ticks, physical-memory/swap counters, and startup-volume capacity. Calculators validate raw inputs and produce immutable Sendable snapshots in `Models/`. Low-level code never appears in views. `Utilities/` formats values centrally; `Views/` reads only metric categories selected for presentation, reducing unrelated invalidations.
 
-The native window-style `MenuBarExtra` keeps selections open. `LSUIElement` hides the Dock/app-switcher entry. Settings opens through `SettingsLink`; About uses the standard AppKit panel; Quit uses normal application termination. Settings owns the presentation state for native Privacy and Metric Help sheets; the panel also presents Metric Help. There is no persisted hidden-status-item state, launch-at-login helper, deep link, or background service.
+The native window-style `MenuBarExtra` keeps selections open. `LSUIElement` hides the Dock/app-switcher entry. Settings opens through `SettingsLink` with `ActivatingSettingsLinkStyle`, which requests `NSApplication.activate()` before forwarding the native action through `PrimitiveButtonStyle.Configuration.trigger()`. Its inner bordered Button retains native mouse, keyboard and accessibility activation. No private window lookup, gesture-only hook or delayed retry is involved. About uses the standard AppKit panel; Quit uses normal application termination. Settings owns the presentation state for native Privacy and Metric Help sheets; the panel also presents Metric Help. There is no persisted hidden-status-item state, launch-at-login helper, deep link, or background service.
 
 ## Concurrency and lifetime
 
@@ -29,6 +29,8 @@ A failed CPU call resets the baseline and clears the current value. Initial CPU 
 Unavailable/recovery transitions are logged once per category with OSLog; samples, errors containing paths, machine identity, and preference payloads are never logged. The UI renders an em dash and an accessible “Unavailable” value. Recovery requires no restart.
 
 ## Preferences and presentation
+
+Representation is configured only in Settings, directly below the live preview. The panel retains its metric checkboxes and no longer observes PreferencesStore at its root solely for a display-mode binding; each stat/copy control owns its needed observation.
 
 `MenuBarConfiguration` enforces one to seven unique stats in CPU → Memory → Storage order. Value Only is allowed for one stat; adding another changes it to Compact. Raw persisted identifiers and both earlier preference schemas are preserved. Legacy decoding is live compatibility code, not dead code.
 

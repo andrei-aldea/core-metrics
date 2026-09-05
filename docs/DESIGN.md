@@ -14,9 +14,11 @@ Core Metrics is a restrained native Mac utility. The menu bar is the primary sur
 
 ## Surfaces and layout
 
-The status panel begins with CPU, then Memory and Storage checkbox sections, followed by text-mode controls, Copy Current Readings and Metric Help, then About, Settings and Quit. Changing a stat keeps the panel open. No live number is duplicated beside each selector.
+The status panel begins with CPU, then Memory and Storage checkbox sections, followed by Copy Current Readings and Metric Help, then About, Settings and Quit. The panel contains no Menu Bar Text heading or representation picker; the space is available for its scrollable metric choices. Changing a stat keeps the panel open. No live number is duplicated beside each selector.
 
-The panel has a 420-point normal width and a 500-point accessibility-size branch. Its grouped form can scroll. Settings has a 520-point minimum width, a horizontally scrollable live preview of the full selection, selected rows with remove buttons, an Add Stat menu, representation choices, optional Launch at Login, Privacy, Metric Help and Restore Defaults. The preview participates in keyboard focus, retains native scroll indicators, and explains both horizontal scrolling and menu-bar truncation. Test actual macOS text/display settings; a SwiftUI dynamicTypeSize branch alone does not prove desktop large-text support.
+The panel has a 420-point normal width and a 500-point accessibility-size branch. Its grouped form can scroll. Settings has a 520-point minimum width, a horizontally scrollable live preview of the full selection, Menu Bar Text choices immediately below it, selected rows with remove buttons, an Add Stat menu, optional Launch at Login, Privacy, Metric Help and Restore Defaults. The preview participates in keyboard focus, retains native scroll indicators, and explains both horizontal scrolling and menu-bar truncation. Test actual macOS text/display settings; a SwiftUI dynamicTypeSize branch alone does not prove desktop large-text support.
+
+SettingsLink uses a narrowly scoped native button style that requests application activation before forwarding the link’s action. Clicking Settings or using Command-comma should open or raise the native Settings window in front; testing must not activate the app afterward to make this work.
 
 Privacy opens a native sheet with semantic headings and selectable, wrapping text. Its content can scroll and receive keyboard focus; Done remains outside the scrolling area. Return and Escape dismiss the sheet. The content explains the implemented local data handling without inventing publisher contacts, public URLs, or legal guarantees. Public release-policy and support requirements remain in [APP_STORE.md](APP_STORE.md).
 

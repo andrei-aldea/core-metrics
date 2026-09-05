@@ -1,18 +1,10 @@
-import AppKit
 import SwiftUI
 
 struct MenuBarLabelView: View {
-    private static let statusFont = NSFont.monospacedSystemFont(
-        ofSize: NSFont.systemFontSize,
-        weight: .regular
-    )
-    private static let characterAdvance = ("0" as NSString).size(
-        withAttributes: [.font: statusFont]
-    ).width
-
     @Environment(\.locale) private var locale
     @Environment(MetricsStore.self) private var metricsStore
     @Environment(PreferencesStore.self) private var preferencesStore
+    @State private var layout = MenuBarLabelLayout(locale: .current)
 
     var body: some View {
         let stats = preferencesStore.enabledStats
@@ -22,34 +14,31 @@ struct MenuBarLabelView: View {
             values: values,
             displayMode: preferencesStore.displayMode
         )
-        let reservedWidth = statusWidth(
+        let reservedWidth = layout.width(
             stats: stats,
             displayMode: preferencesStore.displayMode
         )
         let spokenSummary = accessibilitySummary(stats: stats, values: values)
 
-        Text(verbatim: statusText)
-            .font(Font(Self.statusFont))
+        Text(attributedStatusText(statusText))
             .lineLimit(1)
             .frame(width: reservedWidth, alignment: .leading)
             .help(spokenSummary)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Core Metrics")
             .accessibilityValue(spokenSummary)
+            .onChange(of: locale, initial: true) { _, locale in
+                layout = MenuBarLabelLayout(locale: locale)
+            }
             .task {
                 metricsStore.start()
             }
     }
 
-    private func statusWidth(
-        stats: [MenuBarStat],
-        displayMode: MenuBarDisplayMode
-    ) -> CGFloat {
-        let characterCount = MenuBarLabelFormatting.reservedCharacterCount(
-            stats: stats,
-            displayMode: displayMode
-        )
-        return ceil(Self.characterAdvance * CGFloat(characterCount)) + 1
+    private func attributedStatusText(_ text: String) -> AttributedString {
+        var content = AttributedString(text)
+        content.font = Font(MenuBarLabelLayout.font)
+        return content
     }
 
     private func value(for stat: MenuBarStat) -> String {
@@ -88,7 +77,7 @@ struct MenuBarLabelView: View {
         zip(stats, values)
             .map { stat, value in
                 let accessibleValue = value == MetricFormatting.unavailable
-                    ? "Unavailable"
+                    ? String(localized: "Unavailable")
                     : value
                 return "\(stat.displayName), \(accessibleValue)"
             }

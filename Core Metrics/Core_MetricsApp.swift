@@ -3,7 +3,17 @@ import SwiftUI
 @main
 struct CoreMetricsApp: App {
     @State private var metricsStore = MetricsStore()
-    @State private var preferencesStore = PreferencesStore()
+    @State private var preferencesStore: PreferencesStore
+
+    init() {
+        #if DEBUG
+        if let testPreferences = UITestLaunchConfiguration.configureIfRequested() {
+            _preferencesStore = State(initialValue: testPreferences)
+            return
+        }
+        #endif
+        _preferencesStore = State(initialValue: PreferencesStore())
+    }
 
     var body: some Scene {
         MenuBarExtra {

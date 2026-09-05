@@ -24,7 +24,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("Your full selection is shown here. Scroll horizontally to see every stat. Long menu-bar text is shortened to leave room for other items.")
+                Text("Your full selection is shown here. Scroll horizontally to see every stat. Use Compact to leave more room in the menu bar.")
             }
 
             Section {
@@ -113,6 +113,7 @@ struct SettingsView: View {
         } label: {
             Label("Add Stat", systemImage: "plus")
         }
+        .accessibilityIdentifier("settings.addStat")
     }
 
     private func showPrivacy() {

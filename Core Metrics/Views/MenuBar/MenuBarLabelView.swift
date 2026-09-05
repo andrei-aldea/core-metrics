@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct MenuBarLabelView: View {
-    var isStatusItem = false
     @Environment(\.locale) private var locale
     @Environment(MetricsStore.self) private var metricsStore
     @Environment(PreferencesStore.self) private var preferencesStore
@@ -21,23 +20,13 @@ struct MenuBarLabelView: View {
         )
         let spokenSummary = accessibilitySummary(stats: stats, values: values)
 
-        Group {
-            if isStatusItem {
-                MenuBarStatusLabel(
-                    text: statusText,
-                    width: reservedWidth,
-                    spokenSummary: spokenSummary
-                )
-            } else {
-                Text(attributedStatusText(statusText))
-                    .lineLimit(1)
-                    .frame(width: reservedWidth, alignment: .leading)
-                    .help(spokenSummary)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Core Metrics")
-                    .accessibilityValue(spokenSummary)
-            }
-        }
+        Text(attributedStatusText(statusText))
+            .lineLimit(1)
+            .frame(width: reservedWidth, alignment: .leading)
+            .help(spokenSummary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Core Metrics")
+            .accessibilityValue(spokenSummary)
             .onChange(of: locale, initial: true) { _, locale in
                 layout = MenuBarLabelLayout(locale: locale)
             }

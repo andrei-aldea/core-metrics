@@ -13,6 +13,88 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testAddingThirdStatInSettingsKeepsFullStatusText() throws {
+        terminateExistingApplicationInstances()
+
+        let app = XCUIApplication()
+        app.launchEnvironment = [
+            "CORE_METRICS_UI_TESTING": "1",
+            "CORE_METRICS_UI_APPEARANCE": "light",
+        ]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        guard statusItem.waitForExistence(timeout: 5) else {
+            XCTFail("The status item should be available before adding readings")
+            return
+        }
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        statusItem.click()
+        if !panel.waitForExistence(timeout: 5) {
+            statusItem.click()
+        }
+        guard panel.waitForExistence(timeout: 5) else {
+            XCTFail("The status panel should open before adding readings")
+            return
+        }
+
+        app.buttons["menuBar.settings"].click()
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        guard settingsWindow.waitForExistence(timeout: 5) else {
+            XCTFail("Settings should open for adding readings")
+            return
+        }
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        let displayMode = settingsWindow.radioButtons["Label and Value"]
+        reveal(displayMode, in: settingsWindow.scrollViews.firstMatch)
+        displayMode.click()
+
+        addStat("Memory Used", category: "Memory", in: settingsWindow, app: app)
+        XCTAssertTrue(settingsWindow.buttons["Remove Memory Used"].waitForExistence(timeout: 3))
+        XCTAssertTrue(statusItem.title.contains("CPU User"))
+        XCTAssertTrue(statusItem.title.contains("RAM Used"))
+        let twoStatWidth = statusItem.frame.width
+        XCTAssertGreaterThan(twoStatWidth, 0)
+
+        addStat("SSD Free Space", category: "Storage", in: settingsWindow, app: app)
+        let selectedStorage = settingsWindow.buttons["Remove SSD Free Space"]
+        XCTAssertTrue(selectedStorage.waitForExistence(timeout: 3))
+        reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
+        XCTAssertTrue(statusItem.title.contains("CPU User"))
+        XCTAssertTrue(statusItem.title.contains("RAM Used"))
+        XCTAssertTrue(statusItem.title.contains("SSD Free"))
+        XCTAssertGreaterThan(
+            statusItem.frame.width, twoStatWidth,
+            "Adding a third reading should expand the status item to include its value"
+        )
+        let statusScreenshot = XCTAttachment(screenshot: statusItem.screenshot())
+        statusScreenshot.name = "Native status text with three readings"
+        statusScreenshot.lifetime = .keepAlways
+        add(statusScreenshot)
+
+        settingsWindow.typeKey("w", modifierFlags: .command)
+        XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
+        statusItem.click()
+        guard panel.waitForExistence(timeout: 3) else {
+            XCTFail("The panel should remain available after adding three readings")
+            return
+        }
+        let storageCheckbox = app.checkBoxes["menuBarStat.storageAvailable"]
+        XCTAssertTrue(isSelected(storageCheckbox))
+        app.buttons["menuBar.settings"].click()
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        XCTAssertTrue(settingsWindow.buttons["Remove Memory Used"].exists)
+        reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
+        XCTAssertTrue(selectedStorage.isHittable)
+        XCTAssertTrue(statusItem.title.contains("SSD Free"))
+        let settingsScreenshot = XCTAttachment(screenshot: settingsWindow.screenshot())
+        settingsScreenshot.name = "Reopened Settings with three selected readings"
+        settingsScreenshot.lifetime = .keepAlways
+        add(settingsScreenshot)
+    }
+
+    @MainActor
     private func verifyMenuBarSettingsAndPrivacy(
         appearance: String,
         configuration: String
@@ -145,14 +227,18 @@ final class CoreMetricsUITests: XCTestCase {
             app.checkBoxes["menuBarStat.memoryPercentage"].label,
             "RAM Used %"
         )
-        if !statusItem.title.contains("Core Metrics") {
+        if !statusItem.title.contains("CU") {
             let hierarchy = XCTAttachment(string: app.debugDescription)
             hierarchy.name = "Status accessibility diagnosis"
             hierarchy.lifetime = .keepAlways
             add(hierarchy)
         }
-        XCTAssertTrue(statusItem.title.contains("Core Metrics"))
-        XCTAssertTrue(statusItem.title.contains("CPU"))
+        XCTAssertTrue(statusItem.title.contains("CU"))
+        if configuration == "seven-stats" {
+            XCTAssertTrue(statusItem.title.contains("MU"))
+            XCTAssertTrue(statusItem.title.contains("M%"))
+            XCTAssertTrue(statusItem.title.contains("S%"))
+        }
         let statusScreenshot = XCTAttachment(screenshot: statusItem.screenshot())
         statusScreenshot.name = "Status label - \(appearance)"
         statusScreenshot.lifetime = .keepAlways
@@ -217,12 +303,7 @@ final class CoreMetricsUITests: XCTestCase {
         let originalMode = try XCTUnwrap(
             ["Label and Value", "Value Only", "Compact"].first { title in
                 let control = app.radioButtons[title]
-                return control.exists
-                    && (
-                        control.isSelected
-                            || (control.value as? String) == "1"
-                            || (control.value as? NSNumber)?.boolValue == true
-                    )
+                return control.exists && isSelected(control)
             },
             "Settings should expose the selected representation"
         )
@@ -230,17 +311,14 @@ final class CoreMetricsUITests: XCTestCase {
         let alternateMode = originalMode == "Compact" ? "Label and Value" : "Compact"
         reveal(app.radioButtons[alternateMode], in: settingsWindow.scrollViews.firstMatch)
         app.radioButtons[alternateMode].click()
-        if configuration == "single-stat" {
-            XCTAssertNotEqual(
-                statusItem.frame.width, originalWidth,
-                "Changing representation should immediately resize a short status label"
-            )
-        } else {
-            XCTAssertEqual(statusItem.frame.width, originalWidth, accuracy: 1)
-            XCTAssertLessThanOrEqual(statusItem.frame.width, 350)
-        }
+        let expandedWidth = statusItem.frame.width
+        XCTAssertGreaterThan(
+            expandedWidth, originalWidth,
+            "Showing more descriptive labels should expand the native status item"
+        )
         app.radioButtons[originalMode].click()
-        XCTAssertEqual(statusItem.frame.width, originalWidth, accuracy: 1)
+        XCTAssertTrue(isSelected(app.radioButtons[originalMode]))
+        XCTAssertLessThan(statusItem.frame.width, expandedWidth)
 
         let launchAtLogin = app.checkBoxes["settings.launchAtLogin"]
         reveal(launchAtLogin, in: settingsWindow.scrollViews.firstMatch)
@@ -284,7 +362,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(privacyTitle.waitForExistence(timeout: 3))
         app.sheets.firstMatch.typeKey(.escape, modifierFlags: [])
         XCTAssertTrue(privacyTitle.waitForNonExistence(timeout: 3))
-        XCTAssertEqual(statusItem.frame.width, originalWidth, accuracy: 1)
+        XCTAssertTrue(isSelected(app.radioButtons[originalMode]))
 
         let settingsScreenshot = XCTAttachment(screenshot: settingsWindow.screenshot())
         settingsScreenshot.name = "Settings - \(appearance)"
@@ -314,12 +392,38 @@ final class CoreMetricsUITests: XCTestCase {
             app.launch()
             let restoredStatusItem = app.statusItems.firstMatch
             XCTAssertTrue(restoredStatusItem.waitForExistence(timeout: 5))
-            XCTAssertTrue(restoredStatusItem.title.contains("RAM Used %"))
-            XCTAssertTrue(restoredStatusItem.title.contains("SSD Used %"))
-            XCTAssertLessThanOrEqual(restoredStatusItem.frame.width, 350)
+            XCTAssertTrue(restoredStatusItem.title.contains("M%"))
+            XCTAssertTrue(restoredStatusItem.title.contains("S%"))
             restoredStatusItem.click()
             XCTAssertTrue(panel.waitForExistence(timeout: 5))
         }
+    }
+
+    @MainActor
+    private func addStat(
+        _ name: String,
+        category: String,
+        in settingsWindow: XCUIElement,
+        app: XCUIApplication
+    ) {
+        let addMenu = settingsWindow.descendants(matching: .any)
+            .matching(identifier: "settings.addStat").firstMatch
+        reveal(addMenu, in: settingsWindow.scrollViews.firstMatch)
+        addMenu.click()
+
+        let categoryItem = app.menuItems[category]
+        XCTAssertTrue(categoryItem.waitForExistence(timeout: 3))
+        categoryItem.hover()
+        let statItem = app.menuItems[name]
+        XCTAssertTrue(statItem.waitForExistence(timeout: 3))
+        statItem.click()
+    }
+
+    @MainActor
+    private func isSelected(_ control: XCUIElement) -> Bool {
+        control.isSelected
+            || (control.value as? String) == "1"
+            || (control.value as? NSNumber)?.boolValue == true
     }
 
     @MainActor

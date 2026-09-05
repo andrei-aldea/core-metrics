@@ -29,7 +29,7 @@ struct CoreMetricsApp: App {
                 .environment(preferencesStore)
                 .tint(Color.primary)
         } label: {
-            MenuBarLabelView(isStatusItem: true)
+            MenuBarLabelView()
                 .environment(metricsStore)
                 .environment(preferencesStore)
         }

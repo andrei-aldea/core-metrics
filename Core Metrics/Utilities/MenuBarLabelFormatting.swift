@@ -1,5 +1,5 @@
-/// Builds the shared text for the full Settings preview and the bounded
-/// template status image. Formatting stays independent of presentation.
+/// Builds the complete text for the native status title and Settings preview.
+/// Formatting stays independent of the system-owned presentation.
 nonisolated enum MenuBarLabelFormatting {
     /// Eight characters fit the largest one-decimal compact byte value
     /// (`1023.9GB`) while keeping every live slot stable.

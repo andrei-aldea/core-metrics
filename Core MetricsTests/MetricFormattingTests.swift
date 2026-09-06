@@ -126,7 +126,7 @@ struct MetricFormattingTests {
                 stats: [.cpuUser, .memoryUsed],
                 values: ["15%", "12.0GB"],
                 displayMode: .compact
-            ) == "CU      15%  MU   12.0GB"
+            ) == "CU    15%  MU   12.0GB"
         )
         #expect(
             MenuBarLabelFormatting.text(
@@ -203,7 +203,8 @@ struct MetricFormattingTests {
             displayMode: .compact
         )
 
-        #expect(MenuBarLabelFormatting.valueColumnWidth == 8)
+        #expect(longerValues.contains("1023.9GB"))
+        #expect(shorterValues.count == 83)
         #expect(
             MenuBarLabelFormatting.reservedCharacterCount(
                 stats: stats,
@@ -211,6 +212,29 @@ struct MetricFormattingTests {
             ) == shorterValues.count
         )
         #expect(shorterValues.count == longerValues.count)
+    }
+
+    @Test("Compact percentage slots preserve maximum values in every available locale")
+    func compactPercentagesFitAvailableLocales() {
+        let percentageStats: [MenuBarStat] = [
+            .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
+            .memoryUsedPercentage, .storageUsedPercentage,
+        ]
+
+        for identifier in Locale.availableIdentifiers {
+            let value = MetricFormatting.percentage(1, locale: Locale(identifier: identifier))
+            #expect(value.count <= 6, "Localized 100% must fit: \(identifier)")
+
+            for stat in percentageStats {
+                let text = MenuBarLabelFormatting.text(
+                    stats: [stat],
+                    values: [value],
+                    displayMode: .compact
+                )
+                #expect(text.hasSuffix(value), "Preserve the full localized value: \(identifier)")
+                #expect(text.count == stat.shortCode.count + 1 + 6)
+            }
+        }
     }
 
     private func formattedValue(

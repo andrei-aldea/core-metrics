@@ -5,6 +5,19 @@ nonisolated enum MenuBarLabelFormatting {
     /// (`1023.9GB`) while keeping every live slot stable.
     static let valueColumnWidth = 8
 
+    /// Compact percentages need at most six characters, including localized
+    /// spacing and direction marks. Byte values retain their wider column.
+    static func valueColumnWidth(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> Int {
+        guard displayMode == .compact else { return valueColumnWidth }
+        switch stat {
+        case .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
+             .memoryUsedPercentage, .storageUsedPercentage:
+            return 6
+        default:
+            return valueColumnWidth
+        }
+    }
+
     static func text(
         stats: [MenuBarStat],
         values: [String],
@@ -36,13 +49,14 @@ nonisolated enum MenuBarLabelFormatting {
         }
 
         let slotCharacters = stats.reduce(into: 0) { count, stat in
+            let valueWidth = valueColumnWidth(for: stat, displayMode: displayMode)
             let slotWidth = switch displayMode {
             case .labelAndValue:
-                stat.menuBarName.count + 1 + valueColumnWidth
+                stat.menuBarName.count + 1 + valueWidth
             case .valueOnly:
-                valueColumnWidth
+                valueWidth
             case .compact:
-                stat.shortCode.count + 1 + valueColumnWidth
+                stat.shortCode.count + 1 + valueWidth
             }
             count += slotWidth
         }
@@ -57,7 +71,7 @@ nonisolated enum MenuBarLabelFormatting {
     ) -> String {
         let reservedValue = String(
             repeating: " ",
-            count: max(valueColumnWidth - value.count, 0)
+            count: max(valueColumnWidth(for: stat, displayMode: displayMode) - value.count, 0)
         ) + value
 
         return switch displayMode {

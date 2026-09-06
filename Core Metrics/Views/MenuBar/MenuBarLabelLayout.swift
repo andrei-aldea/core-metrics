@@ -33,7 +33,9 @@ struct MenuBarLabelLayout {
             stats: stats,
             displayMode: displayMode
         )
-        let valueCharacters = stats.count * MenuBarLabelFormatting.valueColumnWidth
+        let valueCharacters = stats.reduce(0) {
+            $0 + MenuBarLabelFormatting.valueColumnWidth(for: $1, displayMode: displayMode)
+        }
         let labelCharacters = characterCount - valueCharacters
         return ceil(
             Self.latinCharacterAdvance * CGFloat(labelCharacters)

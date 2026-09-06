@@ -20,7 +20,9 @@ Keep macOS 27 across all targets. This minimum predates the remediation; compati
 
 ## ADR-005 — Menu-bar-only lifecycle
 
-Use [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) with window style and `LSUIElement`. The persistent panel contains selectors; the status label contains live values. Settings uses native SettingsLink, and About uses the standard AppKit panel. Do not persist an invisible status item with no recovery surface. Sampling starts idempotently from the label and continues while configuration surfaces are closed.
+Use [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) with window style and `LSUIElement`. The persistent panel contains selectors; the status label contains live values. Settings uses native SettingsLink. Do not persist an invisible status item with no recovery surface. Sampling starts idempotently from the label and continues while configuration surfaces are closed.
+
+**Amended by [ADR-016](#adr-016--keep-panel-actions-in-one-row):** the earlier panel About action is removed; Settings, Copy Readings and Quit share one footer row.
 
 ## ADR-006 — Explicit aggregate memory semantics
 
@@ -42,7 +44,7 @@ Clear cached URL resource values before each background storage sample. Apple [d
 
 Keep the UI-test target and its shared scheme, but remove its redundant build entry from the unit-test scheme. Unsigned unit runs should not build an unused desktop automation runner. Local UI signing and publisher distribution signing remain separate validation concerns.
 
-Guard explicit UI-test launch configuration with `#if DEBUG`. Test launches reset a dedicated preferences suite and may set only the app's appearance through public AppKit APIs; normal launches continue using the person's configuration. An explicit test relaunch flag preserves that isolated suite so startup with saved selections can be exercised. Keep live providers active so tests exercise actual status updates. Start interactive flows with one stat; the broad dark flow selects seven stats through the panel, then relaunches with those saved selections and checks status availability and its full accessible summary. A focused third test adds Memory Used and SSD Free Space through Settings in Label and Value mode, checks the three status names and frame growth, then verifies the selections after closing and reopening Settings. This protects normal preferences while covering Settings/privacy flows and restoration; it does not establish behavior on every crowded desktop.
+Guard explicit UI-test launch configuration with `#if DEBUG`. Test launches reset a dedicated preferences suite and may set only the app's appearance through public AppKit APIs; normal launches continue using the person's configuration. An explicit test relaunch flag preserves that isolated suite so startup with saved selections can be exercised. Keep live providers active so tests exercise actual status updates. Start interactive flows with one stat; the broad dark flow selects seven stats through the panel, then relaunches with those saved selections and checks status availability and the native status codes. A focused third test adds Memory Used and SSD Free Space through Settings in Label and Value mode, checks the three status names and frame growth, then verifies the selections after closing and reopening Settings. This protects normal preferences while covering Settings/privacy flows and restoration; it does not establish behavior on every crowded desktop.
 
 ## ADR-010 — Bound status text with a native template image
 
@@ -61,9 +63,11 @@ Use public `SMAppService.mainApp` behind an injectable MainActor service. Read O
 
 ## ADR-012 — Explicit current-reading copy and local help
 
-Copy full selected names and formatted values on an explicit action, independent of menu-bar visibility or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success uses compact inline feedback; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
+Copy full selected names and formatted values on an explicit action, independent of menu-bar visibility or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success changes the text-only Copy Readings button label to Copied and posts a spoken announcement; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
 
-Offer concise Metric Help from the panel and Settings as a native scrollable sheet. Its content follows the existing metric definitions, including overlapping memory categories and the difference between memory use and pressure. It adds no acquisition, networking, or history.
+Offer concise Metric Help from Settings as a native scrollable sheet. Its content follows the existing metric definitions, including overlapping memory categories and the difference between memory use and pressure. It adds no acquisition, networking, or history.
+
+**Amended by [ADR-016](#adr-016--keep-panel-actions-in-one-row):** Help is available only from Settings, and the former Copy Current Readings label/icon and separate confirmation caption are replaced by one text-only button with stable dimensions.
 
 ## ADR-013 — Reproducible local validation
 
@@ -83,3 +87,23 @@ Restore the single native attributed Text label used before ADR-010. The user re
 Keep [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra), the existing monospaced font, locale-aware width reservation, padded values, selection ordering and accessibility summary. Remove the status-only image renderer and width cap. Settings continues to show the same full string in a horizontal scroll area. No preference migration, metric formula or acquisition change is required.
 
 Prefer native text and complete supplied readings over enforcing bitmap dimensions. The host may adapt font and width, and previous native testing recorded width drift; the requested reservation is not a guarantee of fixed status-item size. macOS still controls menu-bar space, so crowded or notched displays may not fit long selections. Validate native typography, one/three/seven selections, representation changes, spoken context and saved-selection startup in the running app. Keep historical renderer measurements in the report as evidence for the superseded implementation.
+
+## ADR-016 — Keep panel actions in one row
+
+Keep the CPU, Memory and Storage checkbox sections, followed by a single native footer row. Place Settings beside the text-only Copy Readings button and use a spacer before trailing Quit. Remove About and Metric Help from the panel; Metric Help remains in Settings. This follows the requested panel layout without changing selection, formatting, clipboard behavior or Settings activation.
+
+Reserve space for both localized Copy Readings and Copied labels within the same button. Success changes its visible and accessible label and posts an announcement, without adding a second row or moving adjacent controls. Preserve the existing copy-button accessibility identifier and remove the standalone confirmation element. Clear copy-error presentation explicitly when OK is clicked or the panel disappears. Desktop validation must check the footer before and after success, failure feedback that stays dismissed after reopening, keyboard activation and Help dismissal from Settings.
+
+
+## ADR-017 — Dismiss the panel before Settings and preserve spoken readings
+
+Desktop testing exposed the selection panel remaining above Settings after activation. The native SettingsLink button now invokes the environment’s [DismissAction](https://developer.apple.com/documentation/swiftui/dismissaction), then activates the app and forwards the original Settings action. Keyboard activation bypasses the custom SettingsLink style. Replace the standard app Settings command with a native Commands Button that obtains the active panel’s DismissAction via [focusedSceneValue](https://developer.apple.com/documentation/swiftui/view/focusedscenevalue(_:_:)), dismisses it, activates the app and invokes [openSettings](https://developer.apple.com/documentation/swiftui/environmentvalues/opensettings). The visible panel retains SettingsLink. No duplicate presentation state or window reference is stored. Tests require the panel to disappear and the Settings controls to be reachable, including reopening with Command-comma. No delay, window lookup or private selector is needed.
+
+The native status item also drops a separate accessibility value even while it renders the correct text. Put the app name and full metric summary into one localized accessibility label, shared with Settings preview. Preserve the native visual Text and single accessibility element; inspect the exposed title/label independently of screenshots that show the rendered glyphs.
+
+
+## ADR-018 — Reserve percentage space separately in Compact
+
+Seven selected readings can push a native status item into macOS menu-bar overflow. Compact percentages previously reserved the eight characters needed by the largest byte value even though current locale percentage output needs at most six, including spacing and direction marks. Reserve six characters for Compact percentage statistics and eight for bytes. Other display modes retain their existing columns and native typography. The layout calculator uses the same per-stat widths as text formatting.
+
+Unit coverage checks percentage output across Foundation’s available locales and verifies that values from small percentages through 100% fit without changing slot width. Byte boundary values retain their eight-character space. This reduces unnecessary padding without truncation, a bitmap, an arbitrary width cap, or removal of selected readings. Desktop tests and screenshots must still verify the actual status item; no native control can promise unlimited space on every desktop.

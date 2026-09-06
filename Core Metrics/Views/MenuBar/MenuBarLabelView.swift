@@ -25,8 +25,8 @@ struct MenuBarLabelView: View {
             .frame(width: reservedWidth, alignment: .leading)
             .help(spokenSummary)
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel("Core Metrics")
-            .accessibilityValue(spokenSummary)
+            // The native status-item host does not expose a separate AX value.
+            .accessibilityLabel("Core Metrics, \(spokenSummary)")
             .onChange(of: locale, initial: true) { _, locale in
                 layout = MenuBarLabelLayout(locale: locale)
             }

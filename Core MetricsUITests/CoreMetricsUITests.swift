@@ -13,6 +13,49 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testDarkAppearanceCopyFailureWithSingleStat() throws {
+        try verifyMenuBarSettingsAndPrivacy(appearance: "dark", configuration: "single-stat")
+    }
+
+    @MainActor
+    func testSettingsKeyboardShortcutOpensWindowAndDismissesPanel() {
+        terminateExistingApplicationInstances()
+
+        let app = XCUIApplication()
+        app.launchEnvironment = [
+            "CORE_METRICS_UI_TESTING": "1",
+            "CORE_METRICS_UI_APPEARANCE": "light",
+        ]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        guard statusItem.waitForExistence(timeout: 5) else {
+            XCTFail("The status item should be available before testing its keyboard shortcut")
+            return
+        }
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        guard panel.waitForExistence(timeout: 5) else {
+            XCTFail("The status panel should open before testing its keyboard shortcut")
+            return
+        }
+
+        app.buttons["menuBar.settings"].typeKey(",", modifierFlags: .command)
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        guard settingsWindow.waitForExistence(timeout: 5) else {
+            XCTFail("Command-comma should open Settings from the status panel")
+            return
+        }
+        guard verifyPanelDismissedForSettings(panel) else { return }
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        XCTAssertTrue(settingsWindow.isHittable)
+        XCTAssertTrue(settingsWindow.radioButtons["Compact"].isHittable)
+    }
+
+    @MainActor
     func testAddingThirdStatInSettingsKeepsFullStatusText() throws {
         terminateExistingApplicationInstances()
 
@@ -30,10 +73,7 @@ final class CoreMetricsUITests: XCTestCase {
             return
         }
         let panel = app.descendants(matching: .any)["menuBarPanel"]
-        statusItem.click()
-        if !panel.waitForExistence(timeout: 5) {
-            statusItem.click()
-        }
+        guard clickStatusItem(statusItem) else { return }
         guard panel.waitForExistence(timeout: 5) else {
             XCTFail("The status panel should open before adding readings")
             return
@@ -45,6 +85,7 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("Settings should open for adding readings")
             return
         }
+        guard verifyPanelDismissedForSettings(panel) else { return }
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
         let displayMode = settingsWindow.radioButtons["Label and Value"]
         reveal(displayMode, in: settingsWindow.scrollViews.firstMatch)
@@ -53,7 +94,8 @@ final class CoreMetricsUITests: XCTestCase {
         addStat("Memory Used", category: "Memory", in: settingsWindow, app: app)
         XCTAssertTrue(settingsWindow.buttons["Remove Memory Used"].waitForExistence(timeout: 3))
         XCTAssertTrue(statusItem.title.contains("CPU User"))
-        XCTAssertTrue(statusItem.title.contains("RAM Used"))
+        XCTAssertTrue(statusItem.title.contains("Memory Used"))
+        guard hoverStatusItem(statusItem) else { return }
         let twoStatWidth = statusItem.frame.width
         XCTAssertGreaterThan(twoStatWidth, 0)
 
@@ -62,12 +104,14 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(selectedStorage.waitForExistence(timeout: 3))
         reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(statusItem.title.contains("CPU User"))
-        XCTAssertTrue(statusItem.title.contains("RAM Used"))
-        XCTAssertTrue(statusItem.title.contains("SSD Free"))
+        XCTAssertTrue(statusItem.title.contains("Memory Used"))
+        XCTAssertTrue(statusItem.title.contains("SSD Free Space"))
+        guard hoverStatusItem(statusItem) else { return }
         XCTAssertGreaterThan(
             statusItem.frame.width, twoStatWidth,
             "Adding a third reading should expand the status item to include its value"
         )
+        guard hoverStatusItem(statusItem) else { return }
         let statusScreenshot = XCTAttachment(screenshot: statusItem.screenshot())
         statusScreenshot.name = "Native status text with three readings"
         statusScreenshot.lifetime = .keepAlways
@@ -75,7 +119,7 @@ final class CoreMetricsUITests: XCTestCase {
 
         settingsWindow.typeKey("w", modifierFlags: .command)
         XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
-        statusItem.click()
+        guard clickStatusItem(statusItem) else { return }
         guard panel.waitForExistence(timeout: 3) else {
             XCTFail("The panel should remain available after adding three readings")
             return
@@ -84,10 +128,11 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(isSelected(storageCheckbox))
         app.buttons["menuBar.settings"].click()
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        guard verifyPanelDismissedForSettings(panel) else { return }
         XCTAssertTrue(settingsWindow.buttons["Remove Memory Used"].exists)
         reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(selectedStorage.isHittable)
-        XCTAssertTrue(statusItem.title.contains("SSD Free"))
+        XCTAssertTrue(statusItem.title.contains("SSD Free Space"))
         let settingsScreenshot = XCTAttachment(screenshot: settingsWindow.screenshot())
         settingsScreenshot.name = "Reopened Settings with three selected readings"
         settingsScreenshot.lifetime = .keepAlways
@@ -127,18 +172,14 @@ final class CoreMetricsUITests: XCTestCase {
         // Finder is only activated; the test does not browse or modify files.
         XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
-        // Menu-bar activation can race the first window/label layout on launch.
-        // Retry once only when no panel appeared; never toggle an open panel.
-        statusItem.click()
-        if !panel.waitForExistence(timeout: 5) {
-            statusItem.click()
-        }
+        // Reveal the system menu bar and require a real hit target.
+        guard clickStatusItem(statusItem) else { return }
         guard panel.waitForExistence(timeout: 5) else {
             XCTFail("The status item should open the persistent Core Metrics panel")
             return
         }
 
-        // Exercise Settings before any About/Help/alert could activate this
+        // Exercise Settings before any alert could activate this
         // menu-bar agent and hide an activation defect in the Settings button.
         let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
         app.buttons["menuBar.settings"].click()
@@ -147,14 +188,21 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("The first Settings click should open the native Settings window")
             return
         }
+        guard verifyPanelDismissedForSettings(panel) else { return }
         XCTAssertTrue(settingsWindow.isHittable)
-        XCTAssertTrue(settingsWindow.radioButtons["Compact"].isHittable)
+        guard settingsWindow.radioButtons["Compact"].isHittable else {
+            XCTFail("Settings display choices should accept interaction after opening")
+            return
+        }
         settingsWindow.typeKey("w", modifierFlags: .command)
         XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
         XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
-        statusItem.click()
-        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        guard clickStatusItem(statusItem) else { return }
+        guard panel.waitForExistence(timeout: 3) else {
+            XCTFail("The status panel should reopen after closing Settings")
+            return
+        }
 
         XCTAssertFalse(app.staticTexts["Selected"].exists)
         XCTAssertTrue(
@@ -187,14 +235,24 @@ final class CoreMetricsUITests: XCTestCase {
             "Menu Bar Text belongs in Settings, not the selection panel"
         )
         XCTAssertEqual(app.radioButtons.count, 0, "The panel should contain no display-mode selector")
-        XCTAssertTrue(
-            app.buttons["About"].exists,
-            "The menu-only app should expose the standard About panel"
-        )
+        XCTAssertFalse(app.buttons["About"].exists)
+        XCTAssertFalse(app.buttons["Metric Help…"].exists)
+        XCTAssertFalse(app.buttons["menuBar.metricHelp"].exists)
         XCTAssertTrue(
             app.buttons["Settings…"].exists,
             "Settings should remain directly available from the status panel"
         )
+        let settingsButton = app.buttons["menuBar.settings"]
+        let copyButton = app.buttons["menuBar.copyCurrentReadings"]
+        let quitButton = app.buttons["Quit"]
+        XCTAssertEqual(copyButton.label, "Copy Readings")
+        XCTAssertEqual(copyButton.images.count, 0, "Copy Readings should have no icon")
+        XCTAssertTrue(copyButton.isHittable)
+        XCTAssertTrue(quitButton.isHittable)
+        XCTAssertEqual(settingsButton.frame.midY, copyButton.frame.midY, accuracy: 1)
+        XCTAssertEqual(copyButton.frame.midY, quitButton.frame.midY, accuracy: 1)
+        XCTAssertLessThan(settingsButton.frame.maxX, copyButton.frame.minX)
+        XCTAssertLessThan(copyButton.frame.maxX, quitButton.frame.minX)
 
         let enabledControl = app.checkBoxes.allElementsBoundByIndex.first(
             where: \.isEnabled
@@ -217,7 +275,9 @@ final class CoreMetricsUITests: XCTestCase {
             ] {
                 let control = app.checkBoxes[identifier]
                 XCTAssertTrue(control.exists)
+                reveal(control, in: panel)
                 control.click()
+                XCTAssertTrue(isSelected(control))
             }
             XCTAssertTrue(panel.exists)
         }
@@ -227,18 +287,22 @@ final class CoreMetricsUITests: XCTestCase {
             app.checkBoxes["menuBarStat.memoryPercentage"].label,
             "RAM Used %"
         )
-        if !statusItem.title.contains("CU") {
+        if !statusItem.title.contains("CPU User") {
             let hierarchy = XCTAttachment(string: app.debugDescription)
             hierarchy.name = "Status accessibility diagnosis"
             hierarchy.lifetime = .keepAlways
             add(hierarchy)
         }
-        XCTAssertTrue(statusItem.title.contains("CU"))
+        // Native status accessibility uses the full spoken summary; the
+        // rendered Compact abbreviations are retained in the screenshot.
+        XCTAssertTrue(statusItem.title.hasPrefix("Core Metrics, CPU"))
+        XCTAssertTrue(statusItem.title.contains("CPU User"))
         if configuration == "seven-stats" {
-            XCTAssertTrue(statusItem.title.contains("MU"))
-            XCTAssertTrue(statusItem.title.contains("M%"))
-            XCTAssertTrue(statusItem.title.contains("S%"))
+            XCTAssertTrue(statusItem.title.contains("Memory Used"))
+            XCTAssertTrue(statusItem.title.contains("RAM Used %"))
+            XCTAssertTrue(statusItem.title.contains("SSD Used %"))
         }
+        guard hoverStatusItem(statusItem) else { return }
         let statusScreenshot = XCTAttachment(screenshot: statusItem.screenshot())
         statusScreenshot.name = "Status label - \(appearance)"
         statusScreenshot.lifetime = .keepAlways
@@ -248,17 +312,39 @@ final class CoreMetricsUITests: XCTestCase {
         panelScreenshot.lifetime = .keepAlways
         add(panelScreenshot)
 
-        app.buttons["menuBar.copyCurrentReadings"].click()
+        let originalCopySize = copyButton.frame.size
+        copyButton.click()
         if appearance == "dark" {
             let failure = app.staticTexts["Couldn’t Copy Readings"]
             XCTAssertTrue(failure.waitForExistence(timeout: 3))
-            app.buttons["OK"].click()
+            app.sheets.containing(.staticText, identifier: "Couldn’t Copy Readings")
+                .firstMatch.buttons["OK"].click()
             XCTAssertTrue(failure.waitForNonExistence(timeout: 3))
+            // Closing a native alert can also dismiss its menu-bar panel.
+            // Reopen it only if needed before checking the available retry.
+            if !panel.exists {
+                guard clickStatusItem(statusItem) else { return }
+            }
+            guard panel.waitForExistence(timeout: 3) else {
+                XCTFail("The status panel should remain available after a copy failure")
+                return
+            }
+            guard failure.waitForNonExistence(timeout: 3) else {
+                XCTFail("The dismissed copy-failure alert should not return when the panel reopens")
+                return
+            }
+            XCTAssertEqual(copyButton.label, "Copy Readings")
         } else {
-            XCTAssertTrue(app.staticTexts["menuBar.copyConfirmation"].waitForExistence(timeout: 3))
+            let copiedButton = app.buttons.matching(identifier: "menuBar.copyCurrentReadings")
+                .matching(NSPredicate(format: "label == %@", "Copied")).firstMatch
+            XCTAssertTrue(copiedButton.waitForExistence(timeout: 3))
+            XCTAssertEqual(copyButton.frame.width, originalCopySize.width, accuracy: 1)
+            XCTAssertEqual(copyButton.frame.height, originalCopySize.height, accuracy: 1)
         }
         XCTAssertTrue(panel.exists)
-        let panelWindow = app.windows.containing(.button, identifier: "menuBar.copyCurrentReadings").firstMatch
+        XCTAssertEqual(settingsButton.frame.midY, copyButton.frame.midY, accuracy: 1)
+        XCTAssertEqual(copyButton.frame.midY, quitButton.frame.midY, accuracy: 1)
+        let panelWindow = app.dialogs.containing(.button, identifier: "menuBar.copyCurrentReadings").firstMatch
         if panelWindow.exists {
             let actionsScreenshot = XCTAttachment(screenshot: panelWindow.screenshot())
             actionsScreenshot.name = "Panel actions - \(appearance)"
@@ -266,12 +352,10 @@ final class CoreMetricsUITests: XCTestCase {
             add(actionsScreenshot)
         }
 
-        app.buttons["menuBar.metricHelp"].click()
-        try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: false)
-        XCTAssertTrue(panel.exists)
         XCTAssertTrue(app.buttons["Settings…"].isHittable)
 
         app.buttons["menuBar.settings"].click()
+        guard verifyPanelDismissedForSettings(panel) else { return }
         XCTAssertTrue(
             app.wait(for: .runningForeground, timeout: 5),
             "Settings must activate the app without test-side assistance"
@@ -286,6 +370,14 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(settingsWindow.isHittable)
         let preview = app.scrollViews["settings.livePreview"]
         XCTAssertTrue(preview.exists)
+        let previewSummary = preview.descendants(matching: .any)
+            .matching(NSPredicate(format: "label BEGINSWITH %@", "Core Metrics, CPU")).firstMatch
+        XCTAssertTrue(previewSummary.exists)
+        XCTAssertTrue(previewSummary.label.contains("CPU User"))
+        if configuration == "seven-stats" {
+            XCTAssertTrue(previewSummary.label.contains("Memory Used"))
+            XCTAssertTrue(previewSummary.label.contains("SSD Used %"))
+        }
         XCTAssertTrue(settingsWindow.staticTexts["Menu Bar Text"].exists)
         XCTAssertTrue(
             settingsWindow.radioButtons["Compact"].isHittable,
@@ -307,10 +399,12 @@ final class CoreMetricsUITests: XCTestCase {
             },
             "Settings should expose the selected representation"
         )
+        guard hoverStatusItem(statusItem) else { return }
         let originalWidth = statusItem.frame.width
         let alternateMode = originalMode == "Compact" ? "Label and Value" : "Compact"
         reveal(app.radioButtons[alternateMode], in: settingsWindow.scrollViews.firstMatch)
         app.radioButtons[alternateMode].click()
+        guard hoverStatusItem(statusItem) else { return }
         let expandedWidth = statusItem.frame.width
         XCTAssertGreaterThan(
             expandedWidth, originalWidth,
@@ -318,25 +412,30 @@ final class CoreMetricsUITests: XCTestCase {
         )
         app.radioButtons[originalMode].click()
         XCTAssertTrue(isSelected(app.radioButtons[originalMode]))
+        guard hoverStatusItem(statusItem) else { return }
         XCTAssertLessThan(statusItem.frame.width, expandedWidth)
 
-        let launchAtLogin = app.checkBoxes["settings.launchAtLogin"]
+        let launchAtLogin = settingsWindow.switches["settings.launchAtLogin"]
         reveal(launchAtLogin, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(launchAtLogin.isEnabled)
         XCTAssertFalse(app.staticTexts["settings.launchAtLoginStatus"].exists)
         launchAtLogin.click()
         XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForExistence(timeout: 3))
+        XCTAssertTrue(isSelected(launchAtLogin))
         XCTAssertEqual(
-            app.staticTexts["settings.launchAtLoginStatus"].label,
+            app.staticTexts["settings.launchAtLoginStatus"].value as? String,
             "Core Metrics will open when you log in."
         )
         launchAtLogin.click()
         XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForNonExistence(timeout: 3))
+        XCTAssertFalse(isSelected(launchAtLogin))
 
         let helpButton = app.buttons["settings.metricHelp"]
         reveal(helpButton, in: settingsWindow.scrollViews.firstMatch)
         helpButton.click()
         try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: true)
+        helpButton.click()
+        try verifyMetricHelp(in: app, appearance: appearance, dismissWithReturn: false)
 
         let privacyButton = app.buttons["settings.privacyInformation"]
         reveal(privacyButton, in: settingsWindow.scrollViews.firstMatch)
@@ -375,14 +474,18 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
         XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
         XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
-        statusItem.click()
-        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        guard clickStatusItem(statusItem) else { return }
+        guard panel.waitForExistence(timeout: 3) else {
+            XCTFail("The status panel should reopen before testing Settings again")
+            return
+        }
         if configuration == "single-stat" {
             app.buttons["menuBar.settings"].typeKey(",", modifierFlags: .command)
         } else {
             app.buttons["menuBar.settings"].click()
         }
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        guard verifyPanelDismissedForSettings(panel) else { return }
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
         XCTAssertTrue(settingsWindow.isHittable)
 
@@ -392,11 +495,37 @@ final class CoreMetricsUITests: XCTestCase {
             app.launch()
             let restoredStatusItem = app.statusItems.firstMatch
             XCTAssertTrue(restoredStatusItem.waitForExistence(timeout: 5))
-            XCTAssertTrue(restoredStatusItem.title.contains("M%"))
-            XCTAssertTrue(restoredStatusItem.title.contains("S%"))
-            restoredStatusItem.click()
+            XCTAssertTrue(restoredStatusItem.title.contains("RAM Used %"))
+            XCTAssertTrue(restoredStatusItem.title.contains("SSD Used %"))
+            guard clickStatusItem(restoredStatusItem) else { return }
             XCTAssertTrue(panel.waitForExistence(timeout: 5))
         }
+    }
+
+    @MainActor
+    private func clickStatusItem(_ statusItem: XCUIElement) -> Bool {
+        guard hoverStatusItem(statusItem) else { return false }
+        statusItem.click()
+        return true
+    }
+
+    @MainActor
+    private func hoverStatusItem(_ statusItem: XCUIElement) -> Bool {
+        statusItem.hover()
+        guard statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) else {
+            XCTFail("The status item should become hittable after revealing the menu bar")
+            return false
+        }
+        return true
+    }
+
+    @MainActor
+    private func verifyPanelDismissedForSettings(_ panel: XCUIElement) -> Bool {
+        guard panel.waitForNonExistence(timeout: 3) else {
+            XCTFail("Opening Settings should dismiss the status panel so it cannot obstruct interaction")
+            return false
+        }
+        return true
     }
 
     @MainActor
@@ -443,7 +572,7 @@ final class CoreMetricsUITests: XCTestCase {
         content.scroll(byDeltaX: 0, deltaY: -700)
         XCTAssertTrue(content.staticTexts["Reading Updates"].firstMatch.isHittable)
         let screenshot = XCTAttachment(screenshot: app.sheets.firstMatch.screenshot())
-        screenshot.name = "Metric Help - \(appearance) - \(dismissWithReturn ? "Settings" : "Panel")"
+        screenshot.name = "Metric Help in Settings - \(appearance) - \(dismissWithReturn ? "Return" : "Escape")"
         screenshot.lifetime = .keepAlways
         add(screenshot)
         app.sheets.firstMatch.typeKey(dismissWithReturn ? .return : .escape, modifierFlags: [])

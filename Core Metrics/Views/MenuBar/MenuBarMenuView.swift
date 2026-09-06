@@ -7,7 +7,7 @@ struct MenuBarMenuView: View {
     var writeToClipboard: @MainActor (String) -> Bool = { CurrentReadingsPasteboard.write($0, to: .general) }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @State private var isShowingMetricHelp = false
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
@@ -25,27 +25,14 @@ struct MenuBarMenuView: View {
 
             Divider()
 
-            HStack(alignment: .top) {
-                CopyCurrentReadingsButton(writeToClipboard: writeToClipboard)
-
-                Spacer()
-
-                Button("Metric Help…") {
-                    isShowingMetricHelp = true
-                }
-                .accessibilityIdentifier("menuBar.metricHelp")
-            }
-            .padding(.horizontal)
-            .padding(.top)
-
-            HStack {
-                Button("About", action: showAbout)
-
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
                 SettingsLink {
                     Text("Settings…")
                 }
-                .buttonStyle(ActivatingSettingsLinkStyle())
+                .buttonStyle(ActivatingSettingsLinkStyle(dismissPanel: dismiss))
                 .accessibilityIdentifier("menuBar.settings")
+
+                CopyCurrentReadingsButton(writeToClipboard: writeToClipboard)
 
                 Spacer()
 
@@ -56,18 +43,11 @@ struct MenuBarMenuView: View {
         }
         .frame(width: panelWidth)
         .frame(minHeight: 540, idealHeight: 580)
-        .sheet(isPresented: $isShowingMetricHelp) {
-            MetricHelpView()
-        }
+        .focusedSceneValue(\.dismissMenuBarPanel, dismiss)
     }
 
     private var panelWidth: Double {
         dynamicTypeSize.isAccessibilitySize ? 500 : 420
-    }
-
-    private func showAbout() {
-        NSApplication.shared.activate()
-        NSApplication.shared.orderFrontStandardAboutPanel(nil)
     }
 
     private func quit() {

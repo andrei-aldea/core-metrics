@@ -43,5 +43,8 @@ struct CoreMetricsApp: App {
                 .tint(Color.primary)
         }
         .windowResizability(.contentMinSize)
+        .commands {
+            SettingsCommands()
+        }
     }
 }

@@ -1,18 +1,19 @@
 import AppKit
 import SwiftUI
 
-/// MenuBarExtra can be used while the app is inactive. Activate the app as
-/// part of the native button action, then let SettingsLink open or raise its
-/// scene. Keeping a Button preserves keyboard and accessibility activation.
+/// Close the menu-bar panel before activating the app and opening Settings.
+/// Keeping a Button preserves keyboard and accessibility activation.
 struct ActivatingSettingsLinkStyle: PrimitiveButtonStyle {
+    let dismissPanel: DismissAction
+
     func makeBody(configuration: Configuration) -> some View {
         Button(role: configuration.role) {
+            dismissPanel()
             NSApplication.shared.activate()
             configuration.trigger()
         } label: {
             configuration.label
         }
         .buttonStyle(.bordered)
-        .keyboardShortcut(",", modifiers: .command)
     }
 }

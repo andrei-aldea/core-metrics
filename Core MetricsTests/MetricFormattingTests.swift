@@ -140,7 +140,7 @@ struct MetricFormattingTests {
                 stats: [.storageTotal],
                 values: ["1.0TB"],
                 displayMode: .labelAndValue
-            ) == "SSD Total    1.0TB"
+            ) == "Storage Total    1.0TB"
         )
         #expect(
             MenuBarLabelFormatting.text(

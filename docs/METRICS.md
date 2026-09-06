@@ -60,7 +60,7 @@ Version 1 queries `URL(fileURLWithPath: "/")` for Foundation's [`volumeTotalCapa
 
 Each off-main poll first discards URL cached resource values so a previous capacity value is not reused. Apple documents [URL resource caching](https://developer.apple.com/documentation/foundation/url/resourcevalues(forkeys:)) and [explicit invalidation](https://developer.apple.com/documentation/foundation/url/removeallcachedresourcevalues()).
 
-The UI says **Free Space** as the familiar user-facing name for Foundation's available-capacity value. Core Metrics doesn't perform directory or storage-category scans.
+The UI says **Storage Free**, or **Free** inside the Storage section, for Foundation's available-capacity value. The provider does not identify storage hardware, so labels do not assume an SSD. Core Metrics doesn't perform directory or storage-category scans.
 
 The menu bar can show used percentage, free space, used space, or total startup-volume capacity. The percentage is derived from the existing capacity snapshot and adds no volume query.
 
@@ -75,9 +75,11 @@ The menu bar can show used percentage, free space, used space, or total startup-
 
 ## Menu-bar representations
 
-- CPU: Used, User, System, or Idle percentage from the current aggregate delta sample.
-- Memory: Memory Used, Used Percentage, Wired Memory, Compressed Memory, Cached Files, Swap Used, or Physical Memory from the current memory snapshot.
-- Storage: Used Space, Used Percentage, Free Space, or Total Capacity from the current startup-volume snapshot.
+- CPU: CPU Used, CPU User, CPU System or CPU Idle, all percentages from the current aggregate delta sample.
+- Memory: Memory Used, Memory Used (%), Wired Memory, Compressed Memory, Cached Files, Swap Used or Physical Memory from the current memory snapshot.
+- Storage: Storage Used, Storage Used (%), Storage Free or Storage Total from the current startup-volume snapshot.
+
+Memory Used and Storage Used are byte amounts; their **(%)** choices divide those amounts by the corresponding total. The status label omits the parenthesized marker because its formatted value already includes `%`, while selection names, copied readings and accessibility summaries retain the distinction. CPU names need no separate amount/percentage variant. Grouped panel labels omit redundant CPU/Memory/Storage prefixes. Existing compact codes, enum cases, persisted raw identifiers and migration aliases remain unchanged; this naming cleanup does not change formulas or sampling.
 
 Formatting uses binary scaling (1,024) for memory and decimal scaling (1,000) for storage. The existing short byte labels remain B/KB/MB/GB/TB/PB/EB; memory labels are a compact convention, not a claim of decimal scaling.
 

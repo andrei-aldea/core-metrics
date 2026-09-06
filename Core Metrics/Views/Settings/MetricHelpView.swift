@@ -20,15 +20,15 @@ struct MetricHelpView: View {
 
                     VStack(alignment: .leading, spacing: 8) {
                         heading("Memory")
-                        Text("RAM Used excludes free memory and cached files. RAM Used % compares that amount with installed memory. A high used percentage alone does not indicate memory pressure.")
-                        Text("Wired memory must stay in RAM. Compressed is the RAM occupied by compressed data. Cached Files is file-backed memory that macOS can reclaim. Swap is disk space used for memory management.")
+                        Text("Memory Used excludes free memory and cached files. Memory Used (%) compares that amount with Physical Memory, the installed RAM. A high used percentage alone does not indicate memory pressure.")
+                        Text("Wired Memory must stay in RAM. Compressed Memory is the RAM occupied by compressed data. Cached Files is file-backed memory that macOS can reclaim. Swap Used is disk space used for memory management.")
                         Text("These categories overlap, so adding every memory reading does not give the total.")
                         Text("Memory units use multiples of 1,024; storage units use multiples of 1,000.")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
                         heading("Storage")
-                        Text("Storage readings describe the startup volume. Used is Total minus Free. Free is the available space reported by the file system, which can differ from Finder’s estimates that include reclaimable space.")
+                        Text("Storage readings describe the startup volume. Storage Used is Storage Total minus Storage Free. Storage Used (%) compares the used space with the total capacity. Storage Free is the available space reported by the file system, which can differ from Finder’s estimates that include reclaimable space.")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {

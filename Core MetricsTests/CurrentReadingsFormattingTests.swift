@@ -25,8 +25,8 @@ struct CurrentReadingsFormattingTests {
         CPU System: 25%
         CPU Idle: 60%
         Memory Used: 12.0GB
-        RAM Used %: 75%
-        SSD Used %: 86%
+        Memory Used (%): 75%
+        Storage Used (%): 86%
         """)
     }
 
@@ -77,7 +77,7 @@ struct CurrentReadingsFormattingTests {
             locale: Locale(identifier: identifier)
         )
 
-        #expect(text == "Memory Used: \(memoryValue)\nSSD Free Space: \(storageValue)")
+        #expect(text == "Memory Used: \(memoryValue)\nStorage Free: \(storageValue)")
     }
 
     private var memory: MemoryUsage {

@@ -15,8 +15,10 @@ Core Metrics shows current aggregate CPU, memory and startup-volume storage read
 People choose **one to seven statistics** from a persistent selection panel. Choices stay in CPU → Memory → Storage order. The native text label uses system typography and locale-aware number formatting; macOS may adapt its font and width. Do not promise a perfectly fixed width or that every long selection fits beside a notch or other menu-bar items.
 
 - CPU: Used, User, System and Idle percentages across all cores. Used is User plus System; User, System and Idle together total 100%.
-- Memory: used bytes or percentage, wired memory, compressed memory, cached files, swap used and total physical memory. These categories overlap; used percentage is not a memory-pressure reading.
-- Storage: used bytes or percentage, free space and total capacity for the startup volume. This reads aggregate volume capacity; it does not scan files or classify storage contents.
+- Memory: Memory Used, Memory Used (%), Wired Memory, Compressed Memory, Cached Files, Swap Used and Physical Memory. These categories overlap; used percentage is not a memory-pressure reading.
+- Storage: Storage Used, Storage Used (%), Storage Free and Storage Total for the startup volume. This reads aggregate volume capacity; it does not scan files or classify storage contents, or determine whether the hardware is an SSD.
+
+Use those names consistently in screenshots and help text. The menu bar uses Memory Used and Storage Used for both representations because live values already show byte units or a percent sign. Selection controls, copied readings and spoken summaries retain the (%) distinction. Existing compact codes remain unchanged.
 
 CPU and memory refresh about every two seconds; storage about every thirty seconds. A dash means unavailable. CPU needs an initial sample before showing usage. Memory uses units scaled by 1,024; storage uses 1,000. No metric history is saved.
 

@@ -12,7 +12,7 @@ struct CurrentReadingsPasteboardTests {
         pasteboard.clearContents()
         try #require(pasteboard.setString("Previous contents", forType: .string))
 
-        let text = "CPU User: 15%\nMemory Used: 12.0GB\nSSD Free Space: 143.0GB"
+        let text = "CPU User: 15%\nMemory Used: 12.0GB\nStorage Free: 143.0GB"
 
         #expect(CurrentReadingsPasteboard.write(text, to: pasteboard))
         #expect(pasteboard.string(forType: .string) == text)

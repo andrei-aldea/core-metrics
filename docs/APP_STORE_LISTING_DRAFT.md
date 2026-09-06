@@ -6,6 +6,8 @@ The accompanying App Store Connect preparation saved the subtitle, Utilities cat
 
 ## English listing copy
 
+Naming follow-up for the next listing review: use Memory and Storage in UI references, with Used (%) for selectable percentage variants. The saved text blocks and metadata below remain unchanged; the screenshot plan uses the updated UI names. No revised listing copy was saved as part of this naming follow-up.
+
 Apple limits the name and subtitle to 30 characters each. Promotional text allows 170 characters, the plain-text description 4,000 characters, and keywords **100 bytes**. The ASCII keyword draft below also meets a 100-character limit. [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [platform version information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information).
 
 | Field | Draft | Length |
@@ -83,7 +85,7 @@ Mac screenshots are required: **1–10** JPEG/JPG/PNG images, with **no alpha ch
 
 | Order | Capture from the final app | What it demonstrates |
 | --- | --- | --- |
-| 1 | Light appearance; menu bar plus open panel with CPU User, Memory Used and SSD Free Space selected; complete footer visible | Current readings and persistent selection; Settings, Copy Readings and Quit |
+| 1 | Light appearance; menu bar plus open panel with CPU User, Memory Used and Storage Free selected; complete footer visible | Current readings and persistent selection; Settings, Copy Readings and Quit |
 | 2 | Settings with full Live Preview, Menu Bar Text and the same three selected stats visible | Customization and adding readings; use a readable native window size |
 | 3 | Settings with Metric Help open, its title, explanations and Done visible | Built-in explanations; capture enough of Settings to show where help lives |
 

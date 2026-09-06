@@ -43,6 +43,22 @@ struct MenuBarLabelLayoutTests {
                 MetricFormatting.compactBytes(.max, style: .memory, locale: locale),
                 MetricFormatting.unavailable,
             ]),
+            (.memoryCompressed, [
+                MetricFormatting.compactBytes(.max, style: .memory, locale: locale),
+                MetricFormatting.unavailable,
+            ]),
+            (.memoryUsedPercentage, [
+                MetricFormatting.percentage(1, locale: locale),
+                MetricFormatting.unavailable,
+            ]),
+            (.storageUsedPercentage, [
+                MetricFormatting.percentage(1, locale: locale),
+                MetricFormatting.unavailable,
+            ]),
+            (.storageTotal, [
+                MetricFormatting.compactBytes(.max, style: .storage, locale: locale),
+                MetricFormatting.unavailable,
+            ]),
         ]
 
         for mode in MenuBarDisplayMode.allCases {

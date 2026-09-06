@@ -99,13 +99,13 @@ final class CoreMetricsUITests: XCTestCase {
         let twoStatWidth = statusItem.frame.width
         XCTAssertGreaterThan(twoStatWidth, 0)
 
-        addStat("SSD Free Space", category: "Storage", in: settingsWindow, app: app)
-        let selectedStorage = settingsWindow.buttons["Remove SSD Free Space"]
+        addStat("Storage Free", category: "Storage", in: settingsWindow, app: app)
+        let selectedStorage = settingsWindow.buttons["Remove Storage Free"]
         XCTAssertTrue(selectedStorage.waitForExistence(timeout: 3))
         reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(statusItem.title.contains("CPU User"))
         XCTAssertTrue(statusItem.title.contains("Memory Used"))
-        XCTAssertTrue(statusItem.title.contains("SSD Free Space"))
+        XCTAssertTrue(statusItem.title.contains("Storage Free"))
         guard hoverStatusItem(statusItem) else { return }
         XCTAssertGreaterThan(
             statusItem.frame.width, twoStatWidth,
@@ -132,7 +132,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(settingsWindow.buttons["Remove Memory Used"].exists)
         reveal(selectedStorage, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(selectedStorage.isHittable)
-        XCTAssertTrue(statusItem.title.contains("SSD Free Space"))
+        XCTAssertTrue(statusItem.title.contains("Storage Free"))
         let settingsScreenshot = XCTAttachment(screenshot: settingsWindow.screenshot())
         settingsScreenshot.name = "Reopened Settings with three selected readings"
         settingsScreenshot.lifetime = .keepAlways
@@ -285,7 +285,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertEqual(app.checkBoxes["menuBarStat.cpuSystem"].label, "CPU System")
         XCTAssertEqual(
             app.checkBoxes["menuBarStat.memoryPercentage"].label,
-            "RAM Used %"
+            "Memory Used (%)"
         )
         if !statusItem.title.contains("CPU User") {
             let hierarchy = XCTAttachment(string: app.debugDescription)
@@ -299,8 +299,8 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(statusItem.title.contains("CPU User"))
         if configuration == "seven-stats" {
             XCTAssertTrue(statusItem.title.contains("Memory Used"))
-            XCTAssertTrue(statusItem.title.contains("RAM Used %"))
-            XCTAssertTrue(statusItem.title.contains("SSD Used %"))
+            XCTAssertTrue(statusItem.title.contains("Memory Used (%)"))
+            XCTAssertTrue(statusItem.title.contains("Storage Used (%)"))
         }
         guard hoverStatusItem(statusItem) else { return }
         let statusScreenshot = XCTAttachment(screenshot: statusItem.screenshot())
@@ -376,7 +376,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(previewSummary.label.contains("CPU User"))
         if configuration == "seven-stats" {
             XCTAssertTrue(previewSummary.label.contains("Memory Used"))
-            XCTAssertTrue(previewSummary.label.contains("SSD Used %"))
+            XCTAssertTrue(previewSummary.label.contains("Storage Used (%)"))
         }
         XCTAssertTrue(settingsWindow.staticTexts["Menu Bar Text"].exists)
         XCTAssertTrue(
@@ -495,8 +495,8 @@ final class CoreMetricsUITests: XCTestCase {
             app.launch()
             let restoredStatusItem = app.statusItems.firstMatch
             XCTAssertTrue(restoredStatusItem.waitForExistence(timeout: 5))
-            XCTAssertTrue(restoredStatusItem.title.contains("RAM Used %"))
-            XCTAssertTrue(restoredStatusItem.title.contains("SSD Used %"))
+            XCTAssertTrue(restoredStatusItem.title.contains("Memory Used (%)"))
+            XCTAssertTrue(restoredStatusItem.title.contains("Storage Used (%)"))
             guard clickStatusItem(restoredStatusItem) else { return }
             XCTAssertTrue(panel.waitForExistence(timeout: 5))
         }

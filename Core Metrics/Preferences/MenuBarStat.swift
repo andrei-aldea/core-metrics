@@ -50,7 +50,7 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         case .memoryUsed:
             String(localized: "Memory Used")
         case .memoryUsedPercentage:
-            String(localized: "RAM Used %")
+            String(localized: "Memory Used (%)")
         case .memoryWired:
             String(localized: "Wired Memory")
         case .memoryCompressed:
@@ -62,13 +62,13 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         case .memoryTotal:
             String(localized: "Physical Memory")
         case .storageUsed:
-            String(localized: "SSD Used Space")
+            String(localized: "Storage Used")
         case .storageUsedPercentage:
-            String(localized: "SSD Used %")
+            String(localized: "Storage Used (%)")
         case .storageFree:
-            String(localized: "SSD Free Space")
+            String(localized: "Storage Free")
         case .storageTotal:
-            String(localized: "SSD Total Space")
+            String(localized: "Storage Total")
         }
     }
 
@@ -84,9 +84,9 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         case .cpuIdle:
             String(localized: "Idle")
         case .memoryUsed:
-            String(localized: "Memory Used")
+            String(localized: "Used")
         case .memoryUsedPercentage:
-            String(localized: "Used %")
+            String(localized: "Used (%)")
         case .memoryWired:
             String(localized: "Wired Memory")
         case .memoryCompressed:
@@ -98,50 +98,26 @@ nonisolated enum MenuBarStat: String, CaseIterable, Codable, Hashable, Identifia
         case .memoryTotal:
             String(localized: "Physical Memory")
         case .storageUsed:
-            String(localized: "Used Space")
+            String(localized: "Used")
         case .storageUsedPercentage:
-            String(localized: "Used %")
+            String(localized: "Used (%)")
         case .storageFree:
-            String(localized: "Free Space")
+            String(localized: "Free")
         case .storageTotal:
-            String(localized: "Total Capacity")
+            String(localized: "Total")
         }
     }
 
-    /// Descriptive text used in the menu-bar status item. The status item is
-    /// deliberately text-only so macOS can't drop part of a composed label.
+    /// Shares the full names used by Settings and copied readings. Percentage
+    /// values already include their unit, so their labels omit the (%) suffix.
     var menuBarName: String {
         switch self {
-        case .cpuUsed:
-            "CPU Used"
-        case .cpuUser:
-            "CPU User"
-        case .cpuSystem:
-            "CPU System"
-        case .cpuIdle:
-            "CPU Idle"
-        case .memoryUsed:
-            "RAM Used"
         case .memoryUsedPercentage:
-            "RAM Usage"
-        case .memoryWired:
-            "RAM Wired"
-        case .memoryCompressed:
-            "RAM Compressed"
-        case .memoryCached:
-            "Cached"
-        case .memorySwap:
-            "Swap"
-        case .memoryTotal:
-            "Physical RAM"
-        case .storageUsed:
-            "SSD Used"
+            Self.memoryUsed.displayName
         case .storageUsedPercentage:
-            "SSD Usage"
-        case .storageFree:
-            "SSD Free"
-        case .storageTotal:
-            "SSD Total"
+            Self.storageUsed.displayName
+        default:
+            displayName
         }
     }
 

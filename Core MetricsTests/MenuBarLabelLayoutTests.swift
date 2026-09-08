@@ -7,27 +7,57 @@ import Testing
 @MainActor
 @Suite("Menu-bar label layout")
 struct MenuBarLabelLayoutTests {
-    @Test("Native label typography saves width without shortening any readings")
-    func nativeLabelsKeepCompleteText() {
+    @Test("Each representation uses one native size with tabular digits and proportional letters",
+          arguments: MenuBarDisplayMode.allCases)
+    func systemTypographyUsesTabularDigits(displayMode: MenuBarDisplayMode) throws {
+        let title = MenuBarLabelLayout(locale: Locale(identifier: "en_US_POSIX")).attributedTitle(
+            stats: [.cpuUser, .memoryUsed], values: ["1%", "8GB"], displayMode: displayMode
+        )
+        let expectedSize = displayMode == .compact ? NSFont.smallSystemFontSize : NSFont.systemFontSize
+        title.enumerateAttribute(.font, in: NSRange(location: 0, length: title.length)) { value, _, _ in
+            #expect((value as? NSFont)?.pointSize == expectedSize)
+        }
+        let valueRange = (title.string as NSString).range(of: "1%")
+        try #require(valueRange.location != NSNotFound)
+        let valueFont = try #require(title.attribute(.font, at: valueRange.location, effectiveRange: nil) as? NSFont)
+        func width(_ text: String) -> CGFloat {
+            (text as NSString).size(withAttributes: [.font: valueFont]).width
+        }
+        #expect(abs(width("1") - width("8")) < 0.01)
+        #expect(width("i") < width("M"))
+    }
+
+    @Test("Native labels preserve complete readings in their selected order")
+    func nativeLabelsKeepCompleteText() throws {
         let stats: [MenuBarStat] = [.cpuUser, .memoryUsed, .storageFree]
         let locale = Locale(identifier: "en_US_POSIX")
         let layout = MenuBarLabelLayout(locale: locale)
         let values = ["100%", "1023.9GB", "999.9GB"]
         for mode in [MenuBarDisplayMode.labelAndValue, .compact] {
             let title = layout.attributedTitle(stats: stats, values: values, displayMode: mode)
-            let plainText = MenuBarLabelFormatting.text(
-                stats: stats, values: values, displayMode: mode, locale: locale
-            )
-            let allMonospacedWidth = (plainText as NSString)
-                .size(withAttributes: [.font: MenuBarLabelLayout.font]).width
-            #expect(title.string == plainText)
-            #expect(title.size().width < allMonospacedWidth)
+            let string = title.string as NSString
+            var readingEnd = 0
+            for (stat, value) in zip(stats, values) {
+                let name = mode == .compact ? stat.shortCode : stat.menuBarName
+                let nameRange = string.range(
+                    of: name,
+                    range: NSRange(location: readingEnd, length: string.length - readingEnd)
+                )
+                try #require(nameRange.location != NSNotFound)
+                let valueStart = NSMaxRange(nameRange)
+                let valueRange = string.range(
+                    of: value,
+                    range: NSRange(location: valueStart, length: string.length - valueStart)
+                )
+                try #require(valueRange.location != NSNotFound)
+                readingEnd = NSMaxRange(valueRange)
+            }
             #expect(title.size().width <= layout.width(stats: stats, displayMode: mode))
         }
     }
 
     @Test("Localized fallback digits fit the fixed status frame", arguments: [
-        "ccp_BD", "my_MM", "mni_Mtei_IN", "ar_SA", "fa_IR", "ro_RO", "en_US_POSIX",
+        "ccp_BD", "my_MM", "mni_Mtei_IN", "ar_SA", "fa_IR", "tr_TR", "fr_FR", "ro_RO", "en_US_POSIX",
     ])
     func localizedValuesFit(identifier: String) {
         let locale = Locale(identifier: identifier)
@@ -71,9 +101,11 @@ struct MenuBarLabelLayoutTests {
                         values: [value],
                         displayMode: mode
                     )
-                    #expect(title.string == MenuBarLabelFormatting.text(
-                        stats: [sample.stat], values: [value], displayMode: mode, locale: locale
-                    ))
+                    #expect(title.string.hasSuffix(value))
+                    if mode != .valueOnly {
+                        let name = mode == .compact ? sample.stat.shortCode : sample.stat.menuBarName
+                        #expect(title.string.hasPrefix(name))
+                    }
                     #expect(title.size().width <= layout.width(stats: [sample.stat], displayMode: mode))
                 }
             }
@@ -81,7 +113,7 @@ struct MenuBarLabelLayoutTests {
     }
 
     @Test("Live values leave following labels and value columns at the same positions", arguments: [
-        "en_US_POSIX", "ro_RO",
+        "en_US_POSIX", "ro_RO", "ar_SA", "fa_IR", "he_IL", "ar_SA@numbers=latn", "tr_TR", "fr_FR",
     ])
     func valueColumnsStayInPlace(identifier: String) throws {
         let locale = Locale(identifier: identifier)
@@ -94,8 +126,18 @@ struct MenuBarLabelLayoutTests {
             ],
             [
                 MetricFormatting.percentage(1, locale: locale),
-                MetricFormatting.compactBytes(1_073_634_443_673, style: .memory, locale: locale),
+                MetricFormatting.compactBytes(UInt64(1023.9 * 1_024 * 1_024), style: .memory, locale: locale),
+                MetricFormatting.compactBytes(999_900_000, style: .storage, locale: locale),
+            ],
+            [
+                MetricFormatting.percentage(0.88, locale: locale),
+                MetricFormatting.compactBytes(UInt64(1023.9 * 1_024 * 1_024 * 1_024), style: .memory, locale: locale),
                 MetricFormatting.compactBytes(999_900_000_000, style: .storage, locale: locale),
+            ],
+            [
+                MetricFormatting.percentage(0.01, locale: locale),
+                MetricFormatting.compactBytes(1_024 * 1_024 * 1_024, style: .memory, locale: locale),
+                MetricFormatting.compactBytes(1_000_000_000, style: .storage, locale: locale),
             ],
             Array(repeating: MetricFormatting.unavailable, count: 3),
         ]
@@ -126,6 +168,99 @@ struct MenuBarLabelLayoutTests {
         }
     }
 
+    @Test("Percent spacing adds two points only when the locale has no gap", arguments: [
+        ("en_US_POSIX", "%", 2.0, false),
+        ("tr_TR", "%", 2.0, true),
+        ("ar_SA", "٪", 2.0, false),
+        ("fa_IR", "٪", 2.0, false),
+        ("he_IL", "%", 2.0, false),
+        ("ar_SA@numbers=latn", "٪", 2.0, false),
+        ("he_IL@numbers=arab", "٪", 2.0, false),
+        ("fr_FR", "%", 0.0, false),
+    ])
+    func percentSpacing(
+        identifier: String,
+        percentSymbol: String,
+        expectedGap: Double,
+        signIsPrefix: Bool
+    ) throws {
+        let locale = Locale(identifier: identifier)
+        let layout = MenuBarLabelLayout(locale: locale)
+        for mode in [MenuBarDisplayMode.valueOnly, .compact] {
+            for fraction in [0.09, 1.0] {
+                let value = MetricFormatting.percentage(fraction, locale: locale)
+                let title = layout.attributedTitle(
+                    stats: [.cpuUser], values: [value], displayMode: mode
+                )
+                let valueRange = (title.string as NSString).range(of: value)
+                try #require(valueRange.location != NSNotFound)
+                let decoratedValue = title.attributedSubstring(from: valueRange)
+                #expect(decoratedValue.string == value)
+                let reference = NSAttributedString(
+                    string: value,
+                    attributes: [.font: NSFont.monospacedDigitSystemFont(
+                        ofSize: mode == .compact ? NSFont.smallSystemFontSize : NSFont.systemFontSize,
+                        weight: .regular
+                    ), .kern: 0]
+                )
+                let string = value as NSString
+                let signRange = string.range(of: percentSymbol)
+                try #require(signRange.location != NSNotFound)
+                let signPosition = try glyphPosition(in: reference, at: signRange.location)
+                let numbers = try value.indices.filter { value[$0].isNumber }.map { index in
+                    let range = NSRange(index..<value.index(after: index), in: value)
+                    return (range: range, x: try glyphPosition(in: reference, at: range.location))
+                }
+                let neighbor = try #require(numbers.min {
+                    abs($0.x - signPosition) < abs($1.x - signPosition)
+                })
+                let digitRange = neighbor.range
+                try #require((signRange.location < digitRange.location) == signIsPrefix)
+                if expectedGap == 0 {
+                    let gapStart = NSMaxRange(digitRange)
+                    let localeGap = string.substring(with: NSRange(
+                        location: gapStart, length: signRange.location - gapStart
+                    ))
+                    #expect(!localeGap.isEmpty)
+                    let gapIsWhitespace = localeGap.allSatisfy(\.isWhitespace)
+                    #expect(gapIsWhitespace)
+                }
+
+                // Compare physical glyph positions, independently of the carrier
+                // used to align the complete value within its reserved column.
+                let decoratedDistance = abs(
+                    try glyphPosition(in: decoratedValue, at: signRange.location)
+                        - glyphPosition(in: decoratedValue, at: digitRange.location)
+                )
+                let referenceDistance = abs(
+                    try glyphPosition(in: reference, at: signRange.location)
+                        - glyphPosition(in: reference, at: digitRange.location)
+                )
+                #expect(abs(decoratedDistance - referenceDistance - CGFloat(expectedGap)) < 0.01)
+                #expect(abs(decoratedValue.size().width - reference.size().width - CGFloat(expectedGap)) < 0.01)
+            }
+        }
+    }
+
+    private func glyphPosition(in title: NSAttributedString, at stringIndex: Int) throws -> CGFloat {
+        let line = CTLineCreateWithAttributedString(title)
+        let runs = try #require(CTLineGetGlyphRuns(line) as? [CTRun])
+        for run in runs {
+            let count = CTRunGetGlyphCount(run)
+            var indices = [CFIndex](repeating: 0, count: count)
+            var positions = [CGPoint](repeating: .zero, count: count)
+            CTRunGetStringIndices(run, CFRange(location: 0, length: 0), &indices)
+            CTRunGetPositions(run, CFRange(location: 0, length: 0), &positions)
+            if let index = indices.firstIndex(of: stringIndex) {
+                return positions[index].x
+            }
+        }
+        Issue.record("The rendered value should contain the requested sign or digit glyph")
+        throw MissingGlyph()
+    }
+
+    private struct MissingGlyph: Error {}
+
     private func columnOffsets(
         in title: NSAttributedString,
         stats: [MenuBarStat],
@@ -138,7 +273,8 @@ struct MenuBarLabelLayoutTests {
         for stat in stats {
             let prefix = MenuBarLabelFormatting.prefix(for: stat, displayMode: displayMode)
             if prefix.isEmpty {
-                offsets.append(CTLineGetOffsetForStringIndex(line, 0, nil))
+                // Value Only has no following label. Its total measured
+                // width verifies the column without imposing a bidi caret.
                 continue
             }
             let range = string.range(

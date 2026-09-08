@@ -31,6 +31,33 @@ nonisolated enum MetricFormatting {
             + compactByteSuffixes[scaled.suffixIndex]
     }
 
+    /// Localized geometric templates for reserving a byte-value column.
+    /// These cover each digit shape and suffix, including templates wider than
+    /// a real scaled value; they do not participate in metric formatting.
+    static func compactByteColumnCandidates(
+        style: MetricByteStyle,
+        locale: Locale
+    ) -> [String] {
+        let repeatedDigitPattern: Int
+        let zeroHeavyValue: Double
+        switch style {
+        case .memory:
+            repeatedDigitPattern = 11_111
+            zeroHeavyValue = 1_000
+        case .storage:
+            repeatedDigitPattern = 1_111
+            zeroHeavyValue = 100
+        }
+
+        let templates: [Double] = (1...9).flatMap { digit -> [Double] in
+            [Double(digit * repeatedDigitPattern) / 10, Double(digit) * zeroHeavyValue]
+        } + [0]
+        let localizedNumbers = templates.map { oneDecimal($0, locale: locale) }
+        return compactByteSuffixes.flatMap { suffix in
+            localizedNumbers.map { $0 + suffix }
+        }
+    }
+
     private static func scaledBytes(
         _ bytes: UInt64,
         style: MetricByteStyle

@@ -54,6 +54,9 @@ struct MenuBarLabelView: View {
                 // Text requires a font in the SwiftUI attribute scope.
                 run.font = Font(font)
             }
+            if let kern = attributes[.kern] as? NSNumber {
+                run.kern = CGFloat(kern.doubleValue)
+            }
             title.append(run)
         }
         return title

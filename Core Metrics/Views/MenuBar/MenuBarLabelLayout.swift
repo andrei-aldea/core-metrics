@@ -1,34 +1,53 @@
 import AppKit
+import CoreText
 import Foundation
 
-/// Reserves a stable status-item width, including locale-specific fallback
-/// glyphs that can be wider than the monospaced font's Latin characters.
+/// Uses native system typography with measured, fixed value columns.
 @MainActor
 struct MenuBarLabelLayout {
     static let labelFont = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-    static let font = NSFont.monospacedSystemFont(
+    private static let compactLabelFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    static let font = NSFont.monospacedDigitSystemFont(
         ofSize: NSFont.systemFontSize,
         weight: .regular
     )
-
-    private static let latinCharacterAdvance = advance(of: "0")
-    private let locale: Locale
-    private let valueCharacterAdvance: CGFloat
+    private static let compactFont = NSFont.monospacedDigitSystemFont(
+        ofSize: NSFont.smallSystemFontSize,
+        weight: .regular
+    )
+    private static let percentGap: CGFloat = 2
+    private let percentSpacing: PercentSpacing?
+    private let standardColumns: ValueColumns
+    private let compactColumns: ValueColumns
 
     init(locale: Locale) {
-        self.locale = locale
-        let samples = (0...9).map { digit in
-            MetricFormatting.percentage(Double(digit) / 10, locale: locale)
-                + MetricFormatting.compactBytes(
-                    UInt64(digit),
-                    style: .memory,
-                    locale: locale
-                )
+        let formatter = NumberFormatter()
+        formatter.locale = locale
+        formatter.numberStyle = .percent
+        let symbol = formatter.percentSymbol ?? "%"
+        let percentages = (0...100).map {
+            MetricFormatting.percentage(Double($0) / 100, locale: locale)
         }
-        let characters = Set(samples.joined())
-        valueCharacterAdvance = characters.reduce(Self.latinCharacterAdvance) {
-            max($0, Self.advance(of: String($1)))
+        let spacing = Self.makePercentSpacing(in: percentages[100], percentSymbol: symbol)
+        percentSpacing = spacing
+        let memory = MetricFormatting.compactByteColumnCandidates(style: .memory, locale: locale)
+        let storage = MetricFormatting.compactByteColumnCandidates(style: .storage, locale: locale)
+        func columns(font: NSFont) -> ValueColumns {
+            func reservedWidth(_ candidates: [String]) -> CGFloat {
+                (candidates + [MetricFormatting.unavailable]).reduce(CGFloat.zero) {
+                    max($0, Self.attributedValue($1, font: font, spacing: spacing).size().width)
+                }
+            }
+            return ValueColumns(
+                percentage: reservedWidth(percentages),
+                memory: reservedWidth(memory),
+                storage: reservedWidth(storage)
+            )
         }
+        // Format candidates once, then measure each native size once. Live
+        // samples and representation changes only select the cached columns.
+        standardColumns = columns(font: Self.font)
+        compactColumns = columns(font: Self.compactFont)
     }
 
     func attributedTitle(
@@ -36,8 +55,9 @@ struct MenuBarLabelLayout {
         values: [String],
         displayMode: MenuBarDisplayMode
     ) -> NSAttributedString {
+        let valueFont = Self.valueFont(for: displayMode)
         guard stats.count == values.count else {
-            return NSAttributedString(string: MetricFormatting.unavailable, attributes: [.font: Self.font])
+            return NSAttributedString(string: MetricFormatting.unavailable, attributes: [.font: valueFont])
         }
 
         let title = NSMutableAttributedString(string: "")
@@ -45,41 +65,163 @@ struct MenuBarLabelLayout {
             if index > 0 {
                 title.append(NSAttributedString(
                     string: MenuBarLabelFormatting.separator(for: displayMode),
-                    attributes: [.font: Self.labelFont]
+                    attributes: [.font: Self.prefixFont(for: displayMode)]
                 ))
             }
             title.append(NSAttributedString(
                 string: MenuBarLabelFormatting.prefix(for: stats[index], displayMode: displayMode),
-                attributes: [.font: Self.labelFont]
+                attributes: [.font: Self.prefixFont(for: displayMode)]
             ))
+            let value = Self.attributedValue(values[index], font: valueFont, spacing: percentSpacing)
+            // The space is an invisible alignment carrier. Its measured
+            // advance plus kerning fills exactly the unused column width,
+            // even when decimal separators, units or fallback digits differ.
+            let spaceWidth = (" " as NSString).size(withAttributes: [.font: valueFont]).width
             title.append(NSAttributedString(
-                string: MenuBarLabelFormatting.paddedValue(
-                    values[index], for: stats[index], displayMode: displayMode, locale: locale
-                ),
-                attributes: [.font: Self.font]
+                string: " ",
+                attributes: [
+                    .font: valueFont,
+                    .kern: max(0, valueColumnWidth(for: stats[index], displayMode: displayMode) - value.size().width)
+                        - spaceWidth,
+                ]
             ))
+            title.append(value)
         }
         return title
     }
 
     func width(stats: [MenuBarStat], displayMode: MenuBarDisplayMode) -> CGFloat {
-        guard !stats.isEmpty else { return ceil(Self.advance(of: MetricFormatting.unavailable)) + 1 }
+        guard !stats.isEmpty else {
+            return ceil(Self.attributedValue(
+                MetricFormatting.unavailable,
+                font: Self.valueFont(for: displayMode),
+                spacing: percentSpacing
+            ).size().width) + 1
+        }
         let prefixWidth = stats.reduce(CGFloat.zero) {
             $0 + (MenuBarLabelFormatting.prefix(for: $1, displayMode: displayMode) as NSString)
-                .size(withAttributes: [.font: Self.labelFont]).width
+                .size(withAttributes: [.font: Self.prefixFont(for: displayMode)]).width
         }
         let separatorWidth = (MenuBarLabelFormatting.separator(for: displayMode) as NSString)
-            .size(withAttributes: [.font: Self.labelFont]).width
-        let valueCharacters = stats.reduce(0) {
-            $0 + MenuBarLabelFormatting.valueColumnWidth(for: $1, displayMode: displayMode, locale: locale)
-        }
+            .size(withAttributes: [.font: Self.prefixFont(for: displayMode)]).width
         return ceil(
             prefixWidth + separatorWidth * CGFloat(stats.count - 1)
-                + valueCharacterAdvance * CGFloat(valueCharacters)
+                + stats.reduce(CGFloat.zero) { $0 + valueColumnWidth(for: $1, displayMode: displayMode) }
         ) + 1
     }
 
-    private static func advance(of text: String) -> CGFloat {
-        (text as NSString).size(withAttributes: [.font: font]).width
+    private struct ValueColumns {
+        let percentage: CGFloat
+        let memory: CGFloat
+        let storage: CGFloat
+    }
+
+    private func valueColumnWidth(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> CGFloat {
+        let columns = displayMode == .compact ? compactColumns : standardColumns
+        return switch stat {
+        case .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
+             .memoryUsedPercentage, .storageUsedPercentage:
+            columns.percentage
+        case .memoryUsed, .memoryWired, .memoryCompressed, .memoryCached, .memorySwap, .memoryTotal:
+            columns.memory
+        case .storageUsed, .storageFree, .storageTotal:
+            columns.storage
+        }
+    }
+
+    private static func prefixFont(for displayMode: MenuBarDisplayMode) -> NSFont {
+        displayMode == .compact ? compactLabelFont : labelFont
+    }
+
+    private static func valueFont(for displayMode: MenuBarDisplayMode) -> NSFont {
+        displayMode == .compact ? compactFont : font
+    }
+
+    private struct PercentSpacing {
+        enum Boundary {
+            case symbol
+            case firstNumber
+            case lastNumber
+        }
+
+        let symbol: String
+        let boundary: Boundary
+    }
+
+    /// Resolve the visual boundary once per locale. Logical suffix position
+    /// alone is insufficient when a percent symbol includes a bidi marker.
+    private static func makePercentSpacing(in value: String, percentSymbol: String) -> PercentSpacing? {
+        let string = value as NSString
+        let symbolRange = string.range(of: percentSymbol)
+        guard symbolRange.location != NSNotFound else { return nil }
+        let sample = NSAttributedString(string: value, attributes: [.font: font, .kern: 0])
+        let line = CTLineCreateWithAttributedString(sample)
+        guard let runs = CTLineGetGlyphRuns(line) as? [CTRun] else { return nil }
+        var glyphs: [(range: NSRange, x: CGFloat)] = []
+        for run in runs {
+            let count = CTRunGetGlyphCount(run)
+            var indices = [CFIndex](repeating: 0, count: count)
+            var positions = [CGPoint](repeating: .zero, count: count)
+            CTRunGetStringIndices(run, CFRange(location: 0, length: 0), &indices)
+            CTRunGetPositions(run, CFRange(location: 0, length: 0), &positions)
+            for index in indices.indices where indices[index] >= 0 && indices[index] < string.length {
+                glyphs.append((
+                    string.rangeOfComposedCharacterSequence(at: indices[index]),
+                    positions[index].x
+                ))
+            }
+        }
+
+        guard let sign = glyphs.first(where: { glyph in
+            let character = string.substring(with: glyph.range)
+            return NSLocationInRange(glyph.range.location, symbolRange)
+                && !character.allSatisfy(\.isWhitespace)
+                && !character.unicodeScalars.allSatisfy { $0.properties.generalCategory == .format }
+        }) else { return nil }
+        let numbers = glyphs.filter { string.substring(with: $0.range).first?.isNumber == true }
+        guard let neighbor = numbers.min(by: { abs($0.x - sign.x) < abs($1.x - sign.x) }) else {
+            return nil
+        }
+
+        let gapStart = min(NSMaxRange(neighbor.range), NSMaxRange(sign.range))
+        let gapEnd = max(neighbor.range.location, sign.range.location)
+        guard gapStart <= gapEnd,
+              !string.substring(with: NSRange(location: gapStart, length: gapEnd - gapStart))
+                .contains(where: \.isWhitespace) else { return nil }
+
+        let boundary: PercentSpacing.Boundary
+        if sign.x < neighbor.x {
+            boundary = .symbol
+        } else if neighbor.range.location == numbers.map(\.range.location).min() {
+            boundary = .firstNumber
+        } else if neighbor.range.location == numbers.map(\.range.location).max() {
+            boundary = .lastNumber
+        } else {
+            return nil
+        }
+        return PercentSpacing(symbol: string.substring(with: sign.range), boundary: boundary)
+    }
+
+    private static func attributedValue(
+        _ value: String,
+        font: NSFont,
+        spacing: PercentSpacing?
+    ) -> NSAttributedString {
+        let text = NSMutableAttributedString(string: value, attributes: [.font: font, .kern: 0])
+        guard let spacing, let sign = value.range(of: spacing.symbol) else { return text }
+        let range: Range<String.Index>
+        switch spacing.boundary {
+        case .symbol:
+            range = sign
+        case .firstNumber:
+            guard let index = value.firstIndex(where: \.isNumber) else { return text }
+            range = index..<value.index(after: index)
+        case .lastNumber:
+            guard let index = value.lastIndex(where: \.isNumber) else { return text }
+            range = index..<value.index(after: index)
+        }
+        // Apply the gap to one visible glyph, never a directional marker.
+        text.addAttribute(.kern, value: percentGap, range: NSRange(range, in: value))
+        return text
     }
 }

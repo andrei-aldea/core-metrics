@@ -673,10 +673,18 @@ final class CoreMetricsUITests: XCTestCase {
         }
         // An automatically hidden menu bar appears at the screen's top edge;
         // hovering its stored status-item center can leave it hidden.
-        center.withOffset(CGVector(dx: 0, dy: screenFrame.minY - point.y)).hover()
-        guard statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) else {
-            XCTFail("The status item should become hittable after revealing the menu bar")
-            return false
+        let edge = center.withOffset(CGVector(dx: 0, dy: screenFrame.minY - point.y))
+        edge.hover()
+        if !statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) {
+            // An auto-hidden bar can remain hidden after the first edge hover.
+            // Make one fresh entry from below the bar, still requiring actual
+            // hittability so an overflowing or obscured item fails explicitly.
+            edge.withOffset(CGVector(dx: 0, dy: NSStatusBar.system.thickness + 1)).hover()
+            edge.hover()
+            guard statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) else {
+                XCTFail("The status item should become hittable after revealing the menu bar")
+                return false
+            }
         }
         statusItem.hover()
         return true

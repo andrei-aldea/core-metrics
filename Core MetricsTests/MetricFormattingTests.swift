@@ -125,35 +125,40 @@ struct MetricFormattingTests {
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser, .memoryUsed],
                 values: ["15%", "12.0GB"],
-                displayMode: .compact
-            ) == "CU    15%  MU   12.0GB"
+                displayMode: .compact,
+                locale: locale
+            ) == "CU  15% MU   12.0GB"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["15%"],
-                displayMode: .labelAndValue
-            ) == "CPU User      15%"
+                displayMode: .labelAndValue,
+                locale: locale
+            ) == "CPU User  15%"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.storageTotal],
                 values: ["1.0TB"],
-                displayMode: .labelAndValue
+                displayMode: .labelAndValue,
+                locale: locale
             ) == "Storage Total    1.0TB"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: ["9%"],
-                displayMode: .valueOnly
-            ) == "      9%"
+                displayMode: .valueOnly,
+                locale: locale
+            ) == "  9%"
         )
         #expect(
             MenuBarLabelFormatting.text(
                 stats: [.cpuUser],
                 values: [],
-                displayMode: .compact
+                displayMode: .compact,
+                locale: locale
             ) == MetricFormatting.unavailable
         )
     }
@@ -171,12 +176,14 @@ struct MetricFormattingTests {
         let text = MenuBarLabelFormatting.text(
             stats: stats,
             values: values,
-            displayMode: displayMode
+            displayMode: displayMode,
+            locale: locale
         )
         #expect(
             text.count == MenuBarLabelFormatting.reservedCharacterCount(
                 stats: stats,
-                displayMode: displayMode
+                displayMode: displayMode,
+                locale: locale
             )
         )
     }
@@ -195,44 +202,68 @@ struct MetricFormattingTests {
         let shorterValues = MenuBarLabelFormatting.text(
             stats: stats,
             values: ["9%", "1%", "2.1GB", "1.0GB", "8.0GB", "9%", "9.0GB"],
-            displayMode: .compact
+            displayMode: .compact,
+            locale: locale
         )
         let longerValues = MenuBarLabelFormatting.text(
             stats: stats,
             values: ["100%", "100%", "1023.9GB", "999.9GB", "999.9GB", "100%", "999.9TB"],
-            displayMode: .compact
+            displayMode: .compact,
+            locale: locale
         )
 
         #expect(longerValues.contains("1023.9GB"))
-        #expect(shorterValues.count == 83)
+        #expect(shorterValues.count == 71)
         #expect(
             MenuBarLabelFormatting.reservedCharacterCount(
                 stats: stats,
-                displayMode: .compact
+                displayMode: .compact,
+                locale: locale
             ) == shorterValues.count
         )
         #expect(shorterValues.count == longerValues.count)
     }
 
-    @Test("Compact percentage slots preserve maximum values in every available locale")
-    func compactPercentagesFitAvailableLocales() {
+    @Test("Percentage columns preserve zero through 100 in every available locale and display mode")
+    func percentagesFitAvailableLocales() throws {
         let percentageStats: [MenuBarStat] = [
             .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
             .memoryUsedPercentage, .storageUsedPercentage,
         ]
 
         for identifier in Locale.availableIdentifiers {
-            let value = MetricFormatting.percentage(1, locale: Locale(identifier: identifier))
-            #expect(value.count <= 6, "Localized 100% must fit: \(identifier)")
+            let locale = Locale(identifier: identifier)
+            let values = (0...100).map {
+                MetricFormatting.percentage(Double($0) / 100, locale: locale)
+            }
+            let longestValue = try #require(values.max { $0.count < $1.count })
 
-            for stat in percentageStats {
-                let text = MenuBarLabelFormatting.text(
-                    stats: [stat],
-                    values: [value],
-                    displayMode: .compact
+            for mode in MenuBarDisplayMode.allCases {
+                let capacity = MenuBarLabelFormatting.valueColumnWidth(
+                    for: .cpuUser,
+                    displayMode: mode,
+                    locale: locale
                 )
-                #expect(text.hasSuffix(value), "Preserve the full localized value: \(identifier)")
-                #expect(text.count == stat.shortCode.count + 1 + 6)
+                #expect(capacity >= 4)
+                #expect(
+                    values.allSatisfy { $0.count <= capacity },
+                    "Every formatted percentage must fit in \(identifier), \(mode)"
+                )
+
+                for stat in percentageStats {
+                    let text = MenuBarLabelFormatting.text(
+                        stats: [stat],
+                        values: [longestValue],
+                        displayMode: mode,
+                        locale: locale
+                    )
+                    #expect(text.hasSuffix(longestValue), "Preserve the full value in \(identifier)")
+                    #expect(
+                        text.count == MenuBarLabelFormatting.reservedCharacterCount(
+                            stats: [stat], displayMode: mode, locale: locale
+                        )
+                    )
+                }
             }
         }
     }

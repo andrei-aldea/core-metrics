@@ -1,5 +1,8 @@
+import AppKit
 import SwiftUI
 
+/// The full, scrollable Settings preview. Native status geometry is owned by
+/// StatusItemController rather than inferred from a SwiftUI label's frame.
 struct MenuBarLabelView: View {
     @Environment(\.locale) private var locale
     @Environment(MetricsStore.self) private var metricsStore
@@ -7,80 +10,52 @@ struct MenuBarLabelView: View {
     @State private var layout = MenuBarLabelLayout(locale: .current)
 
     var body: some View {
-        let stats = preferencesStore.enabledStats
-        let values = stats.map(value(for:))
-        let statusText = MenuBarLabelFormatting.text(
-            stats: stats,
-            values: values,
+        let configuration = MenuBarConfiguration(
+            enabledStats: preferencesStore.enabledStats,
             displayMode: preferencesStore.displayMode
         )
-        let reservedWidth = layout.width(
-            stats: stats,
-            displayMode: preferencesStore.displayMode
+        let presentation = StatusItemPresentation(
+            configuration: configuration,
+            cpuUsage: metricsStore.cpuUsage,
+            memoryUsage: metricsStore.memoryUsage,
+            storageUsage: metricsStore.storageUsage,
+            locale: locale
         )
-        let spokenSummary = accessibilitySummary(stats: stats, values: values)
 
-        Text(attributedStatusText(statusText))
+        Text(previewTitle(layout.attributedTitle(
+            stats: configuration.enabledStats,
+            values: presentation.values,
+            displayMode: configuration.displayMode
+        )))
             .lineLimit(1)
-            .frame(width: reservedWidth, alignment: .leading)
-            .help(spokenSummary)
+            .frame(
+                width: layout.width(
+                    stats: configuration.enabledStats,
+                    displayMode: configuration.displayMode
+                ),
+                alignment: .leading
+            )
+            .help(presentation.accessibilitySummary)
             .accessibilityElement(children: .ignore)
-            // The native status-item host does not expose a separate AX value.
-            .accessibilityLabel("Core Metrics, \(spokenSummary)")
+            .accessibilityLabel(presentation.accessibilityLabel)
             .onChange(of: locale, initial: true) { _, locale in
                 layout = MenuBarLabelLayout(locale: locale)
             }
-            .task {
-                metricsStore.start()
+    }
+
+    private func previewTitle(_ nativeTitle: NSAttributedString) -> AttributedString {
+        var title = AttributedString()
+        nativeTitle.enumerateAttributes(
+            in: NSRange(location: 0, length: nativeTitle.length)
+        ) { attributes, range, _ in
+            var run = AttributedString(nativeTitle.attributedSubstring(from: range).string)
+            if let font = attributes[.font] as? NSFont {
+                // NSAttributedString's default bridge keeps AppKit metadata;
+                // Text requires a font in the SwiftUI attribute scope.
+                run.font = Font(font)
             }
-    }
-
-    private func attributedStatusText(_ text: String) -> AttributedString {
-        var content = AttributedString(text)
-        content.font = Font(MenuBarLabelLayout.font)
-        return content
-    }
-
-    private func value(for stat: MenuBarStat) -> String {
-        switch stat.metric {
-        case .cpu:
-            MenuValueFormatting.value(
-                for: stat,
-                cpuUsage: metricsStore.cpuUsage,
-                memoryUsage: nil,
-                storageUsage: nil,
-                locale: locale
-            )
-        case .memory:
-            MenuValueFormatting.value(
-                for: stat,
-                cpuUsage: nil,
-                memoryUsage: metricsStore.memoryUsage,
-                storageUsage: nil,
-                locale: locale
-            )
-        case .storage:
-            MenuValueFormatting.value(
-                for: stat,
-                cpuUsage: nil,
-                memoryUsage: nil,
-                storageUsage: metricsStore.storageUsage,
-                locale: locale
-            )
+            title.append(run)
         }
-    }
-
-    private func accessibilitySummary(
-        stats: [MenuBarStat],
-        values: [String]
-    ) -> String {
-        zip(stats, values)
-            .map { stat, value in
-                let accessibleValue = value == MetricFormatting.unavailable
-                    ? String(localized: "Unavailable")
-                    : value
-                return "\(stat.displayName), \(accessibleValue)"
-            }
-            .joined(separator: ", ")
+        return title
     }
 }

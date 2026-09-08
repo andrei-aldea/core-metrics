@@ -1,19 +1,15 @@
 import AppKit
 import SwiftUI
 
-extension FocusedValues {
-    @Entry var dismissMenuBarPanel: DismissAction?
-}
-
-/// Route the app-wide shortcut through the active panel's native dismissal.
+/// Route Settings through the owned native panel's dismissal action.
 struct SettingsCommands: Commands {
-    @FocusedValue(\.dismissMenuBarPanel) private var dismissMenuBarPanel
+    let dismissPanel: @MainActor () -> Void
     @Environment(\.openSettings) private var openSettings
 
     var body: some Commands {
         CommandGroup(replacing: .appSettings) {
             Button("Settings…") {
-                dismissMenuBarPanel?()
+                dismissPanel()
                 NSApplication.shared.activate()
                 openSettings()
             }

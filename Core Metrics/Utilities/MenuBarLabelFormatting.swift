@@ -1,3 +1,5 @@
+import Foundation
+
 /// Builds the complete text for the native status title and Settings preview.
 /// Formatting stays independent of the system-owned presentation.
 nonisolated enum MenuBarLabelFormatting {
@@ -5,14 +7,17 @@ nonisolated enum MenuBarLabelFormatting {
     /// (`1023.9GB`) while keeping every live slot stable.
     static let valueColumnWidth = 8
 
-    /// Compact percentages need at most six characters, including localized
-    /// spacing and direction marks. Byte values retain their wider column.
-    static func valueColumnWidth(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> Int {
-        guard displayMode == .compact else { return valueColumnWidth }
+    /// A percentage column reserves its locale's complete 100% representation,
+    /// including spacing and direction marks, independently of the live value.
+    static func valueColumnWidth(
+        for stat: MenuBarStat,
+        displayMode: MenuBarDisplayMode,
+        locale: Locale = .current
+    ) -> Int {
         switch stat {
         case .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
              .memoryUsedPercentage, .storageUsedPercentage:
-            return 6
+            return max(4, MetricFormatting.percentage(1, locale: locale).count)
         default:
             return valueColumnWidth
         }
@@ -21,66 +26,65 @@ nonisolated enum MenuBarLabelFormatting {
     static func text(
         stats: [MenuBarStat],
         values: [String],
-        displayMode: MenuBarDisplayMode
+        displayMode: MenuBarDisplayMode,
+        locale: Locale = .current
     ) -> String {
         guard stats.count == values.count else {
             return MetricFormatting.unavailable
         }
 
         return stats.indices.map { index in
-            slot(
-                stat: stats[index],
-                value: values[index],
-                displayMode: displayMode
+            prefix(for: stats[index], displayMode: displayMode) + paddedValue(
+                values[index],
+                for: stats[index],
+                displayMode: displayMode,
+                locale: locale
             )
         }
-        .joined(separator: "  ")
+        .joined(separator: separator(for: displayMode))
     }
 
-    /// Returns the exact number of monospaced characters reserved by the
-    /// selected slots. This is independent of live values, so the status item
-    /// can hold a fixed point width until the configuration changes.
+    /// Returns the exact character count of the padded plain-text form.
+    /// The attributed layout measures labels and value columns separately.
     static func reservedCharacterCount(
         stats: [MenuBarStat],
-        displayMode: MenuBarDisplayMode
+        displayMode: MenuBarDisplayMode,
+        locale: Locale = .current
     ) -> Int {
         guard !stats.isEmpty else {
             return MetricFormatting.unavailable.count
         }
 
         let slotCharacters = stats.reduce(into: 0) { count, stat in
-            let valueWidth = valueColumnWidth(for: stat, displayMode: displayMode)
-            let slotWidth = switch displayMode {
-            case .labelAndValue:
-                stat.menuBarName.count + 1 + valueWidth
-            case .valueOnly:
-                valueWidth
-            case .compact:
-                stat.shortCode.count + 1 + valueWidth
-            }
-            count += slotWidth
+            let valueWidth = valueColumnWidth(for: stat, displayMode: displayMode, locale: locale)
+            count += prefix(for: stat, displayMode: displayMode).count + valueWidth
         }
-        let separatorCharacters = (stats.count - 1) * 2
+        let separatorCharacters = (stats.count - 1) * separator(for: displayMode).count
         return slotCharacters + separatorCharacters
     }
 
-    private static func slot(
-        stat: MenuBarStat,
-        value: String,
-        displayMode: MenuBarDisplayMode
-    ) -> String {
-        let reservedValue = String(
-            repeating: " ",
-            count: max(valueColumnWidth(for: stat, displayMode: displayMode) - value.count, 0)
-        ) + value
-
-        return switch displayMode {
-        case .labelAndValue:
-            "\(stat.menuBarName) \(reservedValue)"
-        case .valueOnly:
-            reservedValue
-        case .compact:
-            "\(stat.shortCode) \(reservedValue)"
+    static func prefix(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> String {
+        switch displayMode {
+        case .labelAndValue: "\(stat.menuBarName) "
+        case .valueOnly: ""
+        case .compact: "\(stat.shortCode) "
         }
+    }
+
+    static func paddedValue(
+        _ value: String,
+        for stat: MenuBarStat,
+        displayMode: MenuBarDisplayMode,
+        locale: Locale = .current
+    ) -> String {
+        let columnWidth = valueColumnWidth(for: stat, displayMode: displayMode, locale: locale)
+        return String(
+            repeating: " ",
+            count: max(columnWidth - value.count, 0)
+        ) + value
+    }
+
+    static func separator(for displayMode: MenuBarDisplayMode) -> String {
+        displayMode == .compact ? " " : "  "
     }
 }

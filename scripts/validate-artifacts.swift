@@ -153,6 +153,7 @@ func verifyReleaseIsolation(_ bundle: URL) throws {
     }
     let markers = [
         "CORE_METRICS_UI_", "UITestLaunchConfiguration", "UITestLaunchAtLoginService",
+        "UITestAlternatingCPUProvider",
     ].map { Data($0.utf8) }
     for case let file as URL in files {
         try require(!["app", "appex", "xctest", "framework"].contains(file.pathExtension), "Release contains an unexpected nested bundle.")

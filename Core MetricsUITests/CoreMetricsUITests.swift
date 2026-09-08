@@ -18,6 +18,117 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testStatusItemPositionRemainsStableAcrossLiveCPUValues() throws {
+        terminateExistingApplicationInstances()
+
+        let app = XCUIApplication()
+        app.launchEnvironment = [
+            "CORE_METRICS_UI_TESTING": "1",
+            "CORE_METRICS_UI_APPEARANCE": "light",
+            "CORE_METRICS_UI_ALTERNATING_CPU": "1",
+        ]
+        // Argument-domain overrides affect this process only, keeping the
+        // expected spoken percentages independent of the desktop's locale.
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US_POSIX"]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        guard statusItem.waitForExistence(timeout: 5) else {
+            XCTFail("The status item should exist before measuring live-value movement")
+            return
+        }
+        guard hoverStatusItem(statusItem) else { return }
+
+        var referenceFrame: CGRect?
+        var observations: [String] = []
+        defer {
+            let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
+            attachment.name = "Deterministic CPU status-item frames"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+
+        // The isolated launch keeps CPU User in Value Only throughout. Wait
+        // for each actual publication rather than sleeping or measuring the
+        // formatter's reservation, which the native host can ignore.
+        for (index, percentage) in [9, 100, 9, 100, 9, 100].enumerated() {
+            let title = "Core Metrics, CPU User, \(percentage)%"
+            guard let frame = try waitForStatusFrame(statusItem, title: title) else {
+                return
+            }
+            observations.append("Sample \(index + 1), \(percentage)%: \(NSStringFromRect(frame))")
+            guard frame.width > 0, frame.height > 0,
+                  frame.origin.x.isFinite, frame.origin.y.isFinite,
+                  frame.width.isFinite, frame.height.isFinite else {
+                XCTFail("The measured status item must have a finite, nonempty screen frame")
+                return
+            }
+
+            if let referenceFrame {
+                XCTAssertEqual(
+                    frame.width, referenceFrame.width, accuracy: 0.01,
+                    "CPU User changing to \(percentage)% must not resize the status item"
+                )
+                XCTAssertEqual(
+                    frame.origin.x, referenceFrame.origin.x, accuracy: 0.01,
+                    "CPU User changing to \(percentage)% must not move the status item horizontally"
+                )
+                XCTAssertEqual(
+                    frame.origin.y, referenceFrame.origin.y, accuracy: 0.01,
+                    "CPU User changing to \(percentage)% must not move the status item vertically"
+                )
+            } else {
+                referenceFrame = frame
+            }
+        }
+
+        guard clickStatusItem(statusItem) else { return }
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        XCTAssertTrue(
+            panel.waitForExistence(timeout: 5),
+            "The stable status item must remain clickable after repeated live updates"
+        )
+        XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.cpuUser"]))
+        XCTAssertEqual(
+            app.checkBoxes.allElementsBoundByIndex.filter { isSelected($0) }.count, 1,
+            "The fixture must leave the single-stat configuration unchanged"
+        )
+        app.buttons["menuBar.settings"].typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(panel.waitForNonExistence(timeout: 3))
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+    }
+
+    @MainActor
+    func testReopeningRunningApplicationOpensSettings() async throws {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = ["CORE_METRICS_UI_TESTING": "1"]
+        app.launch()
+        defer { app.terminate() }
+
+        let running = try XCTUnwrap(
+            NSRunningApplication.runningApplications(withBundleIdentifier: "org.example.CoreMetrics").first
+        )
+        let url = try XCTUnwrap(running.bundleURL)
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertFalse(settingsWindow.exists)
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+
+        // Use the same public launch request as opening an installed app. A
+        // terminate/relaunch would not exercise the delegate's reopen event.
+        let reopened = try await NSWorkspace.shared.openApplication(
+            at: url,
+            configuration: NSWorkspace.OpenConfiguration()
+        )
+        XCTAssertEqual(reopened.processIdentifier, running.processIdentifier)
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        XCTAssertTrue(settingsWindow.radioButtons["Compact"].isHittable)
+    }
+
+    @MainActor
     func testSettingsKeyboardShortcutOpensWindowAndDismissesPanel() {
         terminateExistingApplicationInstances()
 
@@ -344,7 +455,7 @@ final class CoreMetricsUITests: XCTestCase {
         XCTAssertTrue(panel.exists)
         XCTAssertEqual(settingsButton.frame.midY, copyButton.frame.midY, accuracy: 1)
         XCTAssertEqual(copyButton.frame.midY, quitButton.frame.midY, accuracy: 1)
-        let panelWindow = app.dialogs.containing(.button, identifier: "menuBar.copyCurrentReadings").firstMatch
+        let panelWindow = app.popovers.containing(.button, identifier: "menuBar.copyCurrentReadings").firstMatch
         if panelWindow.exists {
             let actionsScreenshot = XCTAttachment(screenshot: panelWindow.screenshot())
             actionsScreenshot.name = "Panel actions - \(appearance)"
@@ -404,7 +515,9 @@ final class CoreMetricsUITests: XCTestCase {
         let alternateMode = originalMode == "Compact" ? "Label and Value" : "Compact"
         reveal(app.radioButtons[alternateMode], in: settingsWindow.scrollViews.firstMatch)
         app.radioButtons[alternateMode].click()
-        guard hoverStatusItem(statusItem) else { return }
+        // Read the allocation without moving the pointer to it. Seven full
+        // labels can exceed the physical menu-bar area; Settings must still
+        // let the person restore Compact and regain a usable status item.
         let expandedWidth = statusItem.frame.width
         XCTAssertGreaterThan(
             expandedWidth, originalWidth,
@@ -500,6 +613,30 @@ final class CoreMetricsUITests: XCTestCase {
             guard clickStatusItem(restoredStatusItem) else { return }
             XCTAssertTrue(panel.waitForExistence(timeout: 5))
         }
+    }
+
+    @MainActor
+    private func waitForStatusFrame(_ statusItem: XCUIElement, title: String) throws -> CGRect? {
+        let deadline = Date.now.addingTimeInterval(8)
+        while deadline.timeIntervalSinceNow > 0 {
+            guard statusItem.wait(
+                for: \.title,
+                toEqual: title,
+                timeout: max(0, deadline.timeIntervalSinceNow)
+            ) else {
+                break
+            }
+
+            // One snapshot pairs the live value with its screen frame. If a
+            // sample changed after the wait, observe the requested state on
+            // the next cycle instead of comparing mismatched attributes.
+            let snapshot = try statusItem.snapshot()
+            if snapshot.title == title {
+                return snapshot.frame
+            }
+        }
+        XCTFail("The deterministic CPU fixture did not publish \(title)")
+        return nil
     }
 
     @MainActor

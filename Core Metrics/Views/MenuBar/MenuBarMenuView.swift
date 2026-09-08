@@ -1,13 +1,12 @@
 import SwiftUI
 
-/// A persistent, system-presented menu-bar panel. Window style is intentional:
-/// unlike a pull-down menu, the panel remains open while several stats are
-/// selected and macOS still owns the surrounding Liquid Glass material.
+/// Persistent selection content hosted in the native status popover.
 struct MenuBarMenuView: View {
+    let dismissPanel: @MainActor () -> Void
+    let openSettings: OpenSettingsAction
     var writeToClipboard: @MainActor (String) -> Bool = { CurrentReadingsPasteboard.write($0, to: .general) }
 
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,11 +25,9 @@ struct MenuBarMenuView: View {
             Divider()
 
             HStack(alignment: .firstTextBaseline, spacing: 12) {
-                SettingsLink {
-                    Text("Settings…")
-                }
-                .buttonStyle(ActivatingSettingsLinkStyle(dismissPanel: dismiss))
-                .accessibilityIdentifier("menuBar.settings")
+                Button("Settings…", action: showSettings)
+                    .buttonStyle(.bordered)
+                    .accessibilityIdentifier("menuBar.settings")
 
                 CopyCurrentReadingsButton(writeToClipboard: writeToClipboard)
 
@@ -43,7 +40,6 @@ struct MenuBarMenuView: View {
         }
         .frame(width: panelWidth)
         .frame(minHeight: 540, idealHeight: 580)
-        .focusedSceneValue(\.dismissMenuBarPanel, dismiss)
     }
 
     private var panelWidth: Double {
@@ -52,5 +48,11 @@ struct MenuBarMenuView: View {
 
     private func quit() {
         NSApplication.shared.terminate(nil)
+    }
+
+    private func showSettings() {
+        dismissPanel()
+        NSApplication.shared.activate()
+        openSettings()
     }
 }

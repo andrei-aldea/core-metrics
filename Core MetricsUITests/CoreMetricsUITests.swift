@@ -18,6 +18,70 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testOutsideClicksDismissPanelAndAllowReopening() {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = ["CORE_METRICS_UI_TESTING": "1"]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        XCTAssertTrue(panel.waitForExistence(timeout: 5))
+
+        // A real click in another process must dismiss the expanded interface,
+        // including when that application was already active before opening it.
+        let finderIcon = XCUIApplication(bundleIdentifier: "com.apple.dock")
+            .descendants(matching: .any).matching(identifier: "Finder").firstMatch
+        guard finderIcon.waitForExistence(timeout: 5) else {
+            XCTFail("The Finder Dock item should be available for an outside click")
+            return
+        }
+        finderIcon.hover()
+        XCTAssertTrue(finderIcon.wait(for: \.isHittable, toEqual: true, timeout: 3))
+        finderIcon.click()
+        guard panel.waitForNonExistence(timeout: 3) else {
+            XCTFail("Clicking outside in another application should dismiss the panel")
+            return
+        }
+
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+        app.buttons["menuBar.settings"].click()
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        guard verifyPanelDismissedForSettings(panel) else { return }
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+
+        // Settings belongs to the same process. A title-bar click must pass
+        // through while dismissing the panel, without changing a preference.
+        let outside = settingsWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0))
+            .withOffset(CGVector(dx: 0, dy: 12))
+        let popover = app.popovers.containing(.button, identifier: "menuBar.settings").firstMatch
+        guard popover.exists, !popover.frame.contains(outside.screenPoint) else {
+            XCTFail("The Settings title-bar click must be outside the shown popover")
+            return
+        }
+        outside.click()
+        XCTAssertTrue(panel.waitForNonExistence(timeout: 3))
+        XCTAssertTrue(settingsWindow.isHittable)
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(panel.waitForExistence(timeout: 3))
+
+        let toggle = app.checkBoxes["menuBarStat.cpuTotal"]
+        toggle.click()
+        XCTAssertTrue(isSelected(toggle))
+        XCTAssertTrue(panel.exists, "Clicks within the selection panel must leave it open")
+        app.buttons["menuBar.settings"].typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(panel.waitForNonExistence(timeout: 3))
+    }
+
+    @MainActor
     func testStatusItemPositionRemainsStableAcrossLiveCPUValues() throws {
         terminateExistingApplicationInstances()
 

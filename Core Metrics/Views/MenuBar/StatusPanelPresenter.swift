@@ -45,9 +45,14 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
             return
         }
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
-        if !popover.isShown {
+        guard popover.isShown else {
             onClose()
+            return
         }
+        // The status item can open while this agent is inactive. Give the
+        // transient popover native focus so an outside click can dismiss it.
+        NSApplication.shared.activate()
+        popover.contentViewController?.view.window?.makeKey()
     }
 
     func close() {

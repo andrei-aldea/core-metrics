@@ -4,7 +4,7 @@ These rules apply repository-wide. This is the canonical instruction file; no ne
 
 ## Product and platform
 
-Core Metrics is a small native macOS menu-bar utility for aggregate CPU, memory, and startup-volume storage. Its `MenuBarExtra` window is a persistent selection panel; live values appear in the status label and Settings preview. It retains no metric history.
+Core Metrics is a small native macOS menu-bar utility for aggregate CPU, memory, and startup-volume storage. An owned `NSStatusItem` displays native text with a fixed allocation for each configuration. Its `NSPopover` contains a selection panel that stays open while choices change; live values also appear in Settings preview. It retains no metric history.
 
 - macOS 27.0 minimum, Xcode 27/macOS 27 SDK; verified locally with Xcode 27.0 beta 6 (`27A5252f`), Swift 6.4 compiler.
 - Swift 6 language mode, complete strict concurrency, MainActor app default isolation, approachable concurrency enabled.
@@ -16,18 +16,18 @@ Do not expand into an optimizer or Activity Monitor replacement. Fan control, SM
 
 ## Architecture and ownership
 
-- `Core Metrics/Core_MetricsApp.swift`: scene composition and state ownership.
-- `Core Metrics/Application`: main-actor observable sampling state, task ownership and cancellation.
+- `Core Metrics/Core_MetricsApp.swift`: AppKit entry point and application-delegate lifetime.
+- `Core Metrics/Application`: app-lifetime stores, sampling and cancellation, native status-item ownership and observation.
 - `Core Metrics/Metrics`: thin injectable providers, raw counters and pure calculators. Keep Mach and volume code here.
 - `Core Metrics/Models`: immutable Sendable metric snapshots.
 - `Core Metrics/Preferences`: validated configuration, compatibility decoding, app-only UserDefaults persistence.
 - `Core Metrics/Utilities`: centralized locale-aware metric and status-text formatting.
-- `Core Metrics/Views`: native status label and locale-aware layout, persistent selection panel, and Settings.
+- `Core Metrics/Views`: shared status presentation and locale-aware layout, hosted selection panel, native popover presenter, Settings preview and Settings scene.
 - `Core MetricsTests`: Swift Testing fixtures; `Core MetricsUITests`: XCTest desktop flows.
 
 Keep acquisition off the main actor, UI state on the main actor, and pure calculations nonisolated and testable. Prefer structured child tasks and explicit ownership; cancel owned work and reject obsolete results after stop/restart. Never add broad `@unchecked Sendable`, unsafe isolation, blocking waits, or warning suppression to evade diagnostics. Preserve weak task captures so sampling cannot retain its store indefinitely.
 
-Use native scene navigation and SettingsLink. No coordinator or dependency container is needed for these surfaces. Preserve provider injection and migration schemas. Failures clear stale metric values and retry; a failed swap read must not discard valid physical-memory values. Log only category/state transitions, never raw samples, paths, machine identity or user information.
+Keep status geometry in `StatusItemController`: readings update `NSStatusBarButton.attributedTitle`, while only selection, mode or locale changes recompute the positive `NSStatusItem.length`. Label prefixes and static separators use the normal system font; padded live values use the monospaced system font at the same system size (13 points on the reviewed runtime). Measure static runs in their actual font and reserve conservative locale-aware value columns. Share the native attributed title with Settings preview through explicit SwiftUI font conversion. Percentage columns reserve `max(4, formatted100.count)` for the locale in every mode; byte columns reserve eight characters. Compact separates slots with one space, other modes with two. Keep formatting and point-width calculation aligned. Retain the status item strongly and cancel owned observations at shutdown. Use macOS 27's public expanded-interface delegate with the owned popover and `NSHostingSceneRepresentation` for native Settings. Use SettingsLink in SwiftUI scene contexts; the AppKit-hosted panel uses a native Button with an injected `OpenSettingsAction` obtained from the represented scene. Do not copy an entire scene environment into the detached hosting controller. Dismiss the panel before activating Settings. Preserve the public reopen handler: opening an already-running app in Finder opens native Settings so a hidden long status item does not prevent configuration recovery. Do not add private selectors, view introspection or a general-purpose dependency container. Preserve provider injection and migration schemas. Failures clear stale metric values and retry; a failed swap read must not discard valid physical-memory values. Log only category/state transitions, never raw samples, paths, machine identity or user information.
 
 ## API, privacy, signing, and repository hygiene
 
@@ -64,7 +64,7 @@ git diff --check
 
 Dependency resolution currently finds no packages. UI tests require a signed local app, interactive desktop, and automation permissions. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for isolated build directories, diagnostics and troubleshooting. Treat warnings, concurrency diagnostics, sandbox errors, and privacy-manifest diagnostics as defects; report toolchain limitations accurately instead of suppressing them.
 
-For UI work, run from Xcode, locate the status item, open its panel and Settings, change preferences and confirm immediate label updates. Inspect light/dark appearance, focus, spoken labels, large text, width stability, clipping and accessibility display options. A successful build or preview alone is insufficient. Add meaningful regression tests for correctness changes; do not add tests that merely restate trivial implementation.
+For UI work, run from Xcode, locate the status item, open its panel and Settings, change preferences and confirm immediate label updates. Measure actual status-item width and screen position across changing readings with a fixed configuration; separately verify expected resizing after selection/mode/locale changes. Inspect one/three/seven selections, saved-selection startup, already-running app reopen recovery to Settings (covered by the public NSWorkspace/PID-preservation UI fixture), panel dismissal and reopening, light/dark appearance, focus, spoken labels, large text, clipping and accessibility display options. Fixed allocation does not guarantee available menu-bar space, and `NSStatusItem.isVisible` remains true when space temporarily hides the item. A successful build or preview alone is insufficient. Add meaningful regression tests for correctness changes; do not add tests that merely restate trivial implementation.
 
 ## Environment cleanup and completion
 

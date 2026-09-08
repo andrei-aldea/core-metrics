@@ -648,11 +648,37 @@ final class CoreMetricsUITests: XCTestCase {
 
     @MainActor
     private func hoverStatusItem(_ statusItem: XCUIElement) -> Bool {
-        statusItem.hover()
+        let center = statusItem.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let point = center.screenPoint
+        let screens = NSScreen.screens
+        guard point.x.isFinite, point.y.isFinite,
+              let zeroScreen = screens.first else {
+            XCTFail("The status item should have a finite position on an attached screen")
+            return false
+        }
+        // AppKit screen coordinates start at the bottom of the zero screen;
+        // XCTest coordinates start at its top. Find this item's actual screen
+        // so the reveal gesture also works with more than one display.
+        let screenFrames = screens.map { screen in
+            CGRect(
+                x: screen.frame.minX,
+                y: zeroScreen.frame.maxY - screen.frame.maxY,
+                width: screen.frame.width,
+                height: screen.frame.height
+            )
+        }
+        guard let screenFrame = screenFrames.first(where: { $0.contains(point) }) else {
+            XCTFail("The status item should be within an attached screen")
+            return false
+        }
+        // An automatically hidden menu bar appears at the screen's top edge;
+        // hovering its stored status-item center can leave it hidden.
+        center.withOffset(CGVector(dx: 0, dy: screenFrame.minY - point.y)).hover()
         guard statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) else {
             XCTFail("The status item should become hittable after revealing the menu bar")
             return false
         }
+        statusItem.hover()
         return true
     }
 

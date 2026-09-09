@@ -18,6 +18,55 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testStatusItemClickTogglesPanel() {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = ["CORE_METRICS_UI_TESTING": "1"]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        app.buttons["menuBar.settings"].click()
+        let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
+        settingsWindow.radioButtons["Label and Value"].click()
+        settingsWindow.typeKey("w", modifierFlags: .command)
+        XCTAssertTrue(settingsWindow.waitForNonExistence(timeout: 3))
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        XCTAssertTrue(app.wait(for: .runningBackground, timeout: 5))
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        for cycle in 0..<3 {
+            guard clickStatusItem(statusItem) else { return }
+            guard panel.waitForExistence(timeout: 3) else {
+                XCTFail("Clicking the status readings should open the panel on cycle \(cycle + 1)")
+                return
+            }
+            if cycle == 1 {
+                for identifier in ["cpuTotal", "cpuIdle", "memoryPercentage", "cpuUser"] {
+                    app.checkBoxes["menuBarStat.\(identifier)"].click()
+                }
+                XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.cpuTotal"]))
+                XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.cpuIdle"]))
+                XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.memoryPercentage"]))
+                XCTAssertFalse(isSelected(app.checkBoxes["menuBarStat.cpuUser"]))
+                XCTAssertTrue(panel.exists, "Changing a metric should keep the panel open")
+            }
+            guard statusItem.wait(for: \.isHittable, toEqual: true, timeout: 3) else {
+                XCTFail("The open panel should leave its status readings clickable")
+                return
+            }
+            statusItem.click()
+            guard panel.waitForNonExistence(timeout: 3) else {
+                XCTFail("Clicking the status readings again should close the panel on cycle \(cycle + 1)")
+                return
+            }
+            XCTAssertFalse(settingsWindow.exists, "Toggling the panel should not open Settings")
+        }
+    }
+
+    @MainActor
     func testOutsideClicksDismissPanelAndAllowReopening() {
         terminateExistingApplicationInstances()
         let app = XCUIApplication()

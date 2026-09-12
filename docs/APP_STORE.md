@@ -71,3 +71,8 @@ Only after explicit release authorization, archive through Xcode Organizer, insp
 ## Companion-site legal follow-up
 
 The website now contains the four-mode product copy and revised bilingual Privacy/Terms explanations. Operational disclosures must be verified and completed before removing draft status. The website repository’s `docs/PUBLISHER_INPUTS.md` lists the remaining company address, provider/access/retention/transfer facts, lawful grounds, effective date and license confirmation. These are separate from private App Store review contact and release signing. The latest source updates are authorized for commit/push; no App Store account declaration is implied.
+
+
+## EU trader information
+
+For EU availability, confirm the account’s DSA trader declaration and, where applicable, verified public trader contact information in App Store Connect. Apple requires this independently of a complete website privacy policy; see [Apple’s EU DSA trader requirements](https://developer.apple.com/help/app-store-connect/manage-compliance-information/manage-european-union-digital-services-act-trader-requirements). The publisher must determine and submit the actual status. A free app does not by itself establish non-trader status. No declaration, identity document or private account field was submitted during this update.

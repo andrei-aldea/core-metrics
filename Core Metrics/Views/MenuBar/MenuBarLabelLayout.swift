@@ -5,20 +5,41 @@ import Foundation
 /// Uses native system typography with measured, fixed value columns.
 @MainActor
 struct MenuBarLabelLayout {
-    static let labelFont = NSFont.systemFont(ofSize: NSFont.systemFontSize)
-    private static let compactLabelFont = NSFont.systemFont(ofSize: NSFont.smallSystemFontSize)
+    // Matches the apparent size of the supplied Macs Fan Control reference.
+    // Every representation uses the same native text and symbol point size.
+    static let pointSize: CGFloat = 12
+    static let labelFont = NSFont.systemFont(ofSize: pointSize)
     static let font = NSFont.monospacedDigitSystemFont(
-        ofSize: NSFont.systemFontSize,
-        weight: .regular
-    )
-    private static let compactFont = NSFont.monospacedDigitSystemFont(
-        ofSize: NSFont.smallSystemFontSize,
+        ofSize: pointSize,
         weight: .regular
     )
     private static let percentGap: CGFloat = 2
     private let percentSpacing: PercentSpacing?
-    private let standardColumns: ValueColumns
-    private let compactColumns: ValueColumns
+    private let columns: ValueColumns
+    private static let categoryPrefixes: [MetricKind: NSAttributedString] = Dictionary(
+        uniqueKeysWithValues: MetricKind.allCases.map { metric in
+            guard let image = NSImage(
+                systemSymbolName: metric.systemImage,
+                accessibilityDescription: metric.displayName
+            )?.withSymbolConfiguration(.init(pointSize: labelFont.pointSize, weight: .regular)) else {
+                return (metric, NSAttributedString(
+                    string: "\(metric.displayName) ", attributes: [.font: labelFont]
+                ))
+            }
+            image.isTemplate = true
+            let attachment = NSTextAttachment()
+            attachment.image = image
+            attachment.bounds = CGRect(
+                x: 0, y: (labelFont.capHeight - image.size.height) / 2,
+                width: image.size.width, height: image.size.height
+            )
+            let prefix = NSMutableAttributedString(string: "\u{200E}", attributes: [.font: labelFont])
+            prefix.append(NSAttributedString(attachment: attachment))
+            prefix.addAttribute(.font, value: labelFont, range: NSRange(location: 0, length: prefix.length))
+            prefix.append(NSAttributedString(string: " ", attributes: [.font: labelFont]))
+            return (metric, prefix)
+        }
+    )
 
     init(locale: Locale) {
         let formatter = NumberFormatter()
@@ -32,22 +53,18 @@ struct MenuBarLabelLayout {
         percentSpacing = spacing
         let memory = MetricFormatting.compactByteColumnCandidates(style: .memory, locale: locale)
         let storage = MetricFormatting.compactByteColumnCandidates(style: .storage, locale: locale)
-        func columns(font: NSFont) -> ValueColumns {
-            func reservedWidth(_ candidates: [String]) -> CGFloat {
-                (candidates + [MetricFormatting.unavailable]).reduce(CGFloat.zero) {
-                    max($0, Self.attributedValue($1, font: font, spacing: spacing).size().width)
-                }
+        func reservedWidth(_ candidates: [String]) -> CGFloat {
+            (candidates + [MetricFormatting.unavailable]).reduce(CGFloat.zero) {
+                max($0, Self.attributedValue($1, font: Self.font, spacing: spacing).size().width)
             }
-            return ValueColumns(
-                percentage: reservedWidth(percentages),
-                memory: reservedWidth(memory),
-                storage: reservedWidth(storage)
-            )
         }
-        // Format candidates once, then measure each native size once. Live
-        // samples and representation changes only select the cached columns.
-        standardColumns = columns(font: Self.font)
-        compactColumns = columns(font: Self.compactFont)
+        // Every representation shares one size and one set of locale columns.
+        // Live samples never repeat candidate formatting or symbol creation.
+        columns = ValueColumns(
+            percentage: reservedWidth(percentages),
+            memory: reservedWidth(memory),
+            storage: reservedWidth(storage)
+        )
     }
 
     func attributedTitle(
@@ -55,7 +72,7 @@ struct MenuBarLabelLayout {
         values: [String],
         displayMode: MenuBarDisplayMode
     ) -> NSAttributedString {
-        let valueFont = Self.valueFont(for: displayMode)
+        let valueFont = Self.font
         guard stats.count == values.count else {
             return NSAttributedString(string: MetricFormatting.unavailable, attributes: [.font: valueFont])
         }
@@ -65,13 +82,10 @@ struct MenuBarLabelLayout {
             if index > 0 {
                 title.append(NSAttributedString(
                     string: MenuBarLabelFormatting.separator(for: displayMode),
-                    attributes: [.font: Self.prefixFont(for: displayMode)]
+                    attributes: [.font: Self.labelFont]
                 ))
             }
-            title.append(NSAttributedString(
-                string: MenuBarLabelFormatting.prefix(for: stats[index], displayMode: displayMode),
-                attributes: [.font: Self.prefixFont(for: displayMode)]
-            ))
+            title.append(Self.prefix(for: stats[index], displayMode: displayMode))
             let value = Self.attributedValue(values[index], font: valueFont, spacing: percentSpacing)
             // The space is an invisible alignment carrier. Its measured
             // advance plus kerning fills exactly the unused column width,
@@ -81,7 +95,7 @@ struct MenuBarLabelLayout {
                 string: " ",
                 attributes: [
                     .font: valueFont,
-                    .kern: max(0, valueColumnWidth(for: stats[index], displayMode: displayMode) - value.size().width)
+                    .kern: max(0, valueColumnWidth(for: stats[index]) - value.size().width)
                         - spaceWidth,
                 ]
             ))
@@ -94,19 +108,18 @@ struct MenuBarLabelLayout {
         guard !stats.isEmpty else {
             return ceil(Self.attributedValue(
                 MetricFormatting.unavailable,
-                font: Self.valueFont(for: displayMode),
+                font: Self.font,
                 spacing: percentSpacing
             ).size().width) + 1
         }
         let prefixWidth = stats.reduce(CGFloat.zero) {
-            $0 + (MenuBarLabelFormatting.prefix(for: $1, displayMode: displayMode) as NSString)
-                .size(withAttributes: [.font: Self.prefixFont(for: displayMode)]).width
+            $0 + Self.prefix(for: $1, displayMode: displayMode).size().width
         }
         let separatorWidth = (MenuBarLabelFormatting.separator(for: displayMode) as NSString)
-            .size(withAttributes: [.font: Self.prefixFont(for: displayMode)]).width
+            .size(withAttributes: [.font: Self.labelFont]).width
         return ceil(
             prefixWidth + separatorWidth * CGFloat(stats.count - 1)
-                + stats.reduce(CGFloat.zero) { $0 + valueColumnWidth(for: $1, displayMode: displayMode) }
+                + stats.reduce(CGFloat.zero) { $0 + valueColumnWidth(for: $1) }
         ) + 1
     }
 
@@ -116,8 +129,7 @@ struct MenuBarLabelLayout {
         let storage: CGFloat
     }
 
-    private func valueColumnWidth(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> CGFloat {
-        let columns = displayMode == .compact ? compactColumns : standardColumns
+    private func valueColumnWidth(for stat: MenuBarStat) -> CGFloat {
         return switch stat {
         case .cpuUsed, .cpuUser, .cpuSystem, .cpuIdle,
              .memoryUsedPercentage, .storageUsedPercentage:
@@ -129,12 +141,14 @@ struct MenuBarLabelLayout {
         }
     }
 
-    private static func prefixFont(for displayMode: MenuBarDisplayMode) -> NSFont {
-        displayMode == .compact ? compactLabelFont : labelFont
-    }
-
-    private static func valueFont(for displayMode: MenuBarDisplayMode) -> NSFont {
-        displayMode == .compact ? compactFont : font
+    private static func prefix(for stat: MenuBarStat, displayMode: MenuBarDisplayMode) -> NSAttributedString {
+        if displayMode == .iconAndValue, let prefix = categoryPrefixes[stat.metric] {
+            return prefix
+        }
+        return NSAttributedString(
+            string: MenuBarLabelFormatting.prefix(for: stat, displayMode: displayMode),
+            attributes: [.font: labelFont]
+        )
     }
 
     private struct PercentSpacing {

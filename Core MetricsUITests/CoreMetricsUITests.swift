@@ -18,6 +18,153 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testDisplayModesWithThreeStatsInLightAppearance() throws {
+        try verifyDisplayModes(appearance: "light")
+    }
+
+    @MainActor
+    func testDisplayModesWithThreeStatsInDarkAppearance() throws {
+        try verifyDisplayModes(appearance: "dark")
+    }
+
+    @MainActor
+    func testSettingsControlsFitContentWidth() async throws {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = ["CORE_METRICS_UI_TESTING": "1"]
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US_POSIX"]
+        app.launch()
+        defer { app.terminate() }
+
+        let running = try XCTUnwrap(
+            NSRunningApplication.runningApplications(withBundleIdentifier: "org.example.CoreMetrics").first
+        )
+        let url = try XCTUnwrap(running.bundleURL)
+        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
+        _ = try await NSWorkspace.shared.openApplication(
+            at: url,
+            configuration: NSWorkspace.OpenConfiguration()
+        )
+        let settings = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+
+        XCTAssertEqual(settings.frame.width, 580, accuracy: 2)
+
+        let scroll = settings.scrollViews.firstMatch
+        for name in ["Label and Value", "Compact", "Icon and Value", "Values Only"] {
+            let control = settings.radioButtons[name]
+            reveal(control, in: scroll)
+            XCTAssertTrue(control.isHittable)
+            XCTAssertTrue(settings.frame.contains(control.frame))
+            control.click()
+            XCTAssertTrue(isSelected(control))
+        }
+        for identifier in ["settings.metricHelp", "settings.privacyInformation", "settings.support"] {
+            let control = settings.descendants(matching: .any)[identifier]
+            reveal(control, in: scroll)
+            XCTAssertTrue(control.isHittable)
+            XCTAssertTrue(settings.frame.contains(control.frame))
+        }
+        let capture = XCTAttachment(screenshot: settings.screenshot())
+        capture.name = "Settings at native content width"
+        capture.lifetime = .keepAlways
+        add(capture)
+    }
+
+    @MainActor
+    private func verifyDisplayModes(appearance: String) throws {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = [
+            "CORE_METRICS_UI_TESTING": "1",
+            "CORE_METRICS_UI_APPEARANCE": appearance,
+            "CORE_METRICS_UI_ALTERNATING_CPU": "1",
+        ]
+        app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US_POSIX"]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        let panel = app.descendants(matching: .any)["menuBarPanel"]
+        for identifier in ["menuBarStat.memoryPercentage", "menuBarStat.storagePercentage"] {
+            let control = app.checkBoxes[identifier]
+            reveal(control, in: panel)
+            control.click()
+            XCTAssertTrue(isSelected(control))
+            XCTAssertTrue(panel.exists)
+        }
+        app.buttons["menuBar.settings"].click()
+        let settings = app.windows["com_apple_SwiftUI_Settings_window"]
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        guard verifyPanelDismissedForSettings(panel) else { return }
+        XCTAssertTrue(isSelected(settings.radioButtons["Values Only"]))
+
+        var widths: [String: CGFloat] = [:]
+        var observations: [String] = []
+        for mode in ["Label and Value", "Compact", "Icon and Value", "Values Only"] {
+            let control = settings.radioButtons[mode]
+            XCTAssertTrue(control.isHittable)
+            control.click()
+            XCTAssertTrue(isSelected(control))
+            guard hoverStatusItem(statusItem) else { return }
+            var referenceFrame: CGRect?
+            for percentage in [9, 100, 9] {
+                let predicate = NSPredicate(format: "title CONTAINS %@", "CPU User, \(percentage)%")
+                let expectation = XCTNSPredicateExpectation(predicate: predicate, object: statusItem)
+                XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: 8), .completed)
+                let snapshot = try statusItem.snapshot()
+                XCTAssertTrue(snapshot.title.contains("Memory Used (%)"))
+                XCTAssertTrue(snapshot.title.contains("Storage Used (%)"))
+                if let referenceFrame {
+                    XCTAssertEqual(snapshot.frame.width, referenceFrame.width, accuracy: 0.01)
+                    XCTAssertEqual(snapshot.frame.minX, referenceFrame.minX, accuracy: 0.01)
+                    XCTAssertEqual(snapshot.frame.minY, referenceFrame.minY, accuracy: 0.01)
+                } else {
+                    referenceFrame = snapshot.frame
+                }
+                observations.append("\(mode), \(percentage)%: \(NSStringFromRect(snapshot.frame))")
+            }
+            widths[mode] = try XCTUnwrap(referenceFrame).width
+            let statusCapture = XCTAttachment(screenshot: statusItem.screenshot())
+            statusCapture.name = "Three stats - \(mode) - \(appearance)"
+            statusCapture.lifetime = .keepAlways
+            add(statusCapture)
+            let preview = settings.scrollViews["settings.livePreview"]
+            let summary = preview.descendants(matching: .any)
+                .matching(NSPredicate(format: "label BEGINSWITH %@", "Core Metrics, CPU User")).firstMatch
+            XCTAssertTrue(summary.exists)
+            XCTAssertTrue(summary.label.contains("Memory Used (%)"))
+            XCTAssertTrue(summary.label.contains("Storage Used (%)"))
+            let settingsCapture = XCTAttachment(screenshot: settings.screenshot())
+            settingsCapture.name = "Mode and live preview - \(mode) - \(appearance)"
+            settingsCapture.lifetime = .keepAlways
+            add(settingsCapture)
+        }
+        XCTAssertGreaterThan(try XCTUnwrap(widths["Label and Value"]), try XCTUnwrap(widths["Compact"]))
+        XCTAssertGreaterThan(try XCTUnwrap(widths["Compact"]), try XCTUnwrap(widths["Values Only"]))
+        XCTAssertGreaterThan(try XCTUnwrap(widths["Icon and Value"]), try XCTUnwrap(widths["Values Only"]))
+        let frames = XCTAttachment(string: observations.joined(separator: "\n"))
+        frames.name = "All display modes native frames - \(appearance)"
+        frames.lifetime = .keepAlways
+        add(frames)
+
+        settings.radioButtons["Icon and Value"].click()
+        app.terminate()
+        app.launchEnvironment["CORE_METRICS_UI_RELAUNCH"] = "1"
+        app.launch()
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.memoryPercentage"]))
+        XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.storagePercentage"]))
+        app.buttons["menuBar.settings"].click()
+        XCTAssertTrue(settings.waitForExistence(timeout: 5))
+        XCTAssertTrue(isSelected(settings.radioButtons["Icon and Value"]))
+    }
+
+    @MainActor
     func testStatusItemClickTogglesPanel() {
         terminateExistingApplicationInstances()
         let app = XCUIApplication()
@@ -162,7 +309,7 @@ final class CoreMetricsUITests: XCTestCase {
             add(attachment)
         }
 
-        // The isolated launch keeps CPU User in Value Only throughout. Wait
+        // The isolated launch keeps CPU User in Values Only throughout. Wait
         // for each actual publication rather than sleeping or measuring the
         // formatter's reservation, which the native host can ignore.
         for (index, percentage) in [9, 100, 9, 100, 9, 100].enumerated() {
@@ -518,7 +665,7 @@ final class CoreMetricsUITests: XCTestCase {
             add(hierarchy)
         }
         // Native status accessibility uses the full spoken summary; the
-        // rendered Compact abbreviations are retained in the screenshot.
+        // rendered values are retained in the screenshot.
         XCTAssertTrue(statusItem.title.hasPrefix("Core Metrics, CPU"))
         XCTAssertTrue(statusItem.title.contains("CPU User"))
         if configuration == "seven-stats" {
@@ -609,15 +756,15 @@ final class CoreMetricsUITests: XCTestCase {
         )
 
         if configuration == "single-stat" {
-            // Temporarily adding a second stat selects Compact. Value Only is
-            // restored here because representation now belongs to Settings.
-            let valueOnly = settingsWindow.radioButtons["Value Only"]
+            // Adding another stat preserves Values Only; the control remains
+            // available for both single and multiple selections.
+            let valueOnly = settingsWindow.radioButtons["Values Only"]
             XCTAssertTrue(valueOnly.isHittable)
             valueOnly.click()
         }
 
         let originalMode = try XCTUnwrap(
-            ["Label and Value", "Value Only", "Compact"].first { title in
+            ["Label and Value", "Compact", "Icon and Value", "Values Only"].first { title in
                 let control = app.radioButtons[title]
                 return control.exists && isSelected(control)
             },
@@ -644,7 +791,11 @@ final class CoreMetricsUITests: XCTestCase {
         let launchAtLogin = settingsWindow.switches["settings.launchAtLogin"]
         reveal(launchAtLogin, in: settingsWindow.scrollViews.firstMatch)
         XCTAssertTrue(launchAtLogin.isEnabled)
-        XCTAssertFalse(app.staticTexts["settings.launchAtLoginStatus"].exists)
+        XCTAssertFalse(isSelected(launchAtLogin))
+        XCTAssertEqual(
+            app.staticTexts["settings.launchAtLoginStatus"].value as? String,
+            "macOS hasn’t found a login registration for this copy. Turn on Launch at Login to register it."
+        )
         launchAtLogin.click()
         XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForExistence(timeout: 3))
         XCTAssertTrue(isSelected(launchAtLogin))
@@ -655,6 +806,10 @@ final class CoreMetricsUITests: XCTestCase {
         launchAtLogin.click()
         XCTAssertTrue(app.staticTexts["settings.launchAtLoginStatus"].waitForNonExistence(timeout: 3))
         XCTAssertFalse(isSelected(launchAtLogin))
+
+        let supportLink = settingsWindow.descendants(matching: .any)["settings.support"]
+        reveal(supportLink, in: settingsWindow.scrollViews.firstMatch)
+        XCTAssertTrue(supportLink.isHittable)
 
         let helpButton = app.buttons["settings.metricHelp"]
         reveal(helpButton, in: settingsWindow.scrollViews.firstMatch)
@@ -672,6 +827,8 @@ final class CoreMetricsUITests: XCTestCase {
             return
         }
         XCTAssertTrue(app.staticTexts["Core Metrics works entirely on your Mac."].exists)
+        let policyLink = app.sheets.firstMatch.descendants(matching: .any)["privacyInformation.policyLink"]
+        XCTAssertTrue(policyLink.isHittable, "The public policy must remain accessible outside the scrolling text")
         let privacyContent = app.scrollViews["privacyInformation.content"]
         XCTAssertTrue(privacyContent.exists)
         privacyContent.scroll(byDeltaX: 0, deltaY: -600)

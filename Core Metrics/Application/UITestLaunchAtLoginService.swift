@@ -3,7 +3,8 @@
 /// or modifies the person's actual macOS login items.
 @MainActor
 final class UITestLaunchAtLoginService: LaunchAtLoginServicing {
-    private(set) var status: LaunchAtLoginStatus = .notRegistered
+    // A fresh service can be absent from macOS's registration database.
+    private(set) var status: LaunchAtLoginStatus = .notFound
 
     func register() throws {
         status = .enabled

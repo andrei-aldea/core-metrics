@@ -7,13 +7,72 @@ import Testing
 @MainActor
 @Suite("Menu-bar label layout")
 struct MenuBarLabelLayoutTests {
+    @Test("Compact changes labels without shrinking values or inter-stat spacing")
+    func compactOnlyShortensLabels() throws {
+        let stats: [MenuBarStat] = [.cpuUser, .memoryUsed, .storageFree]
+        let values = ["9%", "8.0GB", "100.0GB"]
+        let layout = MenuBarLabelLayout(locale: Locale(identifier: "en_US_POSIX"))
+        let full = layout.attributedTitle(stats: stats, values: values, displayMode: .labelAndValue)
+        let compact = layout.attributedTitle(stats: stats, values: values, displayMode: .compact)
+        for value in values {
+            let fullRange = (full.string as NSString).range(of: value)
+            let compactRange = (compact.string as NSString).range(of: value)
+            try #require(fullRange.location != NSNotFound && compactRange.location != NSNotFound)
+            #expect(full.attributedSubstring(from: fullRange).isEqual(to: compact.attributedSubstring(from: compactRange)))
+        }
+        let savedLabelWidth = stats.reduce(CGFloat.zero) { width, stat in
+            width + (stat.menuBarName as NSString).size(withAttributes: [.font: MenuBarLabelLayout.labelFont]).width
+                - (stat.shortCode as NSString).size(withAttributes: [.font: MenuBarLabelLayout.labelFont]).width
+        }
+        #expect(abs(full.size().width - compact.size().width - savedLabelWidth) < 0.01)
+    }
+
+    @Test("Icon mode attaches one native category symbol to each complete value")
+    func categorySymbolsAndValues() throws {
+        let stats: [MenuBarStat] = [.cpuUser, .cpuSystem, .memoryUsed, .storageFree]
+        let values = ["9%", "100%", "8.0GB", "100.0GB"]
+        let layout = MenuBarLabelLayout(locale: Locale(identifier: "en_US_POSIX"))
+        let title = layout.attributedTitle(stats: stats, values: values, displayMode: .iconAndValue)
+        var attachments: [NSTextAttachment] = []
+        title.enumerateAttribute(.attachment, in: NSRange(location: 0, length: title.length)) { value, _, _ in
+            if let attachment = value as? NSTextAttachment { attachments.append(attachment) }
+        }
+        #expect(attachments.count == stats.count)
+        for attachment in attachments {
+            let image = try #require(attachment.image)
+            #expect(image.isTemplate)
+            #expect(attachment.bounds.width > 0)
+            #expect(attachment.bounds.height > 0)
+            #expect(abs(attachment.bounds.midY - MenuBarLabelLayout.labelFont.capHeight / 2) < 0.01)
+        }
+        for value in values { #expect(title.string.contains(value)) }
+        for stat in stats { #expect(!title.string.contains(stat.menuBarName)) }
+        #expect(title.size().width <= layout.width(stats: stats, displayMode: .iconAndValue))
+
+        let valuesOnly = layout.attributedTitle(stats: stats, values: values, displayMode: .valueOnly)
+        #expect(!valuesOnly.string.contains("\u{FFFC}"))
+        #expect(valuesOnly.string.replacingOccurrences(of: "\u{200E}", with: "")
+            .split(separator: " ").map(String.init) == values)
+        #expect(valuesOnly.size().width < title.size().width)
+
+        for mode in [MenuBarDisplayMode.iconAndValue, .valueOnly] {
+            let presentation = StatusItemPresentation(
+                configuration: MenuBarConfiguration(enabledStats: stats, displayMode: mode),
+                cpuUsage: nil, memoryUsage: nil, storageUsage: nil,
+                locale: Locale(identifier: "en_US_POSIX")
+            )
+            for stat in stats { #expect(presentation.accessibilityLabel.contains(stat.displayName)) }
+            #expect(presentation.accessibilityLabel.contains("Unavailable"))
+        }
+    }
+
     @Test("Each representation uses one native size with tabular digits and proportional letters",
           arguments: MenuBarDisplayMode.allCases)
     func systemTypographyUsesTabularDigits(displayMode: MenuBarDisplayMode) throws {
         let title = MenuBarLabelLayout(locale: Locale(identifier: "en_US_POSIX")).attributedTitle(
             stats: [.cpuUser, .memoryUsed], values: ["1%", "8GB"], displayMode: displayMode
         )
-        let expectedSize = displayMode == .compact ? NSFont.smallSystemFontSize : NSFont.systemFontSize
+        let expectedSize: CGFloat = 12
         title.enumerateAttribute(.font, in: NSRange(location: 0, length: title.length)) { value, _, _ in
             #expect((value as? NSFont)?.pointSize == expectedSize)
         }
@@ -102,7 +161,7 @@ struct MenuBarLabelLayoutTests {
                         displayMode: mode
                     )
                     #expect(title.string.hasSuffix(value))
-                    if mode != .valueOnly {
+                    if mode == .labelAndValue || mode == .compact {
                         let name = mode == .compact ? sample.stat.shortCode : sample.stat.menuBarName
                         #expect(title.string.hasPrefix(name))
                     }
@@ -143,9 +202,7 @@ struct MenuBarLabelLayoutTests {
         ]
 
         for mode in MenuBarDisplayMode.allCases {
-            let stats: [MenuBarStat] = mode == .valueOnly
-                ? [.cpuUser]
-                : [.cpuUser, .memoryUsed, .storageFree]
+            let stats: [MenuBarStat] = [.cpuUser, .memoryUsed, .storageFree]
             var referenceWidth: CGFloat?
             var referenceOffsets: [CGFloat]?
             for values in states {
@@ -157,7 +214,7 @@ struct MenuBarLabelLayoutTests {
                     #expect(abs(title.size().width - referenceWidth) < 0.01)
                     #expect(offsets.count == referenceOffsets.count)
                     for (offset, referenceOffset) in zip(offsets, referenceOffsets) {
-                        #expect(abs(offset - referenceOffset) < 0.01)
+                        #expect(abs(offset - referenceOffset) < 0.01, "\(identifier), \(mode), \(values)")
                     }
                 } else {
                     referenceWidth = title.size().width
@@ -186,7 +243,7 @@ struct MenuBarLabelLayoutTests {
     ) throws {
         let locale = Locale(identifier: identifier)
         let layout = MenuBarLabelLayout(locale: locale)
-        for mode in [MenuBarDisplayMode.valueOnly, .compact] {
+        for mode in MenuBarDisplayMode.allCases {
             for fraction in [0.09, 1.0] {
                 let value = MetricFormatting.percentage(fraction, locale: locale)
                 let title = layout.attributedTitle(
@@ -199,7 +256,7 @@ struct MenuBarLabelLayoutTests {
                 let reference = NSAttributedString(
                     string: value,
                     attributes: [.font: NSFont.monospacedDigitSystemFont(
-                        ofSize: mode == .compact ? NSFont.smallSystemFontSize : NSFont.systemFontSize,
+                        ofSize: 12,
                         weight: .regular
                     ), .kern: 0]
                 )
@@ -272,11 +329,6 @@ struct MenuBarLabelLayoutTests {
         var offsets: [CGFloat] = []
         for stat in stats {
             let prefix = MenuBarLabelFormatting.prefix(for: stat, displayMode: displayMode)
-            if prefix.isEmpty {
-                // Value Only has no following label. Its total measured
-                // width verifies the column without imposing a bidi caret.
-                continue
-            }
             let range = string.range(
                 of: prefix,
                 range: NSRange(location: searchStart, length: string.length - searchStart)

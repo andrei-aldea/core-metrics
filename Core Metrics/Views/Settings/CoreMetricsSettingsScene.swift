@@ -15,7 +15,7 @@ struct CoreMetricsSettingsScene: Scene {
                 .environment(launchAtLoginStore)
                 .tint(Color.primary)
         }
-        .windowResizability(.contentMinSize)
+        .windowResizability(.contentSize)
         .commands {
             SettingsCommands(dismissPanel: dismissPanel)
         }

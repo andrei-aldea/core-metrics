@@ -1,9 +1,11 @@
 import Foundation
 
 nonisolated enum MenuBarDisplayMode: String, CaseIterable, Codable, Identifiable, Sendable {
+    // Older releases stored the text-label mode under this identifier.
     case labelAndValue = "iconAndValue"
-    case valueOnly
     case compact
+    case iconAndValue = "categoryIconAndValue"
+    case valueOnly
 
     var id: String {
         rawValue
@@ -14,9 +16,11 @@ nonisolated enum MenuBarDisplayMode: String, CaseIterable, Codable, Identifiable
         case .labelAndValue:
             String(localized: "Label and Value")
         case .valueOnly:
-            String(localized: "Value Only")
+            String(localized: "Values Only")
         case .compact:
             String(localized: "Compact")
+        case .iconAndValue:
+            String(localized: "Icon and Value")
         }
     }
 }

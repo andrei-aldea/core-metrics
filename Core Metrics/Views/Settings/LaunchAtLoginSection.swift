@@ -66,7 +66,7 @@ struct LaunchAtLoginSection: View {
         case .requiresApproval:
             String(localized: "Approval required. Allow Core Metrics in Login Items in System Settings before it can open at login.")
         case .notFound:
-            String(localized: "Launch at Login is unavailable for this copy of Core Metrics.")
+            String(localized: "macOS hasn’t found a login registration for this copy. Turn on Launch at Login to register it.")
         case .unknown:
             String(localized: "macOS couldn’t determine the Launch at Login status.")
         }

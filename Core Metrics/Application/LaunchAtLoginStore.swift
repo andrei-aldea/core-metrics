@@ -29,7 +29,10 @@ final class LaunchAtLoginStore {
     }
 
     var canChangeRegistration: Bool {
-        status != .notFound && status != .unknown && !isUpdating
+        // macOS can report notFound before it has ever seen this service.
+        // Allow an explicit registration attempt and let ServiceManagement
+        // validate the installed app; status alone is not a signing check.
+        status != .unknown && !isUpdating
     }
 
     func refresh() {

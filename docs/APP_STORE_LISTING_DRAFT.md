@@ -1,12 +1,14 @@
 # App Store listing draft
 
-**Draft only — not submitted.** Prepared September 6, 2026 for the existing **Core Metrics: Mac Stats** App Store Connect record, macOS version 1.0 in Prepare for Submission, and the Settings / Copy Readings / Quit footer. This drafting task made no upload, signing change, publisher declaration or screenshot submission. Complete the pending publisher fields before submission.
+**Draft only — not submitted.** Refreshed September 12, 2026 from the September 6 preparation for the existing **Core Metrics: Mac Stats** App Store Connect record, macOS version 1.0 in Prepare for Submission, and the Settings / Copy Readings / Quit footer. This drafting task made no upload, signing change, publisher declaration or screenshot submission. Complete the pending publisher fields before submission.
 
-The accompanying App Store Connect preparation saved the subtitle, Utilities category, promotional text, description, keywords and review notes below, and cleared Sign-in required. The existing English (U.S.) locale is retained. The privacy response is a saved, unpublished draft. The user-selected Free price schedule was saved and verified after reopening the pricing page. App availability remains unconfigured. No build or screenshots have been uploaded. See [APP_STORE.md](APP_STORE.md) for remaining release requirements.
+The September 6 App Store Connect preparation saved the subtitle, Utilities category, promotional text, description, keywords and the then-current review notes, and cleared Sign-in required. On September 12, the revised four-mode description, Support URL and reviewer instructions were entered in the existing version page, but **Save was rejected because the four review-contact fields were empty**. These prepared edits have not been verified as saved. Sign-in required remains off; the app needs no credentials. Apple's review-contact fields are separate publisher information.
+
+The existing English (U.S.) locale is retained. The privacy response is a saved, unpublished draft. The user-selected Free price schedule was saved and verified on September 6; pricing and availability were not rechecked on September 12. The fresh version-page inspection confirmed no selected build or screenshots. See [APP_STORE.md](APP_STORE.md) for remaining release requirements.
 
 ## English listing copy
 
-Naming follow-up for the next listing review: use Memory and Storage in UI references, with Used (%) for selectable percentage variants. The saved text blocks and metadata below remain unchanged; the screenshot plan uses the updated UI names. No revised listing copy was saved as part of this naming follow-up.
+Use Memory and Storage in UI references, with Used (%) for selectable percentage variants. This local draft reflects all four display modes and their shared text size. Reconcile it with the saved online copy before submission.
 
 Apple limits the name and subtitle to 30 characters each. Promotional text allows 170 characters, the plain-text description 4,000 characters, and keywords **100 bytes**. The ASCII keyword draft below also meets a 100-character limit. [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [platform version information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information).
 
@@ -21,7 +23,7 @@ Apple limits the name and subtitle to 30 characters each. Promotional text allow
 | Primary language | English (U.S.) | Confirmed existing primary language and version locale; retain it |
 | Price | Free | Saved zero-price schedule for 175 pricing countries/regions; verified after reopening. Distribution availability remains pending. |
 
-Description — **1,541 / 4,000 characters**; paste only the following plain text:
+Description — **1,607 / 4,000 characters**; paste only the following plain text:
 
 ```text
 Keep an eye on your Mac's CPU, memory and startup-volume storage from the menu bar.
@@ -32,7 +34,7 @@ CPU, memory and storage
 See aggregate CPU Used, User, System and Idle percentages. Check memory use, wired and compressed memory, cached files, swap and physical memory. View startup-volume used space, free space, total capacity or used percentage.
 
 Your preferred view
-Choose Label and Value or Compact in Settings, or Value Only for a single reading. A live preview shows your full selection. Numbers follow your locale, and your choices are saved for next time. Available menu-bar space depends on your Mac and other menu-bar items.
+Choose Label and Value, Compact, Icon and Value, or Values Only in Settings. Every mode supports one to seven readings at the same native text size. A live preview shows your full selection. Numbers follow your locale, and your choices are saved for next time. Available menu-bar space depends on your Mac and other menu-bar items.
 
 Current readings, ready to use
 Copy Readings copies the full names and current values of your selected stats. Metric Help in Settings explains what each reading means. CPU and memory refresh about every two seconds; storage refreshes about every thirty seconds. No metric history is saved.
@@ -47,19 +49,19 @@ Feature evidence: [metric definitions](METRICS.md), [presentation architecture](
 
 ## App Review notes
 
-Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,442 / 4,000 bytes**, saved in App Store Connect. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
+Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,637 / 4,000 bytes**, revised locally for the final implementation. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
 
 ```text
 Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a compatible Apple silicon Mac.
 
 1. Launch the app and locate its live readings in the menu bar. There is intentionally no Dock icon or main app window. Allow a few seconds for the initial CPU sample.
 2. Click the status label to open the persistent selection panel. Choose one to seven CPU, Memory and Storage stats. The panel remains open as choices change.
-3. Use Settings in the panel footer to open the native Settings window. Menu Bar Text changes the representation; Value Only is available with one selected stat. Add Stat and the remove controls change the selection. Live Preview can scroll horizontally.
+3. Use Settings in the panel footer to open the native Settings window. Menu Bar Text changes the representation; all four modes remain available for every selection count. Add Stat and the remove controls change the selection. Live Preview can scroll horizontally.
 4. Copy Readings in the panel footer writes the full selected names and current values to the clipboard. It is an explicit action and replaces the current clipboard content.
-5. Metric Help and Privacy are available in Settings. Launch at Login is optional, starts off for an unregistered app, and reflects macOS registration or approval state. No helper or administrator access is required.
+5. Metric Help, Support and Privacy are available in Settings. Privacy also links to the public policy in the browser. Launch at Login is optional, starts off for an unregistered app, and reflects macOS registration or approval state. No helper or administrator access is required.
 6. Quit in the panel footer exits the app.
 
-The app reads aggregate system values through public Apple APIs. It has no accounts, network connections, purchases or retained metric history. A dash indicates an unavailable reading. Storage represents startup-volume capacity, not a file scan. Long selections need sufficient menu-bar space; Compact uses less room.
+The app reads aggregate system values through public Apple APIs. It has no accounts, network connections, purchases or retained metric history. A dash indicates an unavailable reading. Storage represents startup-volume capacity, not a file scan. Long selections need sufficient menu-bar space; Compact, Icon and Value, or Values Only use less room. If the readings are hidden, open the already-running app in Finder to recover Settings.
 ```
 
 Reviewer contact name, email and international-format phone number remain **pending publisher entry**. These private fields must not be added to the repository. [Review contact requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
@@ -77,7 +79,7 @@ Saved draft answer: **“No, we do not collect data from this app.”** The prod
 
 This is an inference from the implemented data flow and Apple's distinction between on-device processing and data transmitted off-device for developer/partner access. [Apple's collection definition](https://developer.apple.com/app-store/app-privacy-details/), [in-app privacy text](../Core%20Metrics/Views/Settings/PrivacyInformationView.swift), [privacy manifest](../Core%20Metrics/PrivacyInfo.xcprivacy).
 
-**Privacy Policy URL: pending.** A public publisher-approved policy URL is required for macOS, and the app needs an easily accessible policy link. The existing local Privacy sheet does not supply that URL. Privacy Choices URL is optional and remains pending if applicable. This draft is not a legal policy or an attestation on the publisher's behalf. [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [privacy URL fields](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy#entering-privacy-policy-information), [Review Guideline 5.1.1(i)](https://developer.apple.com/app-store/review/guidelines/#data-collection-and-storage).
+**Privacy Policy URL:** https://core-metrics.dorobantimedia.com/en/privacy. The page responds over HTTPS and the native Privacy sheet now links to it. It is still visibly a publisher draft: finalize the actual hosting/email practices, registered office and effective date before submission. **Support URL:** https://core-metrics.dorobantimedia.com/en/support. Public availability does not confirm that either URL has been saved in App Store Connect. Privacy Choices URL is optional and remains pending if applicable. This draft is not a legal policy or an attestation on the publisher's behalf. [App information](https://developer.apple.com/help/app-store-connect/reference/app-information/app-information), [privacy URL fields](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy#entering-privacy-policy-information), [Review Guideline 5.1.1(i)](https://developer.apple.com/app-store/review/guidelines/#data-collection-and-storage).
 
 ## Screenshot capture plan
 
@@ -93,15 +95,14 @@ Capture real app UI and real current readings on a clean desktop without persona
 
 ## Submission prerequisites and pending publisher fields
 
-**Toolchain acceptance remains unresolved, rechecked September 9, 2026.** The installed toolchain is Xcode 27 beta 6 (`27A5252f`), listed by Apple on August 24. App Store Connect's August 25 release notes explicitly permit its macOS 27 beta 6 builds for internal and external TestFlight testing; they do not establish customer App Store acceptance. Final submission needs an Apple-accepted Xcode 27 toolchain supporting the existing macOS 27 APIs. A supported RC may qualify when Apple announces acceptance; changing to the accepted Xcode 26.6 does not satisfy this project's existing API requirements. Do not treat a successful local build or TestFlight upload as evidence of App Store eligibility. [Apple developer releases](https://developer.apple.com/news/releases/), [App Store Connect release notes](https://developer.apple.com/help/app-store-connect/release-notes/), [SDK table](https://developer.apple.com/xcode/system-requirements).
-
+**Toolchain acceptance rechecked September 12, 2026.** Apple released **Xcode 27 RC (`27A266a`)** on September 9 and explicitly accepts its macOS 27 RC builds for **App Store and TestFlight** uploads. The installed toolchain remains **Xcode 27 beta 6 (`27A5252f`)**, which the earlier August 25 notice accepted only for TestFlight. Install the accepted RC and repeat local validation before an authorized distribution archive. Its download requires Apple Developer sign-in. [Apple developer releases](https://developer.apple.com/news/releases/), [App Store Connect release notes](https://developer.apple.com/help/app-store-connect/release-notes/).
 The April 28, 2026 SDK notice names iOS/iPadOS, tvOS, visionOS and watchOS 26; it does not establish a macOS 26 SDK minimum or approve a macOS 27 beta archive. Recheck Apple's upload requirements before the authorized distribution build. [Current submission requirements](https://developer.apple.com/app-store/submitting/), [upload guidance](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds).
 
 | Pending item | Publisher action |
 | --- | --- |
 | Developer account and agreements | Confirm Apple Developer Program membership, App Store Connect access and current agreements. App creation requires Account Holder, Admin or App Manager access; the Account Holder handles agreements. |
-| Existing app record | Retain Core Metrics: Mac Stats, macOS 1.0 and the verified English (U.S.) locale. Confirm SKU and access. Its registered bundle ID differs from the source placeholder; reconcile the shipping identity only with explicit authorization, and keep the actual publisher ID outside this document. |
-| Public support and policy | The user confirmed these pages do not exist yet. Supply a working Support URL with contact information, Privacy Policy URL and the in-app policy link. Marketing URL is optional. [WEBSITE_BRIEF.md](WEBSITE_BRIEF.md) contains the requested website-building prompt. |
+| Existing app record | Retain Core Metrics: Mac Stats, macOS 1.0 and the verified English (U.S.) locale. Its registered bundle ID differs from the source placeholder. The publisher chose to keep local development identity/signing on September 12; an uploadable release configuration remains deferred. Keep actual publisher identifiers outside this document. |
+| Public support and policy | Both public pages above respond over HTTPS and native links are implemented. Finalize and approve the privacy draft, correct companion-site copy that still describes three display modes, and enter the URLs in App Store Connect. Marketing URL is optional. |
 | Publisher declarations | Confirm seller/developer identity, copyright owner/year, content rights, age-rating questionnaire, license choice, export compliance and any territory/trader declarations. No answers are signed or invented here. |
 | Commercial and release choices | The Free price schedule is saved and verified. Its 175-country/region price coverage does not configure app availability. Distribution territories, applicable tax/category information and release timing remain pending. Preserve the existing automatic-release selection until the publisher decides. |
 | Final evidence | Approve screenshots/copy, final version/build, signed archive validation, real login-registration behavior and accessibility claims. Complete Apple's evaluation before claiming [Accessibility Nutrition Labels](https://developer.apple.com/help/app-store-connect/manage-app-accessibility/overview-of-accessibility-nutrition-labels/). |

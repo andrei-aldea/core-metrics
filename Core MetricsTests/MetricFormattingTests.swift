@@ -127,7 +127,7 @@ struct MetricFormattingTests {
                 values: ["15%", "12.0GB"],
                 displayMode: .compact,
                 locale: locale
-            ) == "CU  15% MU   12.0GB"
+            ) == "CU  15%  MU   12.0GB"
         )
         #expect(
             MenuBarLabelFormatting.text(
@@ -151,7 +151,7 @@ struct MetricFormattingTests {
                 values: ["9%"],
                 displayMode: .valueOnly,
                 locale: locale
-            ) == "  9%"
+            ) == "\u{200E}  9%"
         )
         #expect(
             MenuBarLabelFormatting.text(
@@ -213,7 +213,7 @@ struct MetricFormattingTests {
         )
 
         #expect(longerValues.contains("1023.9GB"))
-        #expect(shorterValues.count == 71)
+        #expect(shorterValues.count == 77)
         #expect(
             MenuBarLabelFormatting.reservedCharacterCount(
                 stats: stats,

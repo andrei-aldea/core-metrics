@@ -43,6 +43,7 @@ struct PrivacyInformationView: View {
                             .font(.headline)
                             .accessibilityAddTraits(.isHeader)
                         Text("The app makes no network connections. It has no accounts, analytics, advertising, or tracking.")
+                        Text("Support and Privacy Policy links open the public website in your browser. No readings or preferences are included in those links.")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
@@ -62,6 +63,10 @@ struct PrivacyInformationView: View {
             .accessibilityHint("Scroll vertically to read all privacy information.")
 
             HStack {
+                Link("Privacy Policy…", destination: PublicAppLinks.privacyPolicy)
+                    .accessibilityIdentifier("privacyInformation.policyLink")
+                    .help("Open the public privacy policy in your browser")
+
                 Spacer()
                 Button("Done", action: close)
                     .keyboardShortcut(.defaultAction)

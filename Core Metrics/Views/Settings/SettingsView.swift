@@ -24,7 +24,7 @@ struct SettingsView: View {
             } header: {
                 Text("Live Preview")
             } footer: {
-                Text("Your full selection is shown here. Scroll horizontally to see every stat. Use Compact to leave more room in the menu bar.")
+                Text("Your full selection is shown here. Scroll horizontally to see every stat.")
             }
 
             Section {
@@ -34,12 +34,12 @@ struct SettingsView: View {
                             .tag(mode)
                     }
                 }
-                .pickerStyle(.segmented)
+                .pickerStyle(.radioGroup)
                 .accessibilityIdentifier("settings.displayMode")
             } header: {
                 Text("Menu Bar Text")
             } footer: {
-                Text("Choose how selected stats appear in the menu bar. Value Only is available when a single stat is selected.")
+                Text("All modes use the same text size. Compact shortens labels; Icon and Value shows category symbols; Values Only hides labels. Stats keep the order shown below.")
             }
 
             Section {
@@ -74,6 +74,10 @@ struct SettingsView: View {
                     }
                     .accessibilityIdentifier("settings.metricHelp")
 
+                    Link("Support…", destination: PublicAppLinks.support)
+                        .accessibilityIdentifier("settings.support")
+                        .help("Open Core Metrics support in your browser")
+
                     Spacer()
                     Button("Restore Defaults") {
                         preferencesStore.reset()
@@ -82,12 +86,8 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .frame(
-            minWidth: 520,
-            idealWidth: 580,
-            minHeight: 500,
-            idealHeight: 560
-        )
+        .frame(width: 580)
+        .frame(minHeight: 500, idealHeight: 560, maxHeight: .infinity)
         .sheet(isPresented: $isShowingPrivacy) {
             PrivacyInformationView()
         }

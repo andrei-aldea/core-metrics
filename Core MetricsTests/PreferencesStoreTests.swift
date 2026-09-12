@@ -61,8 +61,8 @@ struct PreferencesStoreTests {
     }
 
     @MainActor
-    @Test("A new store restores the saved configuration")
-    func reloadsConfiguration() throws {
+    @Test("A new store restores every mode with multiple stats", arguments: MenuBarDisplayMode.allCases)
+    func reloadsConfiguration(mode: MenuBarDisplayMode) throws {
         let fixture = try makeDefaultsFixture()
         defer { fixture.defaults.removePersistentDomain(forName: fixture.suiteName) }
 
@@ -72,7 +72,7 @@ struct PreferencesStoreTests {
         )
         firstStore.configuration = MenuBarConfiguration(
             enabledStats: [.storageFree, .cpuUser, .memoryCached],
-            displayMode: .compact
+            displayMode: mode
         )
 
         let restoredStore = PreferencesStore(

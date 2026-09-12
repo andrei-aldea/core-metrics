@@ -46,8 +46,9 @@ struct MenuBarConfigurationTests {
     func displayModeRawValues() {
         #expect(MenuBarDisplayMode.allCases.map(\.rawValue) == [
             "iconAndValue",
-            "valueOnly",
             "compact",
+            "categoryIconAndValue",
+            "valueOnly",
         ])
     }
 
@@ -127,25 +128,29 @@ struct MenuBarConfigurationTests {
         ])
     }
 
-    @Test("Value-only mode remains exclusive to one stat")
-    func restrictsValueOnlyMode() {
-        var configuration = MenuBarConfiguration(displayMode: .valueOnly)
-        #expect(configuration.displayMode == .valueOnly)
+    @Test("Every mode survives adding and removing stats", arguments: MenuBarDisplayMode.allCases)
+    func preservesModeAcrossSelectionChanges(mode: MenuBarDisplayMode) throws {
+        var configuration = MenuBarConfiguration(displayMode: mode)
+        #expect(configuration.displayMode == mode)
         #expect(configuration.availableDisplayModes == MenuBarDisplayMode.allCases)
 
-        let enabledMemory = configuration.setStat(.memoryUsed, enabled: true)
-        #expect(enabledMemory)
-        #expect(configuration.displayMode == .compact)
-        #expect(configuration.availableDisplayModes == [.labelAndValue, .compact])
-
-        configuration.displayMode = .valueOnly
-        #expect(configuration.displayMode == .compact)
+        for stat in [MenuBarStat.cpuUsed, .cpuSystem, .cpuIdle, .memoryUsed, .memoryUsedPercentage, .storageUsed] {
+            let enabled = configuration.setStat(stat, enabled: true)
+            #expect(enabled)
+            #expect(configuration.displayMode == mode)
+            #expect(configuration.availableDisplayModes == MenuBarDisplayMode.allCases)
+        }
+        let data = try JSONEncoder().encode(configuration)
+        #expect(try JSONDecoder().decode(MenuBarConfiguration.self, from: data) == configuration)
+        let disabled = configuration.setStat(.memoryUsed, enabled: false)
+        #expect(disabled)
+        #expect(configuration.displayMode == mode)
 
         let normalized = MenuBarConfiguration(
             enabledStats: [.cpuUser, .storageUsed],
-            displayMode: .valueOnly
+            displayMode: mode
         )
-        #expect(normalized.displayMode == .compact)
+        #expect(normalized.displayMode == mode)
     }
 
     @Test("Decoding repairs an empty current-format stat list")

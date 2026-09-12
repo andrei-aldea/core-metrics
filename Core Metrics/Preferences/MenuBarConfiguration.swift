@@ -16,14 +16,7 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     private(set) var enabledStats: [MenuBarStat]
-    var displayMode: MenuBarDisplayMode {
-        didSet {
-            displayMode = Self.validatedDisplayMode(
-                displayMode,
-                enabledStatCount: enabledStats.count
-            )
-        }
-    }
+    var displayMode: MenuBarDisplayMode
 
     init(
         enabledStats: [MenuBarStat] = [.cpuUser],
@@ -31,10 +24,7 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     ) {
         let normalizedStats = Self.normalized(enabledStats)
         self.enabledStats = normalizedStats
-        self.displayMode = Self.validatedDisplayMode(
-            displayMode,
-            enabledStatCount: normalizedStats.count
-        )
+        self.displayMode = displayMode
     }
 
     func isStatEnabled(_ stat: MenuBarStat) -> Bool {
@@ -55,9 +45,7 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
     }
 
     var availableDisplayModes: [MenuBarDisplayMode] {
-        enabledStats.count > 1
-            ? MenuBarDisplayMode.allCases.filter { $0 != .valueOnly }
-            : MenuBarDisplayMode.allCases
+        MenuBarDisplayMode.allCases
     }
 
     /// Returns `true` only when the configuration actually changed.
@@ -69,9 +57,6 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             }
 
             enabledStats = Self.normalized(enabledStats + [stat])
-            if displayMode == .valueOnly {
-                displayMode = .compact
-            }
             return true
         }
 
@@ -171,17 +156,6 @@ nonisolated struct MenuBarConfiguration: Codable, Equatable, Sendable {
             panelOrderedStats.prefix(Self.maximumEnabledStatCount)
         )
         return boundedStats.isEmpty ? [.cpuUser] : boundedStats
-    }
-
-    private static func validatedDisplayMode(
-        _ displayMode: MenuBarDisplayMode,
-        enabledStatCount: Int
-    ) -> MenuBarDisplayMode {
-        if displayMode == .valueOnly, enabledStatCount > 1 {
-            return .compact
-        }
-
-        return displayMode
     }
 
     /// Version 1 representation enums remain private because they only decode

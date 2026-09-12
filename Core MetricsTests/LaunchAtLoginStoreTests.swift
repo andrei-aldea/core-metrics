@@ -22,9 +22,11 @@ struct LaunchAtLoginStoreTests {
         #expect(service.unregisterCount == 0)
     }
 
-    @Test("An explicit request enables the main-app login item")
-    func registersWhenRequested() async throws {
-        let service = FakeLoginService()
+    @Test("An explicit request registers new and previously removed login items", arguments: [
+        LaunchAtLoginStatus.notRegistered, .notFound,
+    ])
+    func registersWhenRequested(status: LaunchAtLoginStatus) async throws {
+        let service = FakeLoginService(status: status)
         let store = LaunchAtLoginStore(service: service)
         let task = try #require(store.setEnabled(true))
         await task.value
@@ -93,17 +95,41 @@ struct LaunchAtLoginStoreTests {
         #expect(store.errorMessage == nil)
     }
 
-    @Test("Unavailable system states never trigger registration", arguments: [
-        LaunchAtLoginStatus.notFound, .unknown,
-    ])
-    func doesNotMutateUnavailableService(status: LaunchAtLoginStatus) {
-        let service = FakeLoginService(status: status)
+    @Test("An unknown system state never triggers registration")
+    func doesNotMutateUnknownService() {
+        let service = FakeLoginService(status: .unknown)
         let store = LaunchAtLoginStore(service: service)
 
         #expect(!store.canChangeRegistration)
         #expect(store.setEnabled(true) == nil)
         #expect(service.registerCount == 0)
         #expect(service.unregisterCount == 0)
+    }
+
+    @Test("A failed first registration remains off and can be retried")
+    func retriesRegistrationAfterNotFound() async throws {
+        let service = FakeLoginService(status: .notFound)
+        service.registrationStatus = .notFound
+        service.registrationFails = true
+        let store = LaunchAtLoginStore(service: service)
+        let failedTask = try #require(store.setEnabled(true))
+        await failedTask.value
+
+        #expect(store.status == .notFound)
+        #expect(!store.isRegistered)
+        #expect(store.canChangeRegistration)
+        #expect(store.errorMessage != nil)
+        #expect(store.setEnabled(false) == nil)
+        #expect(service.unregisterCount == 0)
+
+        service.registrationStatus = .enabled
+        service.registrationFails = false
+        let retry = try #require(store.setEnabled(true))
+        await retry.value
+
+        #expect(service.registerCount == 2)
+        #expect(store.status == .enabled)
+        #expect(store.errorMessage == nil)
     }
 
     @Test("An in-flight removal cannot overlap a new registration")

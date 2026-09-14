@@ -664,3 +664,10 @@ The publisher confirmed the legal/trading name, registered office, existing publ
 The main Dorobanti Media privacy notice still assigns up to 24 months to unsuccessful project inquiries; this is a separate category from Core Metrics support. The publisher has been asked whether the 30-day rule should extend to those inquiries. This update does not modify that separate website or perform mailbox/CRM deletion.
 
 This native-repository follow-up updates release documentation only. App source, packaged resources and project configuration are unchanged; no new native build or UI test is claimed. The most recent native build/unit/analyze evidence and UI-runner initialization limitation remain those recorded above. The existing native Support/Privacy links reach the companion pages directly, so the disclosure update needs no native binary change.
+
+
+### Retention scope confirmation
+
+The publisher subsequently confirmed that deletion 30 days after last contact also covers unsuccessful project inquiries on the main Dorobanti Media site. Main-company commit `05620a9` was already pushed; direct HTTPS checks verified the new wording on both live Privacy pages. The main-company runbook assigns daily due-record checks and deletion to authorized administrator/mailbox workflows; its rate-limit cron is not an inquiry purge. The Core Metrics website handoff now closes the scope question. No production correspondence, inquiry record or backup was read or deleted.
+
+This native follow-up is documentation only. The prior source/build evidence remains applicable; no new native validation is claimed. The paired website’s test-only follow-up `a482c25` passed all 46 browser tests in hosted CI, including the confirmed bilingual legal facts. Documentation diffs and whitespace were reviewed before the authorized commit/push.

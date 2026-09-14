@@ -655,3 +655,12 @@ The paired website completed its Next.js 16.3.5 build, lint/type/content checks,
 
 
 The authorized app update was pushed as `07a994d`. The paired website legal/dependency commit `f478536` passed hosted CI and Vercel deployment; both languages’ revised Privacy and Terms were verified live. A subsequent public check exposed a pre-existing locale redirect causing the web manifest to return 404. Website follow-up `cee787c` excludes that generated endpoint from locale routing; its production build, ten configuration tests and all 21 Chromium tests passed (41.5 seconds). The public manifest subsequently returned 200 at its unredirected path with the updated description. The final app release checklist also explicitly records Apple’s separate EU DSA trader requirement; the account’s actual declaration remains unverified and publisher-controlled. This documentation follow-up does not change the tested app source.
+
+
+## Publisher facts follow-up — September 14, 2026
+
+The publisher confirmed the legal/trading name, registered office, existing public email/phone, Apple iCloud Mail and Vodafone support providers, authorized-personnel access and support deletion 30 days after last contact. The companion website’s English/Romanian Privacy pages and shared company details now use these facts. Provider backup deletion timing remains explicitly unverified. Remaining hosting/support operations, lawful grounds, transfers, effective date and license/final-copy approvals keep the policies in draft status.
+
+The main Dorobanti Media privacy notice still assigns up to 24 months to unsuccessful project inquiries; this is a separate category from Core Metrics support. The publisher has been asked whether the 30-day rule should extend to those inquiries. This update does not modify that separate website or perform mailbox/CRM deletion.
+
+This native-repository follow-up updates release documentation only. App source, packaged resources and project configuration are unchanged; no new native build or UI test is claimed. The most recent native build/unit/analyze evidence and UI-runner initialization limitation remain those recorded above. The existing native Support/Privacy links reach the companion pages directly, so the disclosure update needs no native binary change.

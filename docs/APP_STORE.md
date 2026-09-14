@@ -70,7 +70,7 @@ Only after explicit release authorization, archive through Xcode Organizer, insp
 
 ## Companion-site legal follow-up
 
-The website now contains the four-mode product copy and revised bilingual Privacy/Terms explanations. Operational disclosures must be verified and completed before removing draft status. The website repository’s `docs/PUBLISHER_INPUTS.md` lists the remaining company address, provider/access/retention/transfer facts, lawful grounds, effective date and license confirmation. These are separate from private App Store review contact and release signing. The latest source updates are authorized for commit/push; no App Store account declaration is implied.
+The website now contains the four-mode product copy and revised bilingual Privacy/Terms explanations. Operational disclosures must be verified and completed before removing draft status. The website repository’s `docs/PUBLISHER_INPUTS.md` records the September 14 confirmed company identity/office, support providers/access and 30-day correspondence retention. Remaining inputs cover hosting/support operations, provider backups, processing locations/transfers, lawful grounds, effective date and license confirmation. These are separate from private App Store review contact and release signing. The latest source updates are authorized for commit/push; no App Store account declaration is implied.
 
 
 ## EU trader information

@@ -278,6 +278,74 @@ final class CoreMetricsUITests: XCTestCase {
     }
 
     @MainActor
+    func testPanelPositionRemainsStableWhileChangingSelections() {
+        terminateExistingApplicationInstances()
+        let app = XCUIApplication()
+        app.launchEnvironment = ["CORE_METRICS_UI_TESTING": "1"]
+        app.launch()
+        defer { app.terminate() }
+
+        let statusItem = app.statusItems.firstMatch
+        XCTAssertTrue(statusItem.waitForExistence(timeout: 5))
+        guard clickStatusItem(statusItem) else { return }
+        let popover = app.popovers.containing(.button, identifier: "menuBar.settings").firstMatch
+        guard popover.waitForExistence(timeout: 5) else {
+            XCTFail("The selection panel should open before measuring its position")
+            return
+        }
+        let referenceFrame = popover.frame
+        var previousStatusWidth = statusItem.frame.width
+        var observations = ["Initial panel: \(NSStringFromRect(referenceFrame)); status width: \(previousStatusWidth)"]
+        defer {
+            let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
+            attachment.name = "Panel frames while selecting and deselecting readings"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+
+        // Grow from one to seven readings, then shrink back to one. Measure
+        // the native popover, not the SwiftUI content's proposed geometry.
+        let additions = ["cpuTotal", "cpuSystem", "cpuIdle", "memoryUsed", "memoryPercentage", "memoryWired"]
+        for (selecting, identifiers) in [(true, additions), (false, Array(additions.reversed()))] {
+            for identifier in identifiers {
+                let toggle = app.checkBoxes["menuBarStat.\(identifier)"]
+                reveal(toggle, in: popover.scrollViews.firstMatch)
+                toggle.click()
+                XCTAssertEqual(isSelected(toggle), selecting)
+                guard popover.exists else {
+                    XCTFail("Changing a selection should keep the panel open")
+                    return
+                }
+                let frame = popover.frame
+                let statusWidth = statusItem.frame.width
+                observations.append("\(selecting ? "Select" : "Deselect") \(identifier): \(NSStringFromRect(frame)); status width: \(statusWidth)")
+                if selecting {
+                    XCTAssertGreaterThan(statusWidth, previousStatusWidth, "The status label must resize immediately")
+                } else {
+                    XCTAssertLessThan(statusWidth, previousStatusWidth, "The status label must resize immediately")
+                }
+                previousStatusWidth = statusWidth
+                XCTAssertEqual(frame.minX, referenceFrame.minX, accuracy: 0.5)
+                XCTAssertEqual(frame.minY, referenceFrame.minY, accuracy: 0.5)
+                XCTAssertEqual(frame.width, referenceFrame.width, accuracy: 0.5)
+                XCTAssertEqual(frame.height, referenceFrame.height, accuracy: 0.5)
+            }
+        }
+
+        app.buttons["menuBar.settings"].typeKey(.escape, modifierFlags: [])
+        XCTAssertTrue(popover.waitForNonExistence(timeout: 3))
+        guard clickStatusItem(statusItem) else { return }
+        XCTAssertTrue(popover.waitForExistence(timeout: 3))
+        XCTAssertTrue(isSelected(app.checkBoxes["menuBarStat.cpuUser"]))
+        XCTAssertEqual(app.checkBoxes.allElementsBoundByIndex.filter { isSelected($0) }.count, 1)
+        // The positioning view must leave even the last point of the native
+        // status button clickable, rather than swallowing mouse events.
+        statusItem.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0.5))
+            .withOffset(CGVector(dx: -0.5, dy: 0)).click()
+        XCTAssertTrue(popover.waitForNonExistence(timeout: 3))
+    }
+
+    @MainActor
     func testStatusItemPositionRemainsStableAcrossLiveCPUValues() throws {
         terminateExistingApplicationInstances()
 

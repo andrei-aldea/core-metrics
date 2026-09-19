@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
     private let popover = NSPopover()
+    private let anchorView = StatusPanelAnchorView(frame: .zero)
     private let onClose: @MainActor () -> Void
     private var isClosing = false
 
@@ -44,7 +45,8 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
             onClose()
             return
         }
-        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        anchorView.attach(to: button)
+        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         guard popover.isShown else {
             onClose()
             return

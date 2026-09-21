@@ -1,6 +1,10 @@
 # App Store listing draft
 
-**Draft only — not submitted.** Refreshed September 12, 2026 from the September 6 preparation for the existing **Core Metrics: Mac Stats** App Store Connect record, macOS version 1.0 in Prepare for Submission, and the Settings / Copy Readings / Quit footer. This drafting task made no upload, signing change, publisher declaration or screenshot submission. Complete the pending publisher fields before submission.
+**Public App Store listing draft — not a new submission.**
+
+September 21 status: native release notes record TestFlight build **1.0 (2)** from `96edf35`, uploaded September 20, with saved beta metadata/contact, zero testers and external beta review pending. No public App Store version was submitted. Historical field observations below do not override that beta record, and this audit did not re-open App Store Connect.
+
+The public listing copy was refreshed September 12 from the September 6 preparation for **Core Metrics: Mac Stats**, macOS version 1.0 in Prepare for Submission. Verify the public-version fields before submission; this audit made no upload, signing change, publisher declaration or screenshot submission.
 
 The September 6 App Store Connect preparation saved the subtitle, Utilities category, promotional text, description, keywords and the then-current review notes, and cleared Sign-in required. On September 12, the revised four-mode description, Support URL and reviewer instructions were entered in the existing version page, but **Save was rejected because the four review-contact fields were empty**. These prepared edits have not been verified as saved. Sign-in required remains off; the app needs no credentials. Apple's review-contact fields are separate publisher information.
 
@@ -64,7 +68,7 @@ Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a com
 The app reads aggregate system values through public Apple APIs. It has no accounts, network connections, purchases or retained metric history. A dash indicates an unavailable reading. Storage represents startup-volume capacity, not a file scan. Long selections need sufficient menu-bar space; Compact, Icon and Value, or Values Only use less room. If the readings are hidden, open the already-running app in Finder to recover Settings.
 ```
 
-Reviewer contact name, email and international-format phone number remain **pending publisher entry**. These private fields must not be added to the repository. [Review contact requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
+The September 12 public-version review-contact fields were pending; the September 20 release notes subsequently confirm saved TestFlight review/feedback contacts and beta metadata. Verify the public-version fields independently before submission. These private fields must not be added to the repository. [Review contact requirements](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
 
 ## App Privacy answers for publisher review
 
@@ -95,7 +99,7 @@ Capture real app UI and real current readings on a clean desktop without persona
 
 ## Submission prerequisites and pending publisher fields
 
-**Toolchain acceptance rechecked September 12, 2026.** Apple released **Xcode 27 RC (`27A266a`)** on September 9 and explicitly accepts its macOS 27 RC builds for **App Store and TestFlight** uploads. The installed toolchain remains **Xcode 27 beta 6 (`27A5252f`)**, which the earlier August 25 notice accepted only for TestFlight. Install the accepted RC and repeat local validation before an authorized distribution archive. Its download requires Apple Developer sign-in. [Apple developer releases](https://developer.apple.com/news/releases/), [App Store Connect release notes](https://developer.apple.com/help/app-store-connect/release-notes/).
+**Toolchain acceptance rechecked September 12, 2026.** Apple released **Xcode 27 RC (`27A266a`)** on September 9 and explicitly accepts its macOS 27 RC builds for **App Store and TestFlight** uploads. Xcode 27 RC is installed and was used for the September 20 TestFlight delivery and September 21 local validation; beta 6 remains installed for historical diagnostics. Select the RC per invocation and validate the final shipping candidate. No additional installation is currently needed. [Apple developer releases](https://developer.apple.com/news/releases/), [App Store Connect release notes](https://developer.apple.com/help/app-store-connect/release-notes/).
 The April 28, 2026 SDK notice names iOS/iPadOS, tvOS, visionOS and watchOS 26; it does not establish a macOS 26 SDK minimum or approve a macOS 27 beta archive. Recheck Apple's upload requirements before the authorized distribution build. [Current submission requirements](https://developer.apple.com/app-store/submitting/), [upload guidance](https://developer.apple.com/help/app-store-connect/manage-builds/upload-builds).
 
 | Pending item | Publisher action |

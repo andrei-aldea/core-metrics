@@ -115,6 +115,30 @@ struct MenuBarLabelLayoutTests {
         }
     }
 
+    @Test("Native percentage titles preserve every value and fit in every available locale")
+    func percentageTitlesFitAvailableLocales() {
+        for identifier in Locale.availableIdentifiers {
+            let locale = Locale(identifier: identifier)
+            let layout = MenuBarLabelLayout(locale: locale)
+            for mode in MenuBarDisplayMode.allCases {
+                let width = layout.width(stats: [.cpuUser], displayMode: mode)
+                for percent in 0...100 {
+                    let value = MetricFormatting.percentage(Double(percent) / 100, locale: locale)
+                    let title = layout.attributedTitle(stats: [.cpuUser], values: [value], displayMode: mode)
+                    #expect(title.string.hasSuffix(value), "Preserve locale text in \(identifier)")
+                    #expect(title.size().width <= width, "Native glyphs must fit in \(identifier), \(mode), \(percent)")
+                }
+            }
+        }
+    }
+
+    @Test("Mismatched native reading input shows Unavailable")
+    func rejectsMismatchedReadings() {
+        let layout = MenuBarLabelLayout(locale: Locale(identifier: "en_US_POSIX"))
+        #expect(layout.attributedTitle(stats: [.cpuUser], values: [], displayMode: .compact).string
+            == MetricFormatting.unavailable)
+    }
+
     @Test("Localized fallback digits fit the fixed status frame", arguments: [
         "ccp_BD", "my_MM", "mni_Mtei_IN", "ar_SA", "fa_IR", "tr_TR", "fr_FR", "ro_RO", "en_US_POSIX",
     ])

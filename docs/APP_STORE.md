@@ -2,6 +2,10 @@
 
 **Reviewed September 12, 2026.** Technical verification and remaining limits are in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md#production-readiness-review--september-12-2026). Local validation is not an App Store submission. No distribution archive, upload, publisher declaration, or account/signing change was performed in this review.
 
+**TestFlight update — September 20, 2026:** The publisher subsequently authorized beta delivery. Version **1.0 (2)** from `96edf35` was archived with local release-only identity overrides, distribution-signed, validated by Apple, uploaded and processed successfully. It is assigned to **Internal Testers** as **Ready to Test** and to **External Testers** as **Waiting for Review** after successful beta-review submission. The review/feedback contacts, reviewer instructions and beta metadata were saved and verified. Both groups contain **zero testers**, as explicitly requested, and no public invitation link was enabled. Apple beta-review approval remains pending. No public App Store submission has occurred. See the [release evidence and blockers](PROJECT_ANALYSIS_REPORT.md#testflight-build-preparation-and-upload--september-20-2026). The older observations below are historical where this update supersedes them.
+
+The TestFlight states above were observed on September 20; they are not a fresh Connect status check. Current verification and remaining owner actions are maintained in the [cross-repository report](<../../core-metrics-website/docs/audit/VERIFICATION.md>) and [launch checklist](<../../core-metrics-website/docs/audit/OWNER_ACTIONS.md>).
+
 ## Current release requirements
 
 | Area | State and next action |

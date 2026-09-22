@@ -873,3 +873,9 @@ The final delivery-document review checks the observed failed upload against pri
 ### Requested upload retry — September 22, 2026
 
 The user requested another attempt. A refreshed Core Metrics portal showed no build 4, no build-4 upload process was active, and the preserved package checksum, archive/export signatures, privacy and permissions checks still passed. The same validated archive was retried without rebuilding or changing signing. Xcode ended with **exit 70 / EXPORT FAILED** after five internal retries; Apple returned unexpected HTML error content and **HTTP 504** while updating the `buildUploadFiles` checksum. A subsequent refresh of both Build Uploads and Builds still showed only builds 1–3, with build 3 **Testing**. The retry receipt and timestamps are preserved privately. The existing 30-minute follow-up remains scheduled; no new user information or production-source change is required for the next service retry.
+
+### Successful scheduled upload retry — September 22, 2026
+
+A fresh Safari check showed only builds 1–3 in both Build Uploads and Builds, with no active build-4 upload. The preserved package checksum and archive/export checks passed again. One bounded retry reused the same validated archive, private export options and Xcode 27 RC, without rebuilding, incrementing the version or changing signing. Apple accepted the upload: Xcode exited **0 / EXPORT SUCCEEDED** and retained its successful upload receipt. The correct Core Metrics TestFlight record then showed **1.0 (4) — Processing**, created at **14:32 local time**. The earlier HTTP 504 failures are superseded by this accepted upload; no further upload retry is needed.
+
+Processing and external-group delivery remain pending. The private metadata, command log and full distribution logs are preserved. The existing quiet follow-up remains active to finish the authorized TestFlight delivery; no public review, publication, tester addition or permission change occurred.

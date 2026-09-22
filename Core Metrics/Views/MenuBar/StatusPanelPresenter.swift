@@ -8,6 +8,8 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
     private let anchorView = StatusPanelAnchorView(frame: .zero)
     private let onClose: @MainActor () -> Void
     private var isClosing = false
+    private var positionObservationTask: Task<Void, Never>?
+    private var positionedButtonSize: NSSize?
 
     init(
         openSettings: OpenSettingsAction,
@@ -40,11 +42,16 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
         )
     }
 
+    deinit {
+        positionObservationTask?.cancel()
+    }
+
     func show(relativeTo button: NSStatusBarButton) {
         guard !isClosing else {
             onClose()
             return
         }
+        positionedButtonSize = button.bounds.size
         anchorView.attach(to: button)
         popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
         guard popover.isShown else {
@@ -55,6 +62,7 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
         // transient popover native focus so an outside click can dismiss it.
         NSApplication.shared.activate()
         popover.contentViewController?.view.window?.makeKey()
+        observePosition(of: button)
     }
 
     func close() {
@@ -63,8 +71,34 @@ final class StatusPanelPresenter: NSObject, NSPopoverDelegate {
         popover.close()
     }
 
+    private func updatePosition(relativeTo button: NSStatusBarButton) {
+        guard popover.isShown, !isClosing,
+              positionedButtonSize != button.bounds.size else { return }
+        positionedButtonSize = button.bounds.size
+        anchorView.attach(to: button)
+        popover.show(relativeTo: anchorView.bounds, of: anchorView, preferredEdge: .minY)
+    }
+
+    private func observePosition(of button: NSStatusBarButton) {
+        positionObservationTask?.cancel()
+        guard let window = button.window else { return }
+        // A status-item resize and its backing-window move happen separately.
+        // Reanchor after the move so the popover does not retain an intermediate
+        // screen position from the view's earlier autoresizing notification.
+        // Pure window moves need no refresh: AppKit already tracks the anchor.
+        let moves = NotificationCenter.default.notifications(named: NSWindow.didMoveNotification, object: window)
+        positionObservationTask = Task { @MainActor [weak self, weak button] in
+            for await _ in moves {
+                guard !Task.isCancelled, let button else { return }
+                self?.updatePosition(relativeTo: button)
+            }
+        }
+    }
+
     func popoverWillClose(_ notification: Notification) {
         isClosing = true
+        positionObservationTask?.cancel()
+        positionObservationTask = nil
     }
 
     func popoverDidClose(_ notification: Notification) {

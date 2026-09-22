@@ -244,6 +244,7 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("Clicking outside in another application should dismiss the panel")
             return
         }
+        XCTAssertTrue(XCUIApplication(bundleIdentifier: "com.apple.finder").wait(for: .runningForeground, timeout: 3))
 
         guard clickStatusItem(statusItem) else { return }
         XCTAssertTrue(panel.waitForExistence(timeout: 3))
@@ -251,6 +252,17 @@ final class CoreMetricsUITests: XCTestCase {
         let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
         guard verifyPanelDismissedForSettings(panel) else { return }
+        // Keep this test-owned window clear of the Finder window opened by
+        // the Dock click above. A status session may leave Finder in front;
+        // an occluded title bar would make the next click hit Finder instead.
+        let titleBar = settingsWindow.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0))
+            .withOffset(CGVector(dx: 0, dy: 12))
+        let target = titleBar.withOffset(CGVector(
+            dx: 20 - settingsWindow.frame.minX,
+            dy: 80 - settingsWindow.frame.minY
+        ))
+        titleBar.click(forDuration: 0.2, thenDragTo: target)
+        XCTAssertTrue(settingsWindow.wait(for: \.isHittable, toEqual: true, timeout: 3))
         guard clickStatusItem(statusItem) else { return }
         XCTAssertTrue(panel.waitForExistence(timeout: 3))
 
@@ -263,6 +275,7 @@ final class CoreMetricsUITests: XCTestCase {
             XCTFail("The Settings title-bar click must be outside the shown popover")
             return
         }
+        XCTAssertTrue(settingsWindow.wait(for: \.isHittable, toEqual: true, timeout: 3), "Settings must be visible before clicking its title bar")
         outside.click()
         XCTAssertTrue(panel.waitForNonExistence(timeout: 3))
         XCTAssertTrue(settingsWindow.isHittable)
@@ -295,7 +308,7 @@ final class CoreMetricsUITests: XCTestCase {
         }
         let referenceFrame = popover.frame
         var previousStatusWidth = statusItem.frame.width
-        var observations = ["Initial panel: \(NSStringFromRect(referenceFrame)); status width: \(previousStatusWidth)"]
+        var observations = ["Initial panel: \(NSStringFromRect(referenceFrame)); status frame: \(NSStringFromRect(statusItem.frame))"]
         defer {
             let attachment = XCTAttachment(string: observations.joined(separator: "\n"))
             attachment.name = "Panel frames while selecting and deselecting readings"
@@ -318,7 +331,7 @@ final class CoreMetricsUITests: XCTestCase {
                 }
                 let frame = popover.frame
                 let statusWidth = statusItem.frame.width
-                observations.append("\(selecting ? "Select" : "Deselect") \(identifier): \(NSStringFromRect(frame)); status width: \(statusWidth)")
+                observations.append("\(selecting ? "Select" : "Deselect") \(identifier): \(NSStringFromRect(frame)); status frame: \(NSStringFromRect(statusItem.frame))")
                 if selecting {
                     XCTAssertGreaterThan(statusWidth, previousStatusWidth, "The status label must resize immediately")
                 } else {

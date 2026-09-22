@@ -1,8 +1,14 @@
-# Cross-repository verification — September 21, 2026
+# Cross-repository verification
 
 The sibling website repository owns the single current [42-item findings register](../../../core-metrics-website/docs/audit/FINDINGS.md), [verification report and delivery evidence](../../../core-metrics-website/docs/audit/VERIFICATION.md), [ordered launch checklist and owner inputs](../../../core-metrics-website/docs/audit/OWNER_ACTIONS.md), [product/data inventory](../../../core-metrics-website/docs/audit/PRODUCT_AND_DATA.md) and [legal/Apple source matrix](../../../core-metrics-website/docs/audit/LEGAL_APPLICABILITY.md). These links assume sibling checkouts. This bridge does not duplicate the findings register.
 
-## Latest verification and delivery
+## Native release update — September 22, 2026
+
+The native release report supersedes the September 21 candidate/access observations below: **1.0 (3)** from `a82a4ad` passed Apple validation, upload and processing. Following the user's TestFlight-only instruction, Safari confirms **Waiting for Review** in External Testers and one **Invited** tester. The earlier build 2 is approved for external beta testing. Current beta contacts are present; the public version is still Prepare for Submission with missing screenshots, selected build, copyright and public-review contact fields. Public publication is explicitly excluded. See [current release status](../APP_STORE.md) and the [native evidence](../PROJECT_ANALYSIS_REPORT.md#testflight-tester-delivery-and-validation-repair--september-22-2026).
+
+The upload exposed a file-permission defect in locally created artifacts. Corrected release artifacts passed Apple validation; the repository validator now runs Xcode with normal file permissions inside a private parent directory and rejects unreadable bundle resources. Permission fixtures reproduce the rejected signature resource and cover directory/executable access. Current validation and tester-delivery results are recorded in the native report. Desktop automation and the separate website factual/legal checklist remain distinct from successful build processing.
+
+## September 21 verification and delivery baseline
 
 The user explicitly requested fixes, separate commits and pushes. The native implementation through `919b262` and website quiet redesign `ddd62c5`/documentation `7150078` were already on remote main when this final pass began. Website `8096adc` adds sequential Firefox/WebKit CI coverage; `d1496a9` gives each public route an independent test deadline; `03554c7` excludes generated trace reports from source lint; `29a2081` fixes missed Remove clicks during pending focus scrolling. The final local suites pass **108 Chromium /72 WebKit**, with 13 unit checks and production build/type/lint checks also passing. The revised Firefox route suite passed 70 cases in the earlier Linux run before it was superseded; final two-regression/full-pipeline evidence is in the shared report. Exact completed CI/deployment results are maintained in the shared verification report.
 

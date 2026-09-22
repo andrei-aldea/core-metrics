@@ -24,8 +24,9 @@ then check working/staged diffs. Builds are unsigned.
 --help                Show this help without invoking Xcode.
 
 Raw logs, resolved settings, products and test results remain in the run
-directory. Nothing is deleted, archived for distribution, signed with a
-publisher identity, uploaded, or committed. Existing Xcode selection and
+directory. Only temporary permission fixtures created by this run are removed;
+validation products/logs are retained. Nothing is archived for distribution,
+signed with a publisher identity, uploaded, or committed. Existing Xcode selection and
 signing/project configuration are not changed. Respect DEVELOPER_DIR when
 selecting an already installed Xcode for this invocation.
 
@@ -77,6 +78,14 @@ derived_data="$run_dir/DerivedData"
 ui_data="$run_dir/UIData"
 helper="$script_dir/validate-artifacts.swift"
 destination='platform=macOS,arch=arm64'
+
+# Keep logs/configuration private, but let Xcode create distributable file modes
+# inside the private run directory. A restrictive inherited umask can leave
+# CodeResources unreadable to other users despite a valid code signature.
+run_xcodebuild() (
+    umask 022
+    command xcodebuild "$@"
+)
 
 run_step() {
     local name=$1
@@ -179,7 +188,7 @@ record_inputs() {
 capture_settings() {
     local configuration=$1
     local code=0
-    xcodebuild -project "$project" -scheme 'Core Metrics' -configuration "$configuration" \
+    run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration "$configuration" \
         -destination "$destination" -derivedDataPath "$derived_data" \
         CODE_SIGNING_ALLOWED=NO -showBuildSettings -json > "$run_dir/$configuration-settings.json" || code=$?
     # Preserve stdout in the raw step log as well, including any diagnostics
@@ -197,20 +206,21 @@ run_step toolchain check_toolchain || exit 1
 run_step input-fingerprints record_inputs || exit 1
 run_step source-plist-syntax plutil -lint "$project/project.pbxproj" "$source_privacy" "$source_entitlements" || exit 1
 run_step source-policy xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" source "$repo_root" || exit 1
-run_step project-list xcodebuild -list -project "$project" || exit 1
-run_step dependencies xcodebuild -project "$project" -scheme 'Core Metrics' \
+run_step bundle-permission-regressions bash "$script_dir/test-bundle-permissions.sh" || exit 1
+run_step project-list run_xcodebuild -list -project "$project" || exit 1
+run_step dependencies run_xcodebuild -project "$project" -scheme 'Core Metrics' \
     -derivedDataPath "$derived_data" -clonedSourcePackagesDirPath "$run_dir/SourcePackages" \
     -resolvePackageDependencies || exit 1
 run_step debug-settings capture_settings Debug || exit 1
 run_step release-settings capture_settings Release || exit 1
-run_step debug-build xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
+run_step debug-build run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
     -destination "$destination" -derivedDataPath "$derived_data" CODE_SIGNING_ALLOWED=NO build || exit 1
-run_step unit-tests xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
+run_step unit-tests run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
     -destination "$destination" -derivedDataPath "$derived_data" -resultBundlePath "$run_dir/UnitTests.xcresult" \
     CODE_SIGNING_ALLOWED=NO test || exit 1
-run_step release-build xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Release \
+run_step release-build run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Release \
     -destination "$destination" -derivedDataPath "$derived_data" CODE_SIGNING_ALLOWED=NO build || exit 1
-run_step analyze xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
+run_step analyze run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
     -destination "$destination" -derivedDataPath "$derived_data" CODE_SIGNING_ALLOWED=NO analyze || exit 1
 run_step packaged-plist-syntax plutil -lint \
     "$derived_data/Build/Products/Debug/Core Metrics.app/Contents/Info.plist" \
@@ -221,13 +231,15 @@ run_step packaged-policy xcrun swift -module-cache-path "$run_dir/SwiftModuleCac
     artifacts "$repo_root" "$run_dir" || exit 1
 
 if [ "$with_ui" -eq 1 ]; then
-    run_step ui-tests xcodebuild -project "$project" -scheme 'Core Metrics UI Tests' -configuration Debug \
+    run_step ui-tests run_xcodebuild -project "$project" -scheme 'Core Metrics UI Tests' -configuration Debug \
         -destination "$destination" -derivedDataPath "$ui_data" -resultBundlePath "$run_dir/UITests.xcresult" \
         -parallel-testing-enabled NO CODE_SIGN_IDENTITY=- CODE_SIGNING_REQUIRED=YES test || exit 1
     run_step ui-entitlements capture_ui_entitlements || exit 1
     run_step ui-entitlements-syntax plutil -lint "$run_dir/ui-entitlements.plist" || exit 1
     run_step ui-sandbox xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" \
         ui "$run_dir/ui-entitlements.plist" || exit 1
+    run_step ui-bundle-permissions xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" \
+        permissions "$ui_data/Build/Products/Debug/Core Metrics.app" || exit 1
 else
     printf '[SKIP] Native UI tests (request --ui to run them).\n'
     printf 'ui-tests\tSKIP\t0\n' >> "$summary"

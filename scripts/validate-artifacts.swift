@@ -123,6 +123,7 @@ func settings(_ url: URL, configuration: String) throws -> [String: String] {
 }
 
 func verifyBundle(_ bundle: URL, settings values: [String: String], sourcePrivacy: [String: Any]) throws {
+    try verifyBundlePermissions(bundle)
     let info = try plist(bundle.appendingPathComponent("Contents/Info.plist"))
     for (key, setting) in [
         "CFBundleIdentifier": "PRODUCT_BUNDLE_IDENTIFIER",
@@ -145,6 +146,47 @@ func verifyBundle(_ bundle: URL, settings values: [String: String], sourcePrivac
     let packagedPrivacy = try plist(bundle.appendingPathComponent("Contents/Resources/PrivacyInfo.xcprivacy"))
     try verifyPrivacy(packagedPrivacy)
     try require(NSDictionary(dictionary: sourcePrivacy).isEqual(to: packagedPrivacy), "Packaged privacy manifest differs from source.")
+}
+
+func verifyBundlePermissions(_ bundle: URL) throws {
+    let manager = FileManager.default
+    var enumerationError: Error?
+    guard let entries = manager.enumerator(
+        at: bundle,
+        includingPropertiesForKeys: nil,
+        errorHandler: { _, error in
+            enumerationError = error
+            return false
+        }
+    ) else {
+        throw ValidationFailure.check("Cannot enumerate app bundle permissions.")
+    }
+    var urls = [bundle]
+    for case let entry as URL in entries { urls.append(entry) }
+    if let enumerationError { throw enumerationError }
+    for url in urls {
+        let attributes = try manager.attributesOfItem(atPath: url.path)
+        guard let mode = attributes[.posixPermissions] as? NSNumber,
+              let type = attributes[.type] as? FileAttributeType else {
+            throw ValidationFailure.check("App bundle permissions are unavailable.")
+        }
+        if type == .typeDirectory {
+            try require(mode.intValue & 0o555 == 0o555, "App bundle directories must be readable and traversable by all users.")
+        } else if type == .typeRegular {
+            try require(mode.intValue & 0o444 == 0o444, "App bundle files must be readable by all users.")
+        }
+    }
+    let info = try plist(bundle.appendingPathComponent("Contents/Info.plist"))
+    guard let executable = info["CFBundleExecutable"] as? String,
+          !executable.isEmpty, !executable.contains("/"), ![".", ".."].contains(executable) else {
+        throw ValidationFailure.check("App bundle executable name is missing or invalid.")
+    }
+    let executableURL = bundle.appendingPathComponent("Contents/MacOS").appendingPathComponent(executable)
+    let attributes = try manager.attributesOfItem(atPath: executableURL.path)
+    try require(attributes[.type] as? FileAttributeType == .typeRegular, "App bundle executable must be a regular file.")
+    let mode = (attributes[.posixPermissions] as? NSNumber)?.intValue ?? 0
+    try require(mode & 0o111 == 0o111, "App bundle executable must be executable by all users.")
+    print("App bundle files are readable and directories/executable accessible to all users.")
 }
 
 func verifyReleaseIsolation(_ bundle: URL) throws {
@@ -198,6 +240,8 @@ do {
         let entitlements = try plist(URL(fileURLWithPath: arguments[1]))
         try require(boolean(entitlements["com.apple.security.app-sandbox"], equals: true), "Ad-hoc UI app is missing effective App Sandbox.")
         print("Ad-hoc UI app has effective App Sandbox. Debug/test exceptions do not validate a distribution signature.")
+    case "permissions" where arguments.count == 2:
+        try verifyBundlePermissions(URL(fileURLWithPath: arguments[1], isDirectory: true))
     default:
         throw ValidationFailure.check("Invalid artifact-verifier arguments; use scripts/validate.sh.")
     }

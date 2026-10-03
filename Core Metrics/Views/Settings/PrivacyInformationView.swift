@@ -35,7 +35,7 @@ struct PrivacyInformationView: View {
                         Text("Copying Readings")
                             .font(.headline)
                             .accessibilityAddTraits(.isHeader)
-                        Text("Copy Readings writes your selected readings to the macOS clipboard when you request it. macOS manages clipboard contents and may share them between your devices when Universal Clipboard is enabled.")
+                        Text("Copy Readings writes your selected readings to this Mac’s clipboard only when you request it. These copies are excluded from Universal Clipboard. Anything you paste into another app is then handled by that app.")
                     }
 
                     VStack(alignment: .leading, spacing: 8) {

@@ -1,6 +1,10 @@
 # App Store, privacy, and release preparation
 
-**Current check — September 22, 2026:** The panel geometry repair is committed and pushed as **`51218f1`**. Its distribution-signed **1.0 (4)** archive and package pass identity/version, signatures, sandbox, hardened runtime, privacy, Release isolation and file-permission checks. Apple validation succeeded. After two earlier HTTP 504 upload failures, a bounded scheduled retry of the same preserved archive succeeded with **exit 0 / EXPORT SUCCEEDED**, and TestFlight processing completed. Build 4 is assigned to **External Testers** and **Waiting for Review** after the required Beta App Review submission. Concrete What to Test instructions cover panel stability, all four display modes, Settings, outside-click/Escape dismissal, reopening and saved preferences; automatic tester notification is enabled. **Finish Core Metrics TestFlight build** checks review and availability every 30 minutes, staying quiet while unchanged. No further upload or review submission is needed while review is pending.
+**Latest delivery — October 4:** signed build **1.0 (5)** passed Apple validation, upload and processing and is **Testing** for the existing External Testers group. The refined icon is visible beside the build. The website update is pushed and deployed; its legal policies still require the remaining operating facts and approval. See the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md) for public fields, acceptance checks and the new validation limits. No public App Store submission occurred.
+
+Current legal status: [October 3 app and website review](<../../core-metrics-website/docs/audit/LEGAL_REVIEW_2026-10-03.md>). The revised candidate excludes copied readings from Universal Clipboard; distribute that build before publishing matching claims. Earlier account/build observations below remain dated evidence.
+
+**Historical check — September 22, 2026:** The panel geometry repair is committed and pushed as **`51218f1`**. Its distribution-signed **1.0 (4)** archive and package pass identity/version, signatures, sandbox, hardened runtime, privacy, Release isolation and file-permission checks. Apple validation succeeded. After two earlier HTTP 504 upload failures, a bounded scheduled retry of the same preserved archive succeeded with **exit 0 / EXPORT SUCCEEDED**, and TestFlight processing completed. Build 4 is assigned to **External Testers** and **Waiting for Review** after the required Beta App Review submission. Concrete What to Test instructions cover panel stability, all four display modes, Settings, outside-click/Escape dismissal, reopening and saved preferences; automatic tester notification is enabled. **Finish Core Metrics TestFlight build** checks review and availability every 30 minutes, staying quiet while unchanged. No further upload or review submission is needed while review is pending.
 
 Existing **1.0 (3)** from `a82a4ad` is **Testing** in **External Testers**, and the sole requested tester is **Accepted**. The invitation is complete; no resend or public link is needed. Final local validation of the repair passes Debug/Release, all **71 unit and 13 desktop tests**, analysis and packaging checks. See the [desktop repair](PROJECT_ANALYSIS_REPORT.md#desktop-recovery-and-selection-panel-geometry-repair--september-22-2026) and [build-4 upload evidence](PROJECT_ANALYSIS_REPORT.md#build-4-validation-and-upload-attempt--september-22-2026).
 
@@ -12,7 +16,7 @@ Safari confirmed that the earlier **1.0 (2)** is **Approved** for external beta 
 
 The states in the September 20 historical paragraph are superseded by the current check at the top of this page. Broader cross-repository verification and remaining owner actions are maintained in the [cross-repository report](<../../core-metrics-website/docs/audit/VERIFICATION.md>) and [launch checklist](<../../core-metrics-website/docs/audit/OWNER_ACTIONS.md>).
 
-## Current release requirements
+## September 22 release requirements — historical snapshot
 
 | Area | State and next action |
 | --- | --- |
@@ -61,7 +65,7 @@ Unit tests cover first registration, removal, approval, failure/retry, cancellat
 
 This was a manual source/privacy review and local Xcode analysis; no Codex Security Scan or external scanner was used. Reviewed areas include public provider APIs, pointer/port ownership, arithmetic bounds, structured cancellation, migration, logging, target/resource membership, signature assumptions, effective entitlements and packaged files.
 
-Data flow remains aggregate CPU/memory/swap and startup-volume capacity → current in-memory snapshots → local display. The app stores menu-bar preferences only. Logs contain category/availability transitions. Copy Readings writes complete selected readings only on request; automated checks use an isolated pasteboard or injected writer. macOS may share clipboard contents through enabled Universal Clipboard.
+Data flow remains aggregate CPU/memory/swap and startup-volume capacity → current in-memory snapshots → local display. The app stores menu-bar preferences only. Logs contain category/availability transitions. Copy Readings writes complete selected readings only on request; automated checks use an isolated pasteboard or injected writer. The current source uses `.currentHostOnly` to exclude these copies from Universal Clipboard; previously uploaded builds do not yet contain this change.
 
 The bundled `Contents/Resources/PrivacyInfo.xcprivacy` declares no tracking or collected data:
 
@@ -82,7 +86,7 @@ Only after explicit release authorization, archive through Xcode Organizer, insp
 
 ## Companion-site legal follow-up
 
-The website now contains the four-mode product copy and revised bilingual Privacy/Terms explanations. Operational disclosures must be verified and completed before removing draft status. The website repository’s `docs/PUBLISHER_INPUTS.md` records the September 14 confirmed company identity/office, support providers/access and 30-day correspondence retention. Remaining inputs cover hosting/support operations, provider backups, processing locations/transfers, lawful grounds, effective date and license confirmation. These are separate from private App Store review contact and release signing. The latest source updates are authorized for commit/push; no App Store account declaration is implied.
+The website now contains the four-mode product copy and revised bilingual Privacy/Terms explanations. Operational disclosures must be verified and completed before removing draft status. The website repository’s `docs/PUBLISHER_INPUTS.md` records the September 14 confirmed company identity/office, support providers/access and 30-day correspondence retention. Remaining inputs cover hosting/support operations, provider backups, processing locations/transfers, lawful grounds, effective date and license confirmation. These are separate from private App Store review contact and release signing. The earlier commit/push authorization applied to its dated delivery. The later October 3–4 request authorized commits, pushes, website deployment and TestFlight delivery; public App Store submission and unresolved publisher declarations remain pending.
 
 
 ## EU trader information

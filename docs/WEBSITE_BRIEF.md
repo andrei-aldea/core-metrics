@@ -75,7 +75,7 @@ PRIVACY AND PRODUCT BOUNDARIES
 
 The app reads aggregate metrics locally through public Apple APIs and is sandboxed. Current readings remain in memory; only menu-bar selection and display preferences are saved locally. macOS separately manages login registration. The app has no network client, telemetry, tracking, analytics, accounts or third-party SDKs. App-authored diagnostic messages contain only metric category and availability state and are not transmitted by the app.
 
-Support and Privacy Policy links open fixed public URLs in the person’s browser without attaching readings or preferences. Explicit clipboard copying is managed by macOS, which may share it through enabled Universal Clipboard.
+Support and Privacy Policy links open fixed public URLs in the person’s browser without attaching readings or preferences. The revised candidate explicitly excludes copied readings from Universal Clipboard using `.currentHostOnly`. Match website copy to the build actually distributed.
 
 Do not introduce claims or product visuals for temperature, fan control, GPU/battery/network monitoring, cleaning, optimization, process inspection/killing, file scanning, malware detection, privileged helpers, hardware tuning, cloud sync, accounts or history. Macs Fan Control was only a visual sizing reference; it is not an integration or affiliation. Do not claim zero resource use, guaranteed speed/battery improvements, complete accessibility certification or bug-free operation.
 

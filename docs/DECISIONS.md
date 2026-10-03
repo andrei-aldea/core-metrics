@@ -65,7 +65,7 @@ Use public `SMAppService.mainApp` behind an injectable MainActor service. Read O
 
 ## ADR-012 — Explicit current-reading copy and local help
 
-Copy full selected names and formatted values on an explicit action, independent of menu-bar visibility or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success changes the text-only Copy Readings button label to Copied and posts a spoken announcement; failure uses a native alert. macOS owns the clipboard after writing, and Privacy describes possible Universal Clipboard sharing.
+Copy full selected names and formatted values on an explicit action, independent of menu-bar visibility or representation. Use the same locale-aware value formatting, spell out unavailable readings, and omit timestamps and machine identity. The clipboard writer is injectable; a private named-pasteboard fixture covers the actual API without touching the general clipboard. Success changes the text-only Copy Readings button label to Copied and posts a spoken announcement; failure uses a native alert. The writer excludes copied readings from Universal Clipboard, and Privacy explains the limit; see ADR-026.
 
 Offer concise Metric Help from Settings as a native scrollable sheet. Its content follows the existing metric definitions, including overlapping memory categories and the difference between memory use and pressure. It adds no acquisition, networking, or history.
 
@@ -201,3 +201,10 @@ Selection persistence, immediate label updates and width recomputation remain un
 2026-09-21. Repository-wide call-site review found that `MenuBarLabelFormatting.text`, `paddedValue`, `reservedCharacterCount` and character-width helpers were called only by their own tests. Native status/Settings presentation uses `MenuBarLabelLayout`; copying uses `CurrentReadingsFormatting`. These internal Swift symbols have no selectors, resource registration, persistence role or external module consumers. Keep the shared prefixes, direction anchors and separators, plus all preference migration paths and icon resources.
 
 Remove the obsolete renderer and replace its all-locale character-count check with actual attributed-title preservation and measured glyph-fit coverage for 0…100 in every available locale and all four modes. Existing native column-position, bidi spacing, symbol, canonical-order and desktop geometry checks remain. This consolidates the presentation contract without changing formulas, selection behavior or geometry.
+
+
+## ADR-026 — Keep copied readings on the current Mac
+
+The October 3 legal review identified automatic Universal Clipboard propagation as avoidable off-device transfer of disk-space readings. Apple’s declared `85F4.1` reason restricts that information to on-device display, with only a narrow local-network exception. Prepare every explicit copy using the public [`NSPasteboard.ContentsOptions.currentHostOnly`](https://developer.apple.com/documentation/appkit/nspasteboard/contentsoptions/currenthostonly) option before writing text. Keep the ordinary local copy action, failure feedback, injected writers and named-pasteboard tests. Do not invent a different required reason or add a network entitlement.
+
+Privacy explains that copies do not use Universal Clipboard and that another app handles anything the person subsequently pastes there. The website and listing copy describe this candidate; previously uploaded builds require replacement before making that claim about them. There is no cross-device runtime claim beyond Apple’s documented API contract.

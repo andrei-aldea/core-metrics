@@ -5,7 +5,9 @@ import AppKit
 @MainActor
 enum CurrentReadingsPasteboard {
     static func write(_ text: String, to pasteboard: NSPasteboard) -> Bool {
-        pasteboard.clearContents()
+        // Disk-space reason 85F4.1 permits local display, not Internet transfer.
+        // Prevent Universal Clipboard from automatically exporting copied readings.
+        pasteboard.prepareForNewContents(with: .currentHostOnly)
         return pasteboard.setString(text, forType: .string)
     }
 }

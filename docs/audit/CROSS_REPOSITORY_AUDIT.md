@@ -1,5 +1,9 @@
 # Cross-repository verification
 
+Latest release evidence: [October 4 launch checklist](../APP_STORE_LAUNCH_CHECKLIST.md). Build 5 is Testing for the existing external group with the new icon. The website is deployed with consistent branding, confirmed publisher facts and concise legal drafts. Public submission fields, policy approval and the listed acceptance checks remain incomplete. Earlier account states below are historical.
+
+Current legal status: [October 3 app and website review](<../../../core-metrics-website/docs/audit/LEGAL_REVIEW_2026-10-03.md>). The revised candidate excludes copied readings from Universal Clipboard; distribute that build before publishing matching claims. Earlier account/build observations below remain dated evidence.
+
 The sibling website repository owns the single current [42-item findings register](../../../core-metrics-website/docs/audit/FINDINGS.md), [verification report and delivery evidence](../../../core-metrics-website/docs/audit/VERIFICATION.md), [ordered launch checklist and owner inputs](../../../core-metrics-website/docs/audit/OWNER_ACTIONS.md), [product/data inventory](../../../core-metrics-website/docs/audit/PRODUCT_AND_DATA.md) and [legal/Apple source matrix](../../../core-metrics-website/docs/audit/LEGAL_APPLICABILITY.md). These links assume sibling checkouts. This bridge does not duplicate the findings register.
 
 ## Native release update — September 22, 2026

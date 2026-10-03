@@ -2,6 +2,8 @@
 
 Core Metrics is a restrained native Mac utility. The menu bar is the primary surface; its persistent panel and Settings configure the values. There is no mobile layout, dashboard chart, process list or optimizer UI.
 
+Shared artwork, naming and website presentation follow [BRAND.md](BRAND.md). Branding does not add a logo or header to the native status item or selection panel.
+
 ## Visual contract
 
 - Use system typography, semantic monochrome colors, native controls, SF Symbols and platform spacing. Selection is visible through checkboxes and labels, never color alone.

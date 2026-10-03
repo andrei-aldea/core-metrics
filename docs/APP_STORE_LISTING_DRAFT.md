@@ -1,5 +1,7 @@
 # App Store listing draft
 
+**October 4 delivery:** build 1.0 (5) is Testing for the existing external group, and its refined icon is visible in the build list. The public-version omissions and saved obsolete reviewer notes still need completion. Use the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md); the corrected notes below are prepared locally, not verified as saved in Connect.
+
 **Public App Store listing draft — not a new submission.**
 
 September 22 direct Safari verification: the public version page now contains the four-mode description and Support URL shown below. It still has zero screenshots, no selected build, empty copyright and four empty public App Review contact fields. Sign-in required is off and automatic release is selected. Saved review notes still incorrectly restrict Values Only to one stat; replace them with the current draft when completing the public review information. The corrected signed **1.0 (3)** candidate from `a82a4ad` passed Apple validation, upload and processing. Following the user's TestFlight-only instruction, build 3 is assigned to External Testers and now **Testing**, with the requested tester confirmed **Accepted** and automatic build notification enabled. The earlier build **1.0 (2)** is **Approved**, and beta contact/feedback fields are present. The earlier build-3 processing follow-up completed. **Public submission/publication is explicitly excluded**; this public listing remains a draft. These observations supersede the older records below.
@@ -57,7 +59,7 @@ Feature evidence: [metric definitions](METRICS.md), [presentation architecture](
 
 ## App Review notes
 
-Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,637 / 4,000 bytes**, revised locally for the final implementation. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
+Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,694 / 4,000 bytes**, prepared for build 5. The October 4 save was rejected for missing first name, last name, email and phone; these corrected notes and build selection still need saving with the required public review contacts. No public submission occurred. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
 
 ```text
 Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a compatible Apple silicon Mac.
@@ -65,7 +67,7 @@ Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a com
 1. Launch the app and locate its live readings in the menu bar. There is intentionally no Dock icon or main app window. Allow a few seconds for the initial CPU sample.
 2. Click the status label to open the persistent selection panel. Choose one to seven CPU, Memory and Storage stats. The panel remains open as choices change.
 3. Use Settings in the panel footer to open the native Settings window. Menu Bar Text changes the representation; all four modes remain available for every selection count. Add Stat and the remove controls change the selection. Live Preview can scroll horizontally.
-4. Copy Readings in the panel footer writes the full selected names and current values to the clipboard. It is an explicit action and replaces the current clipboard content.
+4. Copy Readings in the panel footer writes the full selected names and current values to this Mac’s clipboard. It is an explicit action, replaces the current clipboard content and excludes these copies from Universal Clipboard.
 5. Metric Help, Support and Privacy are available in Settings. Privacy also links to the public policy in the browser. Launch at Login is optional, starts off for an unregistered app, and reflects macOS registration or approval state. No helper or administrator access is required.
 6. Quit in the panel footer exits the app.
 
@@ -83,7 +85,9 @@ Saved draft answer: **“No, we do not collect data from this app.”** The prod
 | Collection, tracking and third-party SDKs | No app networking, tracking, analytics, accounts, advertising or third-party dependencies. No collected data types or tracking purposes are proposed. |
 | Readings and preferences | Aggregate readings remain in memory; only menu-bar selections/display mode persist locally. macOS manages optional login registration. |
 | Diagnostics | Local system logs contain metric category and availability state; the app does not transmit logs. |
-| Clipboard | Copy Readings writes only on request. macOS may share clipboard contents through enabled Universal Clipboard; the app sends no data to the developer or a partner. |
+| Clipboard | Copy Readings writes only on request. The revised candidate excludes these copies from Universal Clipboard; match this statement to the submitted build. The app sends no data to the developer or a partner. |
+
+Before publishing the App Privacy answer, also review actual developer access to Apple/TestFlight usage, crash and feedback data and the conditions for optional support. Apple’s own collection and information made available to the developer are distinct. The website’s beta/support notice remains independently required.
 
 This is an inference from the implemented data flow and Apple's distinction between on-device processing and data transmitted off-device for developer/partner access. [Apple's collection definition](https://developer.apple.com/app-store/app-privacy-details/), [in-app privacy text](../Core%20Metrics/Views/Settings/PrivacyInformationView.swift), [privacy manifest](../Core%20Metrics/PrivacyInfo.xcprivacy).
 

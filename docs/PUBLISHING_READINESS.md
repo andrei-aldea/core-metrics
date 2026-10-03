@@ -1,5 +1,9 @@
 # Historical app and website publishing review — September 14, 2026
 
+Current delivery: [October 4 launch checklist](APP_STORE_LAUNCH_CHECKLIST.md). Build 5 is Testing with the refined icon and local-copy fix; public release remains pending.
+
+Current legal status: [October 3 app and website review](<../../core-metrics-website/docs/audit/LEGAL_REVIEW_2026-10-03.md>). The revised candidate excludes copied readings from Universal Clipboard; distribute that build before publishing matching claims. Earlier account/build observations below remain dated evidence.
+
 **Retained historical assessment, committed after the September 21 delivery request.** The dated observations below are preserved; they are not the current task list. Since this review, TestFlight 1.0(2) was uploaded, the website defects and publication-state coverage were fixed, and the quiet website redesign was deployed. Use the [current findings register](<../../core-metrics-website/docs/audit/FINDINGS.md>), [verification report](<../../core-metrics-website/docs/audit/VERIFICATION.md>) and [ordered owner actions](<../../core-metrics-website/docs/audit/OWNER_ACTIONS.md>) for remaining work. The September 20 release evidence is recorded in [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md#testflight-build-preparation-and-upload--september-20-2026). This record does not authorize a new upload or public release.
 
 Reviewed September 14, 2026. This report covers the native Core Metrics repository, the companion `core-metrics-website` repository, the live website, current website CI/deployment status, and official publishing requirements. It is an assessment, not authorization to submit, change publisher identity, accept agreements, or publish legal declarations.

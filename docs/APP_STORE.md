@@ -1,6 +1,6 @@
 # App Store, privacy, and release preparation
 
-**Latest delivery — October 4:** signed build **1.0 (5)** passed Apple validation, upload and processing and is **Testing** for the existing External Testers group. The refined icon is visible beside the build. The website update is pushed and deployed; its legal policies still require the remaining operating facts and approval. See the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md) for public fields, acceptance checks and the new validation limits. No public App Store submission occurred.
+**Latest delivery — October 4:** signed build **1.0 (5)** passed Apple validation, upload and processing and is **Testing** for the existing External Testers group. A fresh public-version page confirms build 5 is selected and the refined icon appears in the app-record header as well as beside the TestFlight build. The website update is pushed and deployed; its legal policies still require the remaining operating facts and approval. See the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md) for public fields, acceptance checks and the new validation limits. No public App Store submission occurred.
 
 Current legal status: [October 3 app and website review](<../../core-metrics-website/docs/audit/LEGAL_REVIEW_2026-10-03.md>). The revised candidate excludes copied readings from Universal Clipboard; distribute that build before publishing matching claims. Earlier account/build observations below remain dated evidence.
 

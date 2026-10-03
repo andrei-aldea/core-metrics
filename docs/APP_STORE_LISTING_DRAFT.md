@@ -1,6 +1,6 @@
 # App Store listing draft
 
-**October 4 delivery:** build 1.0 (5) is Testing for the existing external group, and its refined icon is visible in the build list. The public-version omissions and saved obsolete reviewer notes still need completion. Use the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md); the corrected notes below are prepared locally, not verified as saved in Connect.
+**October 4 delivery:** build 1.0 (5) is Testing for the existing external group, and its refined icon is visible in the build list and app-record header. Build 5 is selected for the public draft. The remaining public-version omissions and saved obsolete reviewer notes still need completion. Use the [current launch checklist](APP_STORE_LAUNCH_CHECKLIST.md); the corrected notes below are prepared locally, not verified as saved in Connect.
 
 **Public App Store listing draft — not a new submission.**
 
@@ -59,7 +59,7 @@ Feature evidence: [metric definitions](METRICS.md), [presentation architecture](
 
 ## App Review notes
 
-Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,694 / 4,000 bytes**, prepared for build 5. The October 4 save was rejected for missing first name, last name, email and phone; these corrected notes and build selection still need saving with the required public review contacts. No public submission occurred. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
+Sign-in required: **No**, saved with the checkbox unchecked. No demo account is needed. Notes: **1,694 / 4,000 bytes**, prepared for build 5. The October 4 save was rejected for missing first name, last name, email and phone; the corrected notes still need saving with the required public review contacts. Build selection persisted independently; a fresh page confirms build 5 and the new icon. No public submission occurred. [App Review information](https://developer.apple.com/help/app-store-connect/reference/app-information/platform-version-information#app-review-information).
 
 ```text
 Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a compatible Apple silicon Mac.

@@ -2,7 +2,7 @@
 
 ## Toolchain and setup
 
-Open `Core Metrics.xcodeproj` with Xcode 27 and the macOS 27 SDK. The reviewed host runs macOS 27 and Apple Swift 6.4. The current release-validation toolchain is Xcode 27.0 RC (`27A266a`); beta 6 (`27A5252f`) remains installed for historical diagnostics. Project sources compile in Swift 6 language mode. No iOS runtime or simulator is required. Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) supports Apple silicon Macs only, so Intel hardware execution is outside this project's deployment matrix. Validate the native arm64 app on supported Macs.
+Open `Core Metrics.xcodeproj` with Xcode 27 and the macOS 27 SDK. The current release-validation toolchain is final Xcode 27.0 (`27A266a`), identical to the earlier RC build, with Apple Swift 6.4; beta 6 (`27A5252f`) remains installed for historical diagnostics and is still the machine-wide selection. The October 4 host runs macOS 27.2, which does not establish minimum-version 27.0 acceptance. Project sources compile in Swift 6 language mode. No iOS runtime or simulator is required. Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) supports Apple silicon Macs only, so Intel hardware execution is outside this project's deployment matrix. Validate the native arm64 app on supported Macs. The [October 4 review](PROJECT_ANALYSIS_REPORT.md#comprehensive-architecture-and-romania-launch-review--october-4-2026) records the final 13/13 desktop pass and the preserved initial intermittent failures.
 
 Check the active tools before changing anything:
 
@@ -23,6 +23,8 @@ From the repository root, run:
 ```sh
 ./scripts/validate.sh
 ./scripts/validate.sh --ui --output-root /tmp
+# Select the reviewed installation without changing xcode-select:
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer ./scripts/validate.sh --ui --output-root /tmp
 ```
 
 The second command includes the native UI suite and needs an interactive desktop with existing automation permissions. Close work in the app first because the UI suite terminates earlier app instances. The script also works from another working directory when invoked through its quoted path. `--help` explains the options without invoking Xcode; `--output-root` accepts an existing directory outside the checkout, including paths with spaces. Each run creates a new private directory under that location, or under `${TMPDIR:-/tmp}` by default, and prints its location.

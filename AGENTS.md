@@ -6,7 +6,7 @@ These rules apply repository-wide. This is the canonical instruction file; no ne
 
 Core Metrics is a small native macOS menu-bar utility for aggregate CPU, memory, and startup-volume storage. An owned `NSStatusItem` displays native text with a fixed allocation for each configuration. Its `NSPopover` contains a selection panel that stays open while choices change; live values also appear in Settings preview. It retains no metric history.
 
-- macOS 27.0 minimum, Xcode 27/macOS 27 SDK; the current release-validation toolchain is Xcode 27.0 RC (`27A266a`), Swift 6.4 compiler. Earlier beta-6 results are historical.
+- macOS 27.0 minimum, Xcode 27/macOS 27 SDK; the current release-validation toolchain is final Xcode 27.0 (`27A266a`, the same build previously designated RC), Swift 6.4 compiler. Earlier beta-6 results are historical.
 - Swift 6 language mode, complete strict concurrency, MainActor app default isolation, approachable concurrency enabled.
 - Entry point: `Core Metrics.xcodeproj`; shared schemes: `Core Metrics` and `Core Metrics UI Tests`.
 - Targets: `Core Metrics`, `Core MetricsTests`, `Core MetricsUITests`; configurations: Debug and Release.

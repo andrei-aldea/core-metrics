@@ -9,12 +9,12 @@ The app is local-only, sandboxed, and has no accounts, networking, tracking, ana
 ## Requirements and targets
 
 - macOS **27.0 or later** on a compatible **Apple silicon Mac**. Apple's [macOS 27 compatibility list](https://www.apple.com/os/macos/) excludes Intel Macs. There is no iPhone, iPad, Catalyst, widget, or extension target.
-- Xcode **27** with the macOS 27 SDK. The current release-validation environment is Xcode 27.0 RC (`27A266a`), Apple Swift 6.4, on Apple silicon.
+- Xcode **27** with the macOS 27 SDK. The current release-validation environment is final Xcode 27.0 (`27A266a`), Apple Swift 6.4, on Apple silicon. This is the same build previously designated RC.
 - Swift **6 language mode**, complete strict concurrency, and MainActor default isolation for the app. SwiftUI, AppKit, Core Text, Foundation, Observation, OSLog, ServiceManagement, Accessibility, and public Darwin APIs supply all functionality.
 - Project: `Core Metrics.xcodeproj`. Targets: `Core Metrics`, `Core MetricsTests` (Swift Testing), and `Core MetricsUITests` (XCTest).
 - Shared schemes: `Core Metrics` for build/run/unit tests and `Core Metrics UI Tests` for interactive UI tests. Configurations: Debug and Release; there is no staging configuration.
 
-The macOS minimum and publisher configuration must not be changed as incidental cleanup. Apple accepts Xcode 27 RC (`27A266a`) and its macOS 27 RC SDK for App Store and TestFlight as of September 9. The RC is installed alongside the earlier beta; use a per-command `DEVELOPER_DIR` override to select it without changing the machine-wide setting. See the [release guidance](docs/APP_STORE_LAUNCH_CHECKLIST.md).
+The macOS minimum and publisher configuration must not be changed as incidental cleanup. Apple released Xcode 27.0 (`27A266a`) on September 14; it is installed alongside the earlier beta. Use a per-command `DEVELOPER_DIR` override to select it without changing the machine-wide setting. The [October 4 architecture and Romania launch review](docs/PROJECT_ANALYSIS_REPORT.md#comprehensive-architecture-and-romania-launch-review--october-4-2026) records current cross-project checks and limitations; the [launch checklist](docs/APP_STORE_LAUNCH_CHECKLIST.md) records what remains before submission.
 
 ## Setup, build, and launch
 

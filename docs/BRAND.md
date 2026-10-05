@@ -6,14 +6,14 @@ Core Metrics is a quiet native Mac utility for current CPU, memory and startup-v
 - **Mark:** three silver metric pillars on graphite, medium / tall / short from left to right. Preserve their order, proportions and surrounding space. The approved source is [the master PNG](assets/Core-Metrics-AppIcon-Master.png). Do not redraw the mark with a chart-library icon, add a pulse line, recolor the pillars or place text inside it.
 - **Palette:** neutral graphite and silver. The website uses `#242629` on `#fafafa` in light appearance, `#f5f5f7` on `#111214` in dark appearance, and the existing accessible blue for interactive controls. The app uses macOS semantic colors and the person's system accent.
 - **Typography:** installed system fonts. Product headings and the wordmark use restrained semibold weight; live numbers use tabular digits. The native status text stays 12 points in every mode. No font files or SF Symbols artwork are redistributed to the web.
-- **Presentation:** macOS supplies the icon mask and native chrome. Website icon tiles use a consistent 22% corner radius. Use 36-pixel navigation/footer tiles, 48-pixel closing tiles and a 64-pixel social lockup. Decorative copies beside the product name have empty alternative text.
+- **Presentation:** macOS supplies the icon mask and native chrome. Website icon tiles use a consistent 22% corner radius. Use 36-pixel navigation/footer tiles and 48-pixel closing tiles. Shared-link previews use the unmodified square 512-pixel app icon. Decorative copies beside the product name have empty alternative text.
 - **Product truth:** the status bar shows readings or category symbols, not a logo. The website's interactive illustration remains labeled as a demo with sample values. Actual App Store screenshots must come from the shipping app.
 
 ## Exports
 
 Run `bash scripts/export-brand-assets.sh ../core-metrics-website` from the native repository. This resizes the same approved master into all ten macOS catalog slots and copies the 512-pixel website icon and 64-pixel favicon. It does not run during an app build. Equal pixel dimensions still serve distinct 1×/2× catalog slots and must be retained.
 
-Social images in both website languages load that same icon and use the website's neutral palette, typography hierarchy and textual release status. The fixed social-image URLs must be revalidated, not cached as immutable assets.
+Following the publisher's October 5 preference, Open Graph and Twitter previews in both website languages use that same 512-pixel icon directly, with localized alternative text. Preserve its exact PNG bytes; add no headline, release text, frame or crop. The legacy social-image URLs also return the icon and must be revalidated, not cached as immutable assets.
 
 ## Artwork provenance
 

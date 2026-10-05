@@ -2,6 +2,12 @@
 
 Review dates: **2026-09-04–2026-10-05**. Baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
 
+## Website icon-only social previews — October 5, 2026
+
+Following the publisher's request, EN/RO Open Graph and Twitter metadata uses the unchanged **512×512 app icon** directly. Existing localized social-image URLs return identical PNG bytes, with one-hour revalidation; the text-card renderer is removed and saved social previews now match the icon. Localized alternative text is retained. The shared brand guide and website asset/readme documentation record this presentation.
+
+Website content/type/lint/notices/build, **14 configuration tests** and **4 Chromium + 4 WebKit** focused metadata/image cases pass, including a production build with the approved canonical origin. All native app/project input fingerprints still match validated `8d8cd55`; the existing **1.0 (6)** archive is unaffected. Its App Store upload remains pending Xcode publisher sign-in as recorded below. No dependency, legal publication or app-release flag changes accompany the social-image update.
+
 ## Delivery validation — October 5, 2026
 
 The publisher explicitly requested commits, pushes and a new App Store build after the review. Both repositories were fetched and matched their remote `main` before delivery; the working changes belong to this review. Distribution uses the existing private release configuration, with the new build number confined to ignored release files. App source, bundle/team/signing settings, entitlements and deployment targets remain unchanged.

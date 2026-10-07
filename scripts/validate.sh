@@ -207,12 +207,17 @@ run_step input-fingerprints record_inputs || exit 1
 run_step source-plist-syntax plutil -lint "$project/project.pbxproj" "$source_privacy" "$source_entitlements" || exit 1
 run_step source-policy xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" source "$repo_root" || exit 1
 run_step bundle-permission-regressions bash "$script_dir/test-bundle-permissions.sh" || exit 1
+run_step concurrency-setting-regressions bash "$script_dir/test-build-settings.sh" || exit 1
 run_step project-list run_xcodebuild -list -project "$project" || exit 1
 run_step dependencies run_xcodebuild -project "$project" -scheme 'Core Metrics' \
     -derivedDataPath "$derived_data" -clonedSourcePackagesDirPath "$run_dir/SourcePackages" \
     -resolvePackageDependencies || exit 1
 run_step debug-settings capture_settings Debug || exit 1
 run_step release-settings capture_settings Release || exit 1
+run_step debug-configuration-policy xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" \
+    settings "$run_dir/Debug-settings.json" Debug || exit 1
+run_step release-configuration-policy xcrun swift -module-cache-path "$run_dir/SwiftModuleCache" "$helper" \
+    settings "$run_dir/Release-settings.json" Release || exit 1
 run_step debug-build run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \
     -destination "$destination" -derivedDataPath "$derived_data" CODE_SIGNING_ALLOWED=NO build || exit 1
 run_step unit-tests run_xcodebuild -project "$project" -scheme 'Core Metrics' -configuration Debug \

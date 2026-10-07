@@ -104,6 +104,7 @@ func settings(_ url: URL, configuration: String) throws -> [String: String] {
         "SWIFT_VERSION": "6.0", "MACOSX_DEPLOYMENT_TARGET": "27.0",
         "ENABLE_APP_SANDBOX": "YES",
         "SWIFT_STRICT_CONCURRENCY": "complete", "SWIFT_TREAT_WARNINGS_AS_ERRORS": "YES",
+        "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor", "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
         "CODE_SIGNING_ALLOWED": "NO",
     ]
     for (key, value) in expected {
@@ -213,6 +214,11 @@ do {
     switch arguments.first {
     case "source" where arguments.count == 2:
         try verifySource(URL(fileURLWithPath: arguments[1], isDirectory: true))
+    case "settings" where arguments.count == 3:
+        let configuration = arguments[2]
+        try require(["Debug", "Release"].contains(configuration), "Unsupported build configuration.")
+        _ = try settings(URL(fileURLWithPath: arguments[1]), configuration: configuration)
+        print("\(configuration) resolved build configuration verified.")
     case "artifacts" where arguments.count == 3:
         let root = URL(fileURLWithPath: arguments[1], isDirectory: true)
         let run = URL(fileURLWithPath: arguments[2], isDirectory: true)

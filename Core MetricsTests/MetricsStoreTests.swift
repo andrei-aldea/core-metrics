@@ -67,30 +67,31 @@ struct MetricsStoreTests {
     }
 
     @MainActor
-    @Test("Stopped sampling discards in-flight results", arguments: StoppedMetric.allCases)
-    func stopDiscardsInFlightResults(metric: StoppedMetric) async throws {
-        let shutdown = SamplingShutdown()
+    @Test("Shutdown rejects cancelled provider results", arguments: CancelledMetric.allCases)
+    func shutdownRejectsCancelledProviderResults(metric: CancelledMetric) async throws {
+        let cancellation = SamplingCancellation()
         let store = MetricsStore(
             cpuProvider: FixedCPUProvider {
-                if metric == .cpu { shutdown.stop() }
+                if metric == .cpu { cancellation.cancelCurrentSample() }
             },
             memoryProvider: FixedMemoryProvider {
-                if metric == .memory { shutdown.stop() }
+                if metric == .memory { cancellation.cancelCurrentSample() }
             },
             storageProvider: FixedStorageProvider {
-                if metric == .storage { shutdown.stop() }
+                if metric == .storage { cancellation.cancelCurrentSample() }
             },
             fastSamplingInterval: .seconds(60),
             storageSamplingInterval: .seconds(60)
         )
-        shutdown.store = store
 
         store.start()
         defer { store.stop() }
 
-        let stopped = await eventually { shutdown.task != nil }
-        try #require(stopped)
-        let task = try #require(shutdown.task)
+        let cancelled = await eventually { cancellation.didCancel }
+        try #require(cancelled)
+        // Exercise the complete shutdown contract. Cancellation and session
+        // invalidation cooperate here; neither guard is tested in isolation.
+        let task = try #require(store.stop())
         await task.value
 
         switch metric {
@@ -100,6 +101,84 @@ struct MetricsStoreTests {
         case .storage:
             #expect(store.storageUsage == nil)
         }
+    }
+
+    @MainActor
+    @Test("Stopping before the first publication leaves every reading unavailable")
+    func immediateStopRejectsFirstPublication() async throws {
+        let store = MetricsStore(
+            cpuProvider: FixedCPUProvider(),
+            memoryProvider: FixedMemoryProvider(),
+            storageProvider: FixedStorageProvider()
+        )
+
+        // Keep the main actor until stop has invalidated the session. Even if
+        // a provider finishes on another executor, it cannot publish yet.
+        store.start()
+        let task = try #require(store.stop())
+        await task.value
+
+        #expect(store.cpuUsage == nil)
+        #expect(store.memoryUsage == nil)
+        #expect(store.storageUsage == nil)
+        #expect(store.stop() == nil)
+    }
+
+    @MainActor
+    @Test("Restarted CPU sampling replaces the old value with a fresh baseline")
+    func restartEstablishesFreshCPUBaseline() async throws {
+        let gate = CPUContinuityGate()
+        let store = MetricsStore(
+            cpuProvider: ContinuityCPUProvider(gate: gate),
+            memoryProvider: FixedMemoryProvider(),
+            storageProvider: FixedStorageProvider(),
+            fastSamplingInterval: .milliseconds(20),
+            storageSamplingInterval: .seconds(60)
+        )
+        store.start()
+        defer { store.stop() }
+
+        try #require(await eventually { store.cpuUsage == Self.cpuUsage })
+        let stoppedTask = try #require(store.stop())
+        await stoppedTask.value
+
+        // Hold the nil value without blocking the sampling task, so a busy
+        // main actor cannot miss a transient baseline between two samples.
+        gate.holdRestartBaseline()
+        store.start()
+        try #require(await eventually {
+            store.cpuUsage == nil && gate.restartBaselineIsContinuous != nil
+        })
+        #expect(gate.restartBaselineIsContinuous == false)
+        gate.releaseValues()
+        #expect(await eventually { store.cpuUsage == Self.cpuUsage })
+    }
+
+    @MainActor
+    @Test("Memory failures clear only memory values and recovery restores them")
+    func memoryFailureAndRecoveryPreserveOtherMetrics() async throws {
+        let gate = MemoryRecoveryGate()
+        let store = MetricsStore(
+            cpuProvider: FixedCPUProvider(),
+            memoryProvider: ControlledMemoryProvider(gate: gate),
+            storageProvider: FixedStorageProvider(),
+            fastSamplingInterval: .milliseconds(10),
+            storageSamplingInterval: .seconds(60)
+        )
+        store.start()
+        defer { store.stop() }
+
+        try #require(await eventually {
+            store.cpuUsage != nil && store.memoryUsage != nil && store.storageUsage != nil
+        })
+
+        gate.setUnavailable(true)
+        try #require(await eventually { store.memoryUsage == nil })
+        #expect(store.cpuUsage == Self.cpuUsage)
+        #expect(store.storageUsage != nil)
+
+        gate.setUnavailable(false)
+        #expect(await eventually { store.memoryUsage != nil })
     }
 
     @MainActor
@@ -184,17 +263,22 @@ struct MetricsStoreTests {
     )
 }
 
-nonisolated enum StoppedMetric: CaseIterable, Sendable {
+nonisolated enum CancelledMetric: CaseIterable, Sendable {
     case cpu, memory, storage
 }
 
-@MainActor
-private final class SamplingShutdown {
-    weak var store: MetricsStore?
-    private(set) var task: Task<Void, Never>?
+private nonisolated final class SamplingCancellation: Sendable {
+    private let cancelled = Mutex(false)
 
-    func stop() {
-        task = store?.stop()
+    var didCancel: Bool {
+        cancelled.withLock { $0 }
+    }
+
+    func cancelCurrentSample() {
+        withUnsafeCurrentTask { task in
+            task?.cancel()
+        }
+        cancelled.withLock { $0 = true }
     }
 }
 
@@ -214,6 +298,82 @@ private nonisolated struct ControlledFailureCPUProvider: CPUMetricsProviding {
     }
 
     mutating func reset() {}
+}
+
+private nonisolated struct ContinuityCPUProvider: CPUMetricsProviding {
+    let gate: CPUContinuityGate
+    private var hasSampled = false
+
+    init(gate: CPUContinuityGate) {
+        self.gate = gate
+    }
+
+    mutating func sample(isContinuous: Bool) throws -> CPUUsage? {
+        defer { hasSampled = true }
+        return gate.sample(isContinuous: isContinuous, isFirstSample: !hasSampled)
+    }
+
+    mutating func reset() {}
+}
+
+private nonisolated final class CPUContinuityGate: Sendable {
+    private struct State: Sendable {
+        var holdsValues = false
+        var restartBaselineIsContinuous: Bool?
+    }
+
+    private let state = Mutex(State())
+
+    var restartBaselineIsContinuous: Bool? {
+        state.withLock { $0.restartBaselineIsContinuous }
+    }
+
+    func holdRestartBaseline() {
+        state.withLock {
+            $0.holdsValues = true
+            $0.restartBaselineIsContinuous = nil
+        }
+    }
+
+    func releaseValues() {
+        state.withLock { $0.holdsValues = false }
+    }
+
+    func sample(isContinuous: Bool, isFirstSample: Bool) -> CPUUsage? {
+        state.withLock { state in
+            if state.holdsValues {
+                if isFirstSample {
+                    state.restartBaselineIsContinuous = isContinuous
+                }
+                return nil
+            }
+            return isContinuous ? MetricsStoreTests.cpuUsage : nil
+        }
+    }
+}
+
+private nonisolated struct ControlledMemoryProvider: MemoryMetricsProviding {
+    let gate: MemoryRecoveryGate
+
+    mutating func sample() throws -> MemoryUsage? {
+        guard !gate.isUnavailable else {
+            throw FixtureProviderError.unavailable
+        }
+        var provider = FixedMemoryProvider()
+        return try provider.sample()
+    }
+}
+
+private nonisolated final class MemoryRecoveryGate: Sendable {
+    private let unavailable = Mutex(false)
+
+    var isUnavailable: Bool {
+        unavailable.withLock { $0 }
+    }
+
+    func setUnavailable(_ value: Bool) {
+        unavailable.withLock { $0 = value }
+    }
 }
 
 private nonisolated final class FailureGate: Sendable {
@@ -324,16 +484,13 @@ private nonisolated final class StorageRecoveryGate: Sendable {
     }
 }
 
-// Synchronous fixture callbacks complete the main-actor stop before returning
-// a result. The real provider boundary runs off-main, so the test can await
-// shutdown completion without sleeps or holding a blocked main actor.
+// These callbacks act within the provider's existing task. Cancelling that
+// task before returning a sample requires no blocked executor or main-queue hop.
 private nonisolated struct FixedCPUProvider: CPUMetricsProviding {
-    var onSample: (@MainActor @Sendable () -> Void)? = nil
+    var onSample: (@Sendable () -> Void)? = nil
 
     mutating func sample(isContinuous: Bool) throws -> CPUUsage? {
-        if let onSample {
-            DispatchQueue.main.sync { onSample() }
-        }
+        onSample?()
         return MetricsStoreTests.cpuUsage
     }
 
@@ -341,12 +498,10 @@ private nonisolated struct FixedCPUProvider: CPUMetricsProviding {
 }
 
 private nonisolated struct FixedMemoryProvider: MemoryMetricsProviding {
-    var onSample: (@MainActor @Sendable () -> Void)? = nil
+    var onSample: (@Sendable () -> Void)? = nil
 
     mutating func sample() throws -> MemoryUsage? {
-        if let onSample {
-            DispatchQueue.main.sync { onSample() }
-        }
+        onSample?()
         return MemoryUsage(
             usedBytes: 60,
             cachedBytes: 40,
@@ -359,12 +514,10 @@ private nonisolated struct FixedMemoryProvider: MemoryMetricsProviding {
 }
 
 private nonisolated struct FixedStorageProvider: StorageMetricsProviding {
-    var onSample: (@MainActor @Sendable () -> Void)? = nil
+    var onSample: (@Sendable () -> Void)? = nil
 
     func sample() throws -> StorageUsage? {
-        if let onSample {
-            DispatchQueue.main.sync { onSample() }
-        }
+        onSample?()
         return StorageUsage(
             usedBytes: 75,
             availableBytes: 25,

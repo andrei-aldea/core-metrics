@@ -7,6 +7,25 @@ import Testing
 @MainActor
 @Suite("Menu-bar label layout")
 struct MenuBarLabelLayoutTests {
+    @Test("Autoupdating locales use the same fixed geometry as the current locale snapshot")
+    func autoupdatingLocaleUsesCurrentSnapshot() {
+        let locale = Locale.current
+        let snapshot = MenuBarLabelLayout(locale: locale)
+        let autoupdating = MenuBarLabelLayout(locale: .autoupdatingCurrent)
+        let stats: [MenuBarStat] = [.cpuUser, .memoryUsed, .storageFree]
+        let values = [
+            MetricFormatting.percentage(0.09, locale: locale),
+            MetricFormatting.compactBytes(1_610_612_736, style: .memory, locale: locale),
+            MetricFormatting.compactBytes(999_900_000_000, style: .storage, locale: locale),
+        ]
+        for mode in MenuBarDisplayMode.allCases {
+            #expect(autoupdating.width(stats: stats, displayMode: mode)
+                == snapshot.width(stats: stats, displayMode: mode))
+            #expect(autoupdating.attributedTitle(stats: stats, values: values, displayMode: mode)
+                .isEqual(to: snapshot.attributedTitle(stats: stats, values: values, displayMode: mode)))
+        }
+    }
+
     @Test("Compact changes labels without shrinking values or inter-stat spacing")
     func compactOnlyShortensLabels() throws {
         let stats: [MenuBarStat] = [.cpuUser, .memoryUsed, .storageFree]

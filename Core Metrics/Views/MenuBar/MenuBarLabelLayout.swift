@@ -16,6 +16,7 @@ struct MenuBarLabelLayout {
     private static let percentGap: CGFloat = 2
     private let percentSpacing: PercentSpacing?
     private let columns: ValueColumns
+    private static var measurementsByLocale: [Locale: LocaleMeasurements] = [:]
     private static let categoryPrefixes: [MetricKind: NSAttributedString] = Dictionary(
         uniqueKeysWithValues: MetricKind.allCases.map { metric in
             guard let image = NSImage(
@@ -42,6 +43,23 @@ struct MenuBarLabelLayout {
     )
 
     init(locale: Locale) {
+        // SwiftUI recreates view values even when their @State survives.
+        // Share the costly native measurements with the status controller.
+        // Autoupdating locales compare equal across preference changes, so
+        // snapshot them before using one as a cache key.
+        let locale = locale == .autoupdatingCurrent ? .current : locale
+        let measurements: LocaleMeasurements
+        if let cached = Self.measurementsByLocale[locale] {
+            measurements = cached
+        } else {
+            measurements = Self.makeMeasurements(locale: locale)
+            Self.measurementsByLocale[locale] = measurements
+        }
+        percentSpacing = measurements.percentSpacing
+        columns = measurements.columns
+    }
+
+    private static func makeMeasurements(locale: Locale) -> LocaleMeasurements {
         let formatter = NumberFormatter()
         formatter.locale = locale
         formatter.numberStyle = .percent
@@ -50,7 +68,6 @@ struct MenuBarLabelLayout {
             MetricFormatting.percentage(Double($0) / 100, locale: locale)
         }
         let spacing = Self.makePercentSpacing(in: percentages[100], percentSymbol: symbol)
-        percentSpacing = spacing
         let memory = MetricFormatting.compactByteColumnCandidates(style: .memory, locale: locale)
         let storage = MetricFormatting.compactByteColumnCandidates(style: .storage, locale: locale)
         func reservedWidth(_ candidates: [String]) -> CGFloat {
@@ -60,10 +77,13 @@ struct MenuBarLabelLayout {
         }
         // Every representation shares one size and one set of locale columns.
         // Live samples never repeat candidate formatting or symbol creation.
-        columns = ValueColumns(
-            percentage: reservedWidth(percentages),
-            memory: reservedWidth(memory),
-            storage: reservedWidth(storage)
+        return LocaleMeasurements(
+            percentSpacing: spacing,
+            columns: ValueColumns(
+                percentage: reservedWidth(percentages),
+                memory: reservedWidth(memory),
+                storage: reservedWidth(storage)
+            )
         )
     }
 
@@ -127,6 +147,11 @@ struct MenuBarLabelLayout {
         let percentage: CGFloat
         let memory: CGFloat
         let storage: CGFloat
+    }
+
+    private struct LocaleMeasurements {
+        let percentSpacing: PercentSpacing?
+        let columns: ValueColumns
     }
 
     private func valueColumnWidth(for stat: MenuBarStat) -> CGFloat {

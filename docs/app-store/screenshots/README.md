@@ -5,7 +5,7 @@ Two English screenshots prepared October 4, 2026 for **Core Metrics 1.0 (5)**:
 1. `01-settings.jpg` — native Settings, three live CPU/Memory/Storage readings and all four display choices.
 2. `02-metric-help.jpg` — native Metric Help with CPU and memory definitions and the real Done control.
 
-Both exports are **1280 × 800, opaque JPEGs**. App Store Connect showed two uploaded screenshots; keyboard reordering placed Settings first. Apple then expired the session on reload, so a signed-in fresh-page persistence check remains required.
+Both exports are **1280 × 800, opaque JPEGs**. A fresh authenticated App Store Connect page on **October 8, 2026** confirms that both are persisted in Settings → Metric Help order, including after another reload. The earlier expired-session uncertainty is resolved. The images were also visually rechecked against current source: the October 7 layout-cache and regression-test improvements change no pictured controls, definitions or artwork, so these real-build captures remain accurate.
 
 ## Provenance and reproduction
 

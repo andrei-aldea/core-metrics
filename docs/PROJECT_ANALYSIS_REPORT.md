@@ -1,6 +1,14 @@
 # Core Metrics project analysis and remediation report
 
-Review dates: **2026-09-04–2026-10-08**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
+Review dates: **2026-09-04–2026-10-09**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
+
+## Companion website design refinement — October 9, 2026
+
+The requested website redesign adds more space, concise English/Romanian copy, eight sections and finite Motion entrances/display-mode transitions. The refinement aligns headings, surfaces and controls across public pages; it removes duplicate prose and company details while preserving legal disclosures. A dedicated list viewport keeps selection checkboxes from intercepting the Settings footer. Final local website content parity (**302 strings / 15 metrics / ten routes**), type/lint/notices/build checks, **14 configuration tests**, **127 Chromium tests**, **91 WebKit tests**, **three publication-state fixtures** and **three real error-recovery cases** pass. The [website design audit](<../../core-metrics-website/docs/design/2026-10-09/AUDIT.md>) records final captures, corrected contrast/reflow/panel failures, test changes, compatible Lucide 1.54.0 update and Firefox/manual-review limits. A second repository review preserves native product facts and assets.
+
+Website implementation **`93dc73e6357919e0c80584af42844e5d2b53c930`** is committed/pushed to remote `main` and confirmed **Production READY** on the approved domain. Complete direct hosted runs pass **127 Chromium / 91 WebKit tests**, plus **17 HTTP route/metadata/asset checks**. GitHub workflow **37944653423** fails before checkout with **zero executed steps** and the existing account payment/spending-limit annotation; no CI assertion coverage or account change is claimed. Exact receipts are in [the website verification report](<../../core-metrics-website/docs/audit/VERIFICATION.md#october-9-2026-design-refinement-and-delivery>). The final receipt changes documentation only, and this native report is committed separately.
+
+This is website-only implementation; native application source, resources, formulas, project/release configuration and account state are unchanged. The native evidence and outstanding desktop/acceptance limits below remain dated October 8; no new native build or UI validation is claimed.
 
 ## Build 7 validation and delivery attempt — October 8, 2026
 

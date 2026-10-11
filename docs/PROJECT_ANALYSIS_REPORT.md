@@ -1,6 +1,12 @@
 # Core Metrics project analysis and remediation report
 
-Review dates: **2026-09-04–2026-10-11**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
+Review dates: **2026-09-04–2026-10-12**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
+
+## Build 8 validation and upload — October 12, 2026
+
+The [12 October delivery receipt](RELEASE_PREPARATION_2026-10-12.md) records the authorized continuation: further bilingual website/contact copy, preserved native privacy/reset changes, 75 passing native tests, Debug/Release/analysis and strict packaging checks. Native `df1e226` is committed and pushed; distribution **1.0 (8)** passes **23/23 archive** and **24/24 export** checks, Apple validation and upload with explicit success receipts. Frozen source/tooling fingerprints remain unchanged after upload. Website `3cd2815` is READY on the production domain with draft/noindex gates; production Chromium/WebKit checks pass. GitHub's job did not execute because of its account billing/spending limit.
+
+Authenticated App Store Connect saves/reloads confirm the new 1918-character review notes, copyright and shared review email. The receipt distinguishes upload acceptance from processing, group availability, installed runtime acceptance, legal approval and public release; none of the latter are inferred. The user’s ordinary Core Metrics process, clipboard and login settings are preserved.
 
 ## Coordinated portfolio review — October 11, 2026
 

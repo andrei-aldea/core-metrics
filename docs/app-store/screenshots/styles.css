@@ -8,9 +8,11 @@ h1{font-size:54px;line-height:1.04;letter-spacing:-2.4px;margin:0 0 28px;font-we
 .tags{position:absolute;left:64px;bottom:61px;font-size:12px;letter-spacing:1.8px;color:#8e9296}
 .capture{position:absolute;left:506px;top:92px;width:710px;overflow:hidden;border-radius:18px;background:#252525;box-shadow:0 18px 65px #0005;border:1px solid #ffffff16}
 .capture img{display:block;width:100%;height:auto}
-.settings{height:612px}
-.settings img{margin-top:-39.1724px}
-.help{top:78px;height:650px}
-.help img{margin-top:-14.7917px}
+.settings{height:544px;top:115px}
+.settings img{margin-top:-40px}
+.help{top:66px;height:681px;border-radius:28px}
+.help img{margin-top:0}
 .caption{position:absolute;left:506px;top:726px;width:710px;text-align:center;color:#8e9296;font-size:13px;letter-spacing:.15px}
-.help+.caption{top:753px}
+.help+.caption{top:764px}
+.preferences{top:80px;height:612px;border-radius:26px}
+.preferences img{margin-top:-40px}

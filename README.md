@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/Core-Metrics-AppIcon-Master.png" width="128" height="128" alt="Core Metrics app icon"></p>
 
-[12 October release preparation](docs/RELEASE_PREPARATION_2026-10-12.md) records the newly authorized candidate, validation and prepared metadata; current account state and upload receipts are recorded separately.
+[12 October release receipt](docs/RELEASE_PREPARATION_2026-10-12.md) records committed build **1.0 (8)**, passing archive/export checks, Apple validation/upload acceptance, production website verification and saved public review metadata. Processing and installed acceptance remain separate.
 
 # Core Metrics
 

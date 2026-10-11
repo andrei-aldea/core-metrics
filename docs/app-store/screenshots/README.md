@@ -1,18 +1,25 @@
 # Mac App Store screenshots
 
-Two English screenshots prepared October 4, 2026 for **Core Metrics 1.0 (5)**:
+Three English screenshots prepared 12 October 2026 from the real **Core Metrics 1.0 (8)** distribution archive:
 
-1. `01-settings.jpg` — native Settings, three live CPU/Memory/Storage readings and all four display choices.
-2. `02-metric-help.jpg` — native Metric Help with CPU and memory definitions and the real Done control.
+1. `01-settings.jpg` — native Settings at the current default CPU User selection, with a live reading and all four display choices.
+2. `02-metric-help.jpg` — native Metric Help with CPU and memory definitions and its real Done control.
+3. `03-preferences.jpg` — the same Settings window scrolled to Startup, Help and Preferences, including the new reset explanation.
 
-Both exports are **1280 × 800, opaque JPEGs**. A fresh authenticated App Store Connect page on **October 8, 2026** confirms that both are persisted in Settings → Metric Help order, including after another reload. The earlier expired-session uncertainty is resolved. The images were also visually rechecked against current source: the October 7 layout-cache and regression-test improvements change no pictured controls, definitions or artwork, so these real-build captures remain accurate.
+All exports are **1280 × 800, opaque JPEGs**. They are marketing compositions of genuine native captures, not claims that the native window itself has those dimensions. Upload and persisted ordering must be verified separately in App Store Connect. No screenshot uses Debug fixtures or website sample readings.
 
-## Provenance and reproduction
+## Build-8 provenance and reproduction
 
-`source/settings-real.jpg` and `source/metric-help-real.jpg` are Computer Use captures from a running copy of the distribution archive's app. Nonvisual EXIF/IPTC metadata was removed without changing the compressed image data. Its executable SHA-256 matched the original build-5 archive; no re-signing or debug fixtures were used. Actual live readings, native control text and focus indicators are preserved. The captures show only this app, with no account or personal desktop content. Review preferences were restored and the isolated copy was quit; the archive remains unchanged.
+`source/settings-build8-real.png`, `source/metric-help-build8-real.png` and `source/preferences-build8-real.png` are unmodified Computer Use screenshots saved directly from the running build-8 archive app on 12 October. The executable SHA-256 is `cf44975d2ea1e92047469a44a0ac2891c6309614058a62749cc1a78e336441ea`, from archived source `df1e22607892b5829f5887d8f80d4e94fe3f8dad`. No copy was re-signed and the archive was not rebuilt or modified. Strict signature/package checks and Apple validation/upload completed before capture. Raw Settings images are 1160 × 1064; Metric Help is 960 × 920. Actual live readings, native text, current appearance and controls are preserved.
 
-The HTML files and shared CSS frame the captures using the shared graphite/silver brand. CSS crops approximately 64 source pixels from Settings' title bar to omit the macOS window-sharing overlay, and 20 pixels from the Help capture's top plus its bottom margin to omit underlying window/cursor fragments. The layouts use viewport crops and uniform scaling; no app UI, reading, text, control or translation is synthesized or retouched. Both compositions reference the canonical `docs/assets/Core-Metrics-AppIcon-Master.png`; no duplicate brand master is maintained.
+The ordinary development app remained running under its original process and different bundle identifier. Only the owned distribution instance was opened and quit. No selection/display preference, clipboard, Launch at Login registration or system appearance was changed; the capture only opened Settings/Help/Privacy and scrolled. The initial Computer Use connection timed out, a bounded retry recovered, and one attempt to raise/resize the window returned noWindowsAvailable; reconnection recovered the same unchanged window geometry. These tool limitations are not a claim of an app crash. Metric Help content/Done and Privacy scrolling/Escape were visually checked, including the privacy email action; no email or browser link was opened. This targeted dark-appearance capture does not establish full VoiceOver, menu geometry, login-cycle, sleep/wake or installed-TestFlight acceptance.
 
-To reproduce, serve the repository’s `docs` directory on localhost, open each `/app-store/screenshots/` HTML file in a browser at 1280 × 800 and take a full-page JPEG screenshot after local images load. There are no remote resources, scripts or added dependencies. Do not use a default 1280 × 720 viewport export. Verify width, height, opacity, sharp text and complete visible controls before any replacement upload.
+The HTML files and CSS retain the shared graphite/silver brand. Settings compositions crop the native title bar by approximately 65 source pixels; the top view additionally stops before the partially visible Startup section. Metric Help retains the entire captured sheet and Done control. Rounded viewport masks exclude only outside-window corner pixels. Uniform CSS scaling fits the real captures into the artwork; no app UI, reading, text, control or translation is synthesized, stitched or retouched. Each composition references the canonical `docs/assets/Core-Metrics-AppIcon-Master.png`.
 
-[Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications) require 1–10 Mac screenshots at one of the permitted 16:10 sizes. A third image or app-preview video is optional. These images do not establish installed-TestFlight acceptance or complete the broader accessibility/runtime matrix.
+To reproduce, serve the repository’s `docs` directory on localhost and open each `/app-store/screenshots/` HTML file in a browser at **1280 × 800**, device scale factor 1. Wait for local images and fonts, then capture a full-page JPEG. Local file URLs are also supported; there are no remote resources, scripts or added dependencies. Verify dimensions, opacity, sharp text and complete pictured controls before replacement upload.
+
+[Apple screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications), checked 12 October, accept 1280 × 800 for Mac apps. A third image or app preview is optional. These assets do not establish public-release readiness.
+
+## Historical build-5 assets
+
+The older `source/settings-real.jpg` and `source/metric-help-real.jpg` remain preserved as the 4 October build-5 source captures. The previous two compositions were confirmed persisted in Settings → Metric Help order on 8 October. That observation does not establish upload of the new build-8 artwork.

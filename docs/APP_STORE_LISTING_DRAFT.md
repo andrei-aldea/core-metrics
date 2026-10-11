@@ -1,8 +1,8 @@
 # App Store listing — current draft and saved fields
 
-[12 October release preparation](RELEASE_PREPARATION_2026-10-12.md) records the newly authorized candidate, validation and prepared metadata; current account state and upload receipts are recorded separately.
+[12 October release receipt](RELEASE_PREPARATION_2026-10-12.md) records committed build **1.0 (8)**, passing archive/export checks, Apple validation/upload acceptance, production website verification and saved public review metadata. Processing and installed acceptance remain separate.
 
-**12 October live account:** build 7 is Complete in Build Uploads and Ready to Submit without a testing group; build 6 is Testing in both existing groups. The public draft still selects build 5, with copyright empty and automatic release selected. Candidate **1.0 (8)** is reserved. No new upload or public review submission is claimed by this account check.
+**12 October live account and delivery:** build 7 is Complete and Ready to Submit without a group; build 6 is Testing in both existing groups. Build **1.0 (8)** has now passed Apple validation and uploaded successfully; processing and groups need a fresh account check. Public draft review notes, copyright `2026 DOROBANTI NETWORK S.R.L.` and `support@dorobantimedia.com` were saved and reload-verified. Build 5 and automatic release were still selected at that check. No public review submission occurred.
 
 **Local portfolio changes — 2026-10-11:** app support and privacy use `support@dorobantimedia.com`. The next candidate adds a direct privacy-email action and explains Restore Defaults in Settings; refresh its Settings screenshot. Shared operating facts are in [BUSINESS_POLICY.md](<../../Pe langa/BUSINESS_POLICY.md>). The saved October 8 listing text and account observations below are historical; no metadata/account save happened in this review. Reconcile the accepted new candidate before submission.
 
@@ -10,15 +10,15 @@
 
 | Field | Current evidence |
 | --- | --- |
-| Review contact and instructions | Private contact fields are populated; private values are not stored here. Revised four-mode notes with the English-interface clarification were saved and verified exactly after reload October 8. |
+| Review contact and instructions | Private contact fields are populated; private values are not stored here. Review email is the shared support address. New 1918-character notes in the 12 October release receipt were saved and verified exactly after reload. |
 | Sign-in required | Off; no demo account is needed. |
 | Support URL | https://core-metrics.dorobantimedia.com/en/support |
 | Marketing URL | https://core-metrics.dorobantimedia.com/en — saved |
 | Privacy Policy URL | https://core-metrics.dorobantimedia.com/en/privacy — saved; policy itself still needs factual completion/approval. |
 | Age rating | Questionnaire completed from implemented features: **4+ with regional exceptions**, no Made for Kids categorization or override. |
 | Content Rights | Saved No: the utility contains no third-party content feed, media or remote content. Native system UI/SF Symbols remain platform resources. |
-| Screenshots | Two real-build 1280×800 opaque JPEGs are persisted, freshly verified October 8 in Settings → Metric Help order. Their current UI content was also visually rechecked against source. [Assets and provenance](app-store/screenshots/README.md). |
-| Copyright / storefronts | Actual copyright owner remains unresolved. Romania is the confirmed launch intention; saved availability still requires verification, and wider distribution is a separate choice. Free pricing is already saved; pricing regions do not configure availability. |
+| Screenshots | Two build-5 1280×800 opaque JPEGs were persisted October 8. Three new build-8 compositions (Settings, Metric Help, Preferences) are ready, with fresh native capture and dimensions verified; replacement upload/persistence is still pending. [Assets and provenance](app-store/screenshots/README.md). |
+| Copyright / storefronts | Copyright `2026 DOROBANTI NETWORK S.R.L.` was saved and reload-verified on 12 October. Romania is the confirmed launch intention; saved availability still requires verification, and wider distribution is a separate choice. Free pricing is already saved; pricing regions do not configure availability. |
 | App Privacy | Saved **Data Not Collected** draft remains unpublished. Final assessment and policy completion are separate from saving the URL. |
 | Release control | Automatic release remains selected. Choose manual release before submission if a separate launch decision is wanted. No public review submission occurred. |
 

@@ -1,5 +1,7 @@
 # Historical app and website publishing review — September 14, 2026
 
+**Portfolio correction — 2026-10-11:** [shared business policy](<../../Pe langa/BUSINESS_POLICY.md>) and [current review](PORTFOLIO_REVIEW_2026-10-11.md) supersede earlier support-policy claims. `support@dorobantimedia.com` is the shared app support/privacy address. The user confirmed Apple iCloud Mail, personal handling and owner-only mailbox access, no recorded calls, routine-record deletion 90 days after resolution and separately justified legal/dispute retention. Delivery, forwarding, trash/exports/backups, actual exception periods and transfers remain unverified; the old 30-day rule is superseded. This local review adds in-app contact/reset guidance and requires a new candidate plus a refreshed Settings screenshot. No new App Store account observation, upload or public release occurred.
+
 Current delivery: [October 4 launch checklist](APP_STORE_LAUNCH_CHECKLIST.md). Build 5 is Testing with the refined icon and local-copy fix; public release remains pending.
 
 Current legal status: [October 3 app and website review](<../../core-metrics-website/docs/audit/LEGAL_REVIEW_2026-10-03.md>). The revised candidate excludes copied readings from Universal Clipboard; distribute that build before publishing matching claims. Earlier account/build observations below remain dated evidence.
@@ -43,7 +45,7 @@ With the approved origin supplied, `npm run check:publication` correctly reports
 6. Approval of the equivalent final English/Romanian legal copy.
 7. Confirmation of the standard or custom App Store EULA choice.
 
-The company details, registered office, named support providers and 30-day correspondence rule are already supplied; they do not need to be invented or collected again. Remaining facts belong in website `src/lib/publication.ts` and the final bilingual copy. Verify the actual account/contract settings and implement the stated support deletion and rights-request procedures. A 30-day promise in text is not evidence that older correspondence or provider backups have been deleted.
+Company details and the registered office are previously recorded. Use the shared policy for the new support mailbox and unresolved operations; the earlier 30-day rule is superseded for this review. Remaining facts belong in website `src/lib/publication.ts` and the final bilingual copy. Verify the actual account/contract settings and implement the stated support deletion and rights-request procedures. A retention promise in text is not evidence that correspondence or provider backups have been deleted.
 
 The current legal base paragraphs also need a final edit. `src/messages/en.ts:366` and `src/messages/ro.ts:368` explicitly say backup timing is unverified; the sitemap's Apple-license descriptions at lines 117/119 say the license selection is unconfirmed. Completing `publication.ts` does not replace those strings. Remove or revise those statements only when the underlying facts support the change, and inspect the complete rendered documents for contradictions.
 

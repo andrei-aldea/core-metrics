@@ -73,3 +73,7 @@ Inventory before cleanup. No simulator is required for this Mac app, but other p
 Update README/runbooks when setup or behavior changes, `docs/METRICS.md` when formulas change, and `docs/DECISIONS.md` for architectural decisions. Keep [docs/PROJECT_ANALYSIS_REPORT.md](docs/PROJECT_ANALYSIS_REPORT.md) aligned with this remediation's final diff, measurements, failures and limitations. Do a second repository-wide review before declaring completion.
 
 Do not commit, push, publish, archive for distribution, upload, rewrite history, or discard unrelated work unless explicitly requested. Before an authorized commit, inspect working and staged diffs, search staged content for personal/signing/secret data, build and run relevant tests, and ensure one coherent change. Prefer descriptive messages such as `fix(metrics): reject cancelled samples`.
+
+## Shared business policy
+
+Read [BUSINESS_POLICY.md](<../Pe langa/BUSINESS_POLICY.md>) before changing publisher, support, privacy or legal copy. It records confirmed facts, proposals and unresolved operational details; do not promote a proposal to a public promise.

@@ -1,0 +1,59 @@
+# Core Metrics portfolio review — 2026-10-11
+
+Local implementation and verification, prepared for review. No commit, push, deployment, App Store change, message or distribution archive was performed. Historical observations below are explicitly dated.
+
+## Scope and starting state
+
+| Surface | Initial Git state | Purpose and audience | Language / platform |
+| --- | --- | --- | --- |
+| `Core Metrics` | Clean `main`, `4461698`; [repository](https://github.com/andrei-aldea/core-metrics) | Current aggregate CPU, memory and startup-volume readings for Mac users | English UI; locale-aware numbers; native Apple silicon macOS 27+ |
+| `core-metrics-website` | Clean `main`, `533ed8a`; [repository](https://github.com/andrei-aldea/core-metrics-website) | Explain the utility, demonstrate sample readings, provide support and legal information | English and Romanian; responsive web |
+
+Read the complete native AGENTS.md, README, design/development/release runbooks and relevant source. No nested instructions existed. The website had no AGENTS.md; a repository guide now records its actual architecture, checks and publication gate. Both guides reference [shared business policy](<../../Pe langa/BUSINESS_POLICY.md>).
+
+## Implemented changes
+
+- Native Privacy identifies DOROBANTI NETWORK S.R.L. and the shared support/privacy address. A direct email action prefills only the product and purpose, attaches no readings or identifiers, and never sends automatically. It distinguishes voluntary correspondence from local metrics and tells users to remove personal details from attachments.
+- Settings now labels its help/preferences section and explains that Restore Defaults selects CPU User / Label and Value without changing Launch at Login. Existing selection, status geometry, privacy boundaries, keyboard controls and persistence are retained.
+- The website uses one configured shared support address, with product-specific support and privacy subjects. Mobile/keyboard users can jump directly from Support’s introduction to its contact card instead of traversing eleven answers. The card links the privacy policy, and the rights section links directly to privacy email. Both translations are complete.
+- Bilingual legal drafts replace the obsolete 30-day rule with the newly confirmed 90-day-after-resolution deletion of routine emails, attachments and necessary call notes. They identify confirmed Apple iCloud Mail, personal handling and owner-only mailbox access, no recorded calls and separately justified legal/dispute retention. Forwarding, trash, exports, backups, exception periods, host and beta-data handling remain explicit unknowns; no transfer protection is invented. Terms retain the standard Apple app license and mandatory consumer remedies, and explain the limitations of sampled readings.
+- Shared business facts are referenced rather than copied into competing owner questionnaires. Current publisher input/runbooks now defer to the shared policy; historical receipts remain dated. The README’s obsolete failed-upload summary is corrected to the recorded October 8 successful build-7 upload, without implying new account verification. The website’s old System-theme runbook description is corrected to its actual Light/Dark behavior and migration.
+- A local native/site comparison now checks the shared support email as well as metric names, modes, defaults, limits, URLs, minimum OS and icon bytes. Existing legal/contact browser assertions now protect the actual pending-policy state and the contact keyboard path.
+
+## Product-specific data assessment
+
+| Surface | Actual implementation | Limits / deletion |
+| --- | --- | --- |
+| Metrics | Public Mach/Foundation aggregate counters; current values in memory; no network client, accounts, analytics, ads, purchases, SDKs, backend, process inspection or file scanning | No metric history. Diagnostics log only category/availability transitions through macOS. OS-managed diagnostics/backups are separate. |
+| Preferences and login | App-scoped UserDefaults stores selection and display mode; optional public SMAppService login registration | Restore Defaults changes app preferences. macOS separately manages login registration. No cloud-sync feature or user identifier. |
+| Clipboard | Explicit Copy Readings uses `.currentHostOnly` with full selected names/current values | Replaces this Mac’s pasteboard; excludes Universal Clipboard. Pasted copies follow the destination app. Tests use injected writers/named pasteboards. |
+| Permissions and manifest | App Sandbox only; disk-space reason 85F4.1 and defaults reason CA92.1; empty collected-data list and tracking false | Independently grounded in this app’s source. Signing identity/team/entitlements/deployment target were not changed. Final shipping archive still needs its own validation. |
+| Website | Vercel; no forms, application cookies, tracking, analytics or third-party embeds; sample demo state is in memory | Explicit Light/Dark theme only in local storage until changed/cleared; old System migrates to Light. Host logs and optional account settings require verification. |
+| Support / beta | User-selected email/telephone handlers; Apple TestFlight separate from the production app | Shared email, iCloud Mail, personal handling and owner-only mailbox access, no recorded calls, routine retention and separately justified legal/dispute retention are confirmed; delivery, forwarding, exception periods, trash/exports/backups/transfers and developer use of beta data remain unresolved. Apple’s optional-support privacy-label exception is conditional, not automatic. |
+
+No account-deletion, payment, subscription, tracking-consent or network feature was added. Native App Privacy remains a local source assessment; its previously saved Data Not Collected draft is not new App Store approval.
+
+## Validation
+
+- Xcode 27.0 final `27A266a`, explicitly selected per command; host macOS 27.2 arm64. `scripts/validate.sh --output-root /tmp` passes Debug/Release builds, **75 Swift Testing tests / 173 executions**, analysis, concurrency/configuration guards, source/packaged plist and privacy/sandbox checks, and whitespace checks. Logs: `/private/tmp/core-metrics-validation.wQAqu6`. Three known AppIntents metadata-extraction warning lines; zero other warnings and zero DisplayManager rectangle diagnostics.
+- Separate local ad-hoc signed visual build passes at `/tmp/core-metrics-portfolio-visual`. Its DEBUG fixture uses a test preferences suite and fake copy/login services. The person’s already-running ordinary app is preserved. Root desktop inspection confirmed the Settings help/preferences footer, reset explanation, top and lower Privacy content, visible explicit email action, wrapped copy and Done dismissal. No real preferences, clipboard, login items or email were changed. A CUA scrolling error was resolved by the native scrollbar. The final static contact paragraph uses Text(verbatim:) to avoid an incidental duplicate detected email link. Its incremental unsigned and ad-hoc builds pass; root rechecked final AX and screenshots: no disabled automatic email link, one correctly addressed/prefilled explicit privacy link, full lower support content reachable by native scrollbar, and Escape returns to Settings. This is focused light-appearance Settings/Privacy verification, not full menu-geometry, dark appearance or VoiceOver acceptance. A sandbox-extension warning occurred during fixture launch although the app displayed; no distribution acceptance is inferred.
+- Website content parity/export, native synchronization, type checking, lint, production build/notices and **19 configuration tests** pass. The broad stable website run passes **173 Chromium tests**; final confirmed-policy runs pass **29 Chromium and 27 WebKit cases**, plus a no-JavaScript contact check. Browser details are recorded in the [website receipt](<../../core-metrics-website/docs/audit/PORTFOLIO_REVIEW_2026-10-11.md>).
+- App VoiceOver, display accommodations, minimum macOS 27.0 hardware, real login cycle and installed TestFlight acceptance remain release checks; builds do not verify them.
+
+## External state and URLs
+
+Fresh read-only HTTP checks on this review date return 200 for [English home](https://core-metrics.dorobantimedia.com/en), [Support](https://core-metrics.dorobantimedia.com/en/support), [Privacy](https://core-metrics.dorobantimedia.com/en/privacy) and [Romanian Terms](https://core-metrics.dorobantimedia.com/ro/terms). They retain `noindex, nofollow`. Production still serves `contact@dorobantimedia.com`; its English privacy page still promises 30 days and names iCloud Mail. The new local wording has not been deployed. A web-extraction tool could not open the domain; direct HTTPS reads supplied these observations.
+
+Native website links retain `/en/support` and `/en/privacy`. Public website routes exist under both `/en` and `/ro` with `/support`, `/privacy`, `/terms` and `/sitemap`. No public App Store URL was present or verified. The local development bundle remains intentionally `org.example.CoreMetrics`, version 1.0/build 1; do not confuse it with archived distribution build numbers or change signing incidentally.
+
+The October 8 receipt records successful validation/upload of **1.0 (7)**; processing and later account state remain unverified. The preceding account view showed public **Prepare for Submission** with build 5 selected, build 6 Testing, and saved free pricing. This review did not reopen App Store Connect or establish current availability.
+
+## Sources, approvals and release order
+
+The [portfolio legal-source record](<../../Pe langa/Verification/PortfolioLegalSources2026-10-11.md>) records the authoritative Apple/EU/Romanian review and its access limitations. Primary supporting references include [Apple collection definitions](https://developer.apple.com/app-store/app-privacy-details/), [required privacy URL](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy), [standard EULA selection](https://developer.apple.com/help/app-store-connect/manage-app-information/provide-a-custom-license-agreement), [TestFlight privacy](https://www.apple.com/legal/privacy/data/en/test-flight/), [GDPR](https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng) and [ANSPDCP guidance](https://www.dataprotection.ro/index.jsp?lang=ro&page=IntrebariFrecvente1). Sources establish requirements, not the company’s operations. This is a reviewable draft, not a compliance certification or approval.
+
+1. Verify mailbox delivery with separate test authorization, forwarding, execution of the confirmed 90-day-after-resolution rule, documented legal/dispute periods, and trash/exports/backups/transfer arrangements. Confirm Vercel settings and developer-held TestFlight operations and lawful grounds. Personal handling and owner-only mailbox access, iCloud Mail, Vercel and no recorded calls are already confirmed.
+2. Approve completed equivalent EN/RO legal copy and effective date. Keep preview/noindex and release preparation until the relevant gates are fulfilled. Deployment requires separate authorization, then fresh signed-out production-link/contact checks.
+3. Build a new native candidate from reviewed source. Refresh the Settings screenshot because of the new footer, verify Privacy scrolling/email action and keyboard behavior on the candidate, then complete minimum-version/VoiceOver/login/installed-beta acceptance. Do not replace a real App Store screenshot with website illustrations or DEBUG fixtures.
+4. Recheck build-7 processing and current Connect fields, choose an accepted build and release control, confirm copyright/storefronts/privacy declarations, and obtain separate submission authorization.
+5. After actual public release, verify the listing, price and supported platform; only then configure the real Mac App Store URL, verification date and official badge.

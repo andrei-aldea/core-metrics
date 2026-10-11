@@ -2,6 +2,10 @@
 
 Review dates: **2026-09-04–2026-10-11**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
 
+## Coordinated portfolio review — October 11, 2026
+
+The [current pair review](PORTFOLIO_REVIEW_2026-10-11.md) starts from clean native `4461698` and website `533ed8a`. It records the native Privacy email action, Settings reset guidance, shared support address, corrected legal drafts, source validation and local-versus-production/release distinctions. The shared policy supersedes old support-retention/provider-access assumptions without rewriting historical receipts. This work is local only.
+
 ## Website and native consistency review — October 11, 2026
 
 The review starts from clean native documentation `1c5f0a2` and companion website `252f364`. Native production source, tests, project settings, preference migrations and assets remain unchanged. The current AppKit/SwiftUI ownership, off-main acquisition, fixed status geometry, localized formatting, native controls and local-only data boundaries still fit the product. No additional native framework, dependency or source fix is justified by this comparison.
@@ -1191,3 +1195,10 @@ Manual archive-copy checks passed all four display modes with one, three and sev
 A further bounded RC desktop-suite attempt after all other xcodebuild processes ended still failed before any tests with “Timed out while enabling automation mode.” `UITests-AvailableSession.xcresult` and its raw log remain beside `q3IJkw` evidence. Read-only DevToolsSecurity reports developer mode disabled; no causal link was established and no security/automation settings were changed. The latest 71-unit/build/analyze pass and historical 13-UI pass remain correctly distinguished. No production defect was established by this environment failure; no test assertion was weakened or retry loop added.
 
 Vercel's project-detail connector now responds after using its actual required identifier key. It confirms a Ready deployment but omits analytics, drains, log-retention and access settings. The dashboard requires browser sign-in. Existing Vercel Pro/provider/support facts are retained; no plan change or new contract is needed merely because a dashboard is unavailable. Current primary provider sources clarify Apple-only analytics, TestFlight retention and the differing Vercel data roles; unresolved company practices are not inferred from them. The final privacy declaration, copyright owner, storefronts, legal operating facts/approval and remaining candidate acceptance are listed in the current launch checklist. No binary input changed in this follow-up, so no build 6 is required for these artwork/metadata/documentation changes.
+
+
+## Portfolio release preparation — October 12, 2026
+
+The user explicitly authorized further fixes, commit/push and a new TestFlight candidate, with App Store preparation but no public review submission. [Current candidate record](RELEASE_PREPARATION_2026-10-12.md) contains exact prepared review/beta copy, current source validation and the release sequence. App Store Connect now confirms the accepted build 7 is Complete and no newer upload exists; new candidate 1.0 (8) is reserved. Build 7 is Ready to Submit without a group, while build 6 is Testing in both existing groups. The public draft still selects build 5, has an empty copyright field and automatic release selected. These current observations supersede earlier processing uncertainty; no new upload or group assignment is claimed by that observation.
+
+Fresh isolated native validation `NFyYXC` passes Debug/Release, 75 distinct Swift Testing cases / 173 executions with zero failures/skips, static analysis and all packaged policy/permission/configuration guards. Three known AppIntents warnings remain, with no other warnings or DisplayManager rectangle diagnostics. The desktop suite was not rerun because it terminates matching development instances; the user's normal app was preserved. The prior targeted Settings/Privacy visual check applies to the unchanged runtime source, with its broader accessibility, appearance, login, sleep/wake and minimum-OS limits unchanged.

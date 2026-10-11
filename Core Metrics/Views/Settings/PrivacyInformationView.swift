@@ -47,6 +47,17 @@ struct PrivacyInformationView: View {
                     }
 
                     VStack(alignment: .leading, spacing: 8) {
+                        Text("Support and Privacy Requests")
+                            .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
+                        Text(verbatim: "DOROBANTI NETWORK S.R.L. publishes Core Metrics. You can contact us at support@dorobantimedia.com for support or privacy requests. Only include the details needed to explain your request; remove personal information from screenshots or logs before sending them.")
+                        Link("Email a Privacy Request…", destination: PublicAppLinks.privacyEmail)
+                            .accessibilityIdentifier("privacyInformation.emailLink")
+                            .help("Open your email app with the Core Metrics subject; nothing is sent automatically")
+                        Text("Information you choose to send is separate from the app’s local readings. The website’s privacy policy explains website visits and support correspondence.")
+                    }
+
+                    VStack(alignment: .leading, spacing: 8) {
                         Text("Local Diagnostics")
                             .font(.headline)
                             .accessibilityAddTraits(.isHeader)

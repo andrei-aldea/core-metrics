@@ -1,5 +1,11 @@
 # App Store listing — current draft and saved fields
 
+[12 October release preparation](RELEASE_PREPARATION_2026-10-12.md) records the newly authorized candidate, validation and prepared metadata; current account state and upload receipts are recorded separately.
+
+**12 October live account:** build 7 is Complete in Build Uploads and Ready to Submit without a testing group; build 6 is Testing in both existing groups. The public draft still selects build 5, with copyright empty and automatic release selected. Candidate **1.0 (8)** is reserved. No new upload or public review submission is claimed by this account check.
+
+**Local portfolio changes — 2026-10-11:** app support and privacy use `support@dorobantimedia.com`. The next candidate adds a direct privacy-email action and explains Restore Defaults in Settings; refresh its Settings screenshot. Shared operating facts are in [BUSINESS_POLICY.md](<../../Pe langa/BUSINESS_POLICY.md>). The saved October 8 listing text and account observations below are historical; no metadata/account save happened in this review. Reconcile the accepted new candidate before submission.
+
 **Fresh field review — October 8, 2026:** before the build-7 upload, the public version is **Prepare for Submission**, with build **1.0 (5)** selected. Both screenshots are persisted in the intended Settings → Metric Help order. The existing four-mode description, review notes, URLs and private review-contact fields match the saved draft; Sign-in required remains off and copyright remains empty. The revised 1,640-character description and 1,768-byte review notes below were saved and verified exactly after a fresh reload; Save was disabled. Xcode Organizer subsequently validates/uploads **1.0 (7)**; processing and post-upload Connect state remain unverified because Safari control times out. Delivery and candidate acceptance are recorded separately in the [launch checklist](APP_STORE_LAUNCH_CHECKLIST.md). No public submission or release has occurred.
 
 | Field | Current evidence |

@@ -82,7 +82,12 @@ struct SettingsView: View {
                     Button("Restore Defaults") {
                         preferencesStore.reset()
                     }
+                    .help("Restore CPU User and Label and Value; Launch at Login is managed separately")
                 }
+            } header: {
+                Text("Help and Preferences")
+            } footer: {
+                Text("Restore Defaults selects CPU User and Label and Value. It does not change Launch at Login.")
             }
         }
         .formStyle(.grouped)

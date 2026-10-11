@@ -6,7 +6,7 @@ Three English screenshots prepared 12 October 2026 from the real **Core Metrics 
 2. `02-metric-help.jpg` — native Metric Help with CPU and memory definitions and its real Done control.
 3. `03-preferences.jpg` — the same Settings window scrolled to Startup, Help and Preferences, including the new reset explanation.
 
-All exports are **1280 × 800, opaque JPEGs**. They are marketing compositions of genuine native captures, not claims that the native window itself has those dimensions. Upload and persisted ordering must be verified separately in App Store Connect. No screenshot uses Debug fixtures or website sample readings.
+All exports are **1280 × 800, opaque JPEGs**. They are marketing compositions of genuine native captures, not claims that the native window itself has those dimensions. Upload, remote rendering and persisted ordering were verified in App Store Connect on 12 October, as recorded below. No screenshot uses Debug fixtures or website sample readings.
 
 ## Build-8 provenance and reproduction
 
@@ -26,4 +26,4 @@ The older `source/settings-real.jpg` and `source/metric-help-real.jpg` remain pr
 
 ## App Store Connect follow-up — 12 October
 
-The current public draft still showed the two older images in Settings → Metric Help order. No old asset was removed. Safari stalled during the separate build-8 association reload, before a screenshot upload could be attempted. The three new JPEGs above are ready but their upload, processing and persisted order remain unverified.
+The old Safari tab initially stalled before screenshot work; a fresh tab recovered account access. All three JPEGs above uploaded successfully. The temporary five-image old/new set was cleared through the version-association removal control, which explicitly retains assets in Asset Library, then the three current files were attached in order. Each image rendered completely in Apple’s remote viewer and was visually inspected, including the current Restore Defaults explanation in Preferences. A fresh 12 October reload confirms **3 of 10** in exact order: **01-settings.jpg → 02-metric-help.jpg → 03-preferences.jpg**. Earlier assets and local source captures remain preserved. This verifies the prepared listing media, not a public App Store submission or release.

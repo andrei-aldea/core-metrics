@@ -23,3 +23,7 @@ To reproduce, serve the repository’s `docs` directory on localhost and open ea
 ## Historical build-5 assets
 
 The older `source/settings-real.jpg` and `source/metric-help-real.jpg` remain preserved as the 4 October build-5 source captures. The previous two compositions were confirmed persisted in Settings → Metric Help order on 8 October. That observation does not establish upload of the new build-8 artwork.
+
+## App Store Connect follow-up — 12 October
+
+The current public draft still showed the two older images in Settings → Metric Help order. No old asset was removed. Safari stalled during the separate build-8 association reload, before a screenshot upload could be attempted. The three new JPEGs above are ready but their upload, processing and persisted order remain unverified.

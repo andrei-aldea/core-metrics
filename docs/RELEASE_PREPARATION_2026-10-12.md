@@ -42,7 +42,7 @@ The app reads aggregate system values through public Apple APIs. It has no accou
 
 ## Prepared TestFlight What to Test
 
-Saved for build 8 and verified exactly after an authenticated reload on 12 October, with Save disabled. 2607 characters / 2607 UTF-8 bytes. Existing Internal Testers was subsequently assigned; no new tester, group or external beta submission was created.
+Saved for build 8 and verified exactly after an authenticated reload on 12 October, with Save disabled. 2607 characters / 2607 UTF-8 bytes. Existing Internal Testers was subsequently assigned. The later external beta submission below reused these exact notes; no new tester or group was created.
 
 ```text
 Please test Core Metrics on macOS 27 or later on a compatible Apple silicon Mac. The interface is in English; numbers follow your locale.
@@ -76,8 +76,14 @@ The owner further confirmed Trash emptying and removal of downloaded attachments
 
 Build Uploads lists **1.0 (8) Complete**, dated 12 October at **00:41**. The distribution build picker displays the processed build at **00:42**; both are their respective Apple UI timestamps. The exact What to Test text above was checked before Save, then compared again after reload: **2607 characters, exact match, Save disabled**.
 
-Build 8 was added to the **existing Internal Testers** group. Its page shows **0 testers**, **3 builds** (2, 6 and 8) and build 8 **Ready to Test**, expiring in 90 days. The overall build list still says **Ready to Submit**. No user was invited, no group was created and no external group, public link, extra notification or Beta App Review submission was added. Ready to Test with zero testers must not be described as active Testing or installed acceptance.
+Build 8 was added to the **existing Internal Testers** group. Its page shows **0 testers**, **3 builds** (2, 6 and 8) and build 8 **Ready to Test**, expiring in 90 days. At that first assignment check, the overall build list said **Ready to Submit**. No user was invited or group created. The later external submission below supersedes that initial no-external-assignment state. Ready to Test with zero testers must not be described as active Testing or installed acceptance.
 
 The public macOS 1.0 draft was changed from build **5 to 8** using Add Build, then saved. The build-8 row was visible and **Save became disabled**. Copyright, shared review email, the complete 1918-character review notes, correct support/marketing URLs, Sign-in required off and automatic release remained intact. Safari then stalled during reload, including one bounded navigation retry. A later fresh-tab check recovered the page and verified **build 8 persisted, Save disabled**, the exact notes and the same contact/copyright/sign-in/release fields. No Add for Review or public release action was taken.
 
 The page initially contained the two older screenshots. After Safari recovered in a fresh tab, all three new build-8 JPEGs uploaded successfully. The temporary five-image old/new set was cleared using the version-association removal control, whose confirmation explicitly retained the assets in Asset Library, then the three current files were attached in their intended order. Apple’s remote viewer rendered every image completely and each was visually inspected, including the revised Restore Defaults wording in Preferences. A fresh 12 October reload confirms **3 of 10** in exact order: **01-settings.jpg → 02-metric-help.jpg → 03-preferences.jpg**. Earlier assets and local provenance remain preserved. No screenshot or app binary was synthesized or changed during this upload. Remaining public-launch fields, legal approval and installed-candidate acceptance remain separate.
+
+## Existing external tester delivery — 12 October
+
+The owner’s request to put the new builds into TestFlight authorized delivery to existing testers, including the required Beta App Review step. The authenticated External Testers page retained **one Accepted tester** and no public link; five older builds were already associated. Build **1.0 (8)** was selected through Add Build to Group. The What to Test form matched the exact **2607-character** text above and its existing **Automatically notify testers** option remained checked. Submit for Review was the beta-only action; it presented no new business, privacy or legal attestation.
+
+The group immediately showed six builds with **1.0 (8) Waiting for Review**. A fresh reload verified that same group count and status. This is queued Beta App Review, not external Testing, installation or public App Review. The existing internal group still has zero testers; the earlier Ready to Test observation is not installed acceptance. No tester or group was created, no public link was enabled, no invitation was resent and no public version was submitted or released. Apple’s decision and subsequent installed-candidate acceptance remain outstanding. No application source or binary changed, and no duplicate upload is needed.

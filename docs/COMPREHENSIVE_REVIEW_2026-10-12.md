@@ -252,3 +252,29 @@ This is a prepared classification for explicit approval, not a new App Store
 Connect save, privacy publication, legal attestation or public review submission.
 The latest observed account state remains the separately dated checkpoint above.
 No source, build-9 artifact, price, audience or release setting changed.
+
+
+## Approved App Privacy publication — 12 October
+
+Following the owner's explicit approval of the prepared public-app classification,
+the coordinator reports **Data Not Collected — Published** in App Store Connect.
+This supersedes the unpublished preview and sole validation blocker observed at
+20:38–20:39; those earlier receipts remain historical. Publication records the
+publisher's declaration, not Apple's approval of the app or certification of the
+company's wider data handling.
+
+The source-backed scope and adopted prospective Apple-console boundary remain
+as assessed above. Website/support/beta wording, provider facts, justified
+retention, effective-date approval and remaining native acceptance stay open.
+No native source/build, price, audience or automatic-release setting changed.
+
+**Exact publication evidence:** The coordinator's **21:35 EEST** account readback and the independently inspected private screenshots `core-privacy-published.png` and `core9-unsent-review-draft.png`, retained under `~/Library/Logs/CineSuntContent20-20261012/`, show the published Data Not Collected declaration, correct policy URL, blank optional choices URL and the subsequent unsent draft.
+
+**Subsequent review-packet readback:** At **21:35 EEST**, Add for Review succeeded. Version **1.0** is **Ready for Review**; the opened Draft Submission contains **one Item Ready to Submit: macOS 1.0 (9)**. **Submit for Review was not clicked**.
+
+The separate draft readback establishes preparation only: no Waiting for Review,
+Apple approval or public availability is claimed. Final Submit for Review remains
+outside this task's authority.
+
+The coordinator also confirms the three existing screenshots and exact
+2006-character reviewer notes remain saved, with automatic release unchanged.

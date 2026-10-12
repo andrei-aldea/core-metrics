@@ -1,5 +1,11 @@
 # Core Metrics project analysis and remediation report
 
+## Owner-requested beta audience cleanup — 12 October 2026
+
+**Current owner-requested TestFlight cleanup — 12 October:** builds **1–7 are Expired** and 8 remains active. A fresh full reload confirms only the new internal group with **the specified existing owner / 1 tester / 1 build: 8 Testing**, 90 days, automatic distribution **off**, and an empty external section. The old internal group was deleted; the old external was removed from the app, preserving historical tester records. Public build 8, exact notes, release choice and the three real candidate screenshots retain their saved scope. Installation is unverified. See the [consolidated cleanup record](<../../Pe langa/Verification/TestFlightCleanup2026-10-12.md>). Earlier group counts and external availability below are dated history.
+
+The bounded native follow-up reread source and instructions, found no concrete new defect, and matched **93/93 frozen runtime/project/test/tooling inputs** to uploaded source `df1e22607892b5829f5887d8f80d4e94fe3f8dad`. Main was clean and matched the live remote before these documentation edits. No production source, neutral identity, build number, binary, ordinary app process, clipboard or login preference changed, and no new runtime/build pass is claimed. The current account facts above are independently reload-verified; portfolio-wide replacement Impostor21 remains separate.
+
 Review dates: **2026-09-04–2026-10-12**. Original baseline revision: **`4fc4e62`**, `feat(metrics): add aggregate utilization choices`. This report records implemented work, validation and limits; it is not a submission approval or a guarantee of security.
 
 ## Build 8 validation and upload — October 12, 2026

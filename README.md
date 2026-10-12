@@ -1,6 +1,6 @@
 <p align="center"><img src="docs/assets/Core-Metrics-AppIcon-Master.png" width="128" height="128" alt="Core Metrics app icon"></p>
 
-[12 October release receipt](docs/RELEASE_PREPARATION_2026-10-12.md) records committed build **1.0 (8)**, passing archive/export checks, Apple validation/upload acceptance, production website verification and saved public review metadata. Processing and installed acceptance remain separate.
+[12 October release receipt](docs/RELEASE_PREPARATION_2026-10-12.md) records committed build **1.0 (8)**, passing archive/export checks, Apple validation/upload acceptance, production website verification and saved public review metadata. Processing is Complete. The later [owner-requested TestFlight cleanup](<../Pe langa/Verification/TestFlightCleanup2026-10-12.md>) verifies 1–7 Expired and the new internal group with only the specified existing owner, 8 Testing and automatic distribution off. A fresh full reload confirms only that internal group and an empty external section; the old app groups were removed while historical external tester records were preserved. Installed acceptance remains separate.
 
 # Core Metrics
 

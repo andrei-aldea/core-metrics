@@ -1,6 +1,65 @@
 # App Store launch checklist — October 12, 2026
 
-**Current build-9 account checkpoint — 12 October:** authenticated readback confirms build **1.0 (9)** processed and **Testing in the sole-owner internal group**; a fresh post-expiry group reload shows **1 tester / 1 build: 9 Testing, 90 days** and the tester tab contains only the specified owner. All older builds **1–8 are Expired**. Public draft **9**, the exact **2006-character [review notes](APP_REVIEW_BUILD_9_NOTES_EN.txt)** and confirmed `2026 DOROBANTI NETWORK S.R.L.` copyright are saved and verified after a full reload. The exact [2696-character beta notes](TESTFLIGHT_BUILD_9_NOTES_EN.txt) are now saved and verified after a full reload with heading 1.0 (9) and Save disabled, superseding the earlier input-focus failure. The [three-panel marketing gallery](app-store/screenshots/README.md) is uploaded and persisted at **3 of 10**, independently read after fresh app navigation in **01-selection.png → 02-styles.png → 03-explanations.png** order. All three Apple-hosted images are now loaded after fresh app navigation and remotely visually verified; the earlier third-image processing wait is resolved. Public draft 9, disabled Save and the existing automatic-release choice remain. The two earlier version associations were removed recoverably, retaining their Asset Library originals. No Mac header was uploaded. TestFlight installation remains unverified; no public submission was performed. [Current source and delivery evidence](COMPREHENSIVE_REVIEW_2026-10-12.md).
+**Latest installed TestFlight checkpoint — 12 October, 20:08 EEST:** after the
+owner-authorized invitation resend and successful redemption, the official
+TestFlight page shows **Core Metrics 1.0 (9), Open, Works on this Mac** and the
+shared support email. The Apple-installed copy is `/Applications/Core Metrics
+2.app`, bundle `com.dorobantimedia.CoreMetrics`, with a valid strict signature
+and Apple receipt. The existing `/Applications/Core Metrics.app` remains the
+separate development build 1. This supersedes the earlier invitation and
+installation blockers below.
+
+Bounded manual CUA checks on the actual installed build verify one, three and
+seven Settings selections in canonical order, the seven-reading cap, all four
+display modes and live previews, Help opening/Escape dismissal, Privacy
+opening/Done dismissal and the displayed contact destinations. Seven selections
+persisted across normal Quit/relaunch with a new process identifier. Restore
+Defaults returned the recorded CPU User / Label and Value baseline; Launch at
+Login stayed off/unregistered. The tested app was quit, no Core process remained,
+and both installed executable hashes were unchanged. No clipboard, login-item,
+external-link or security-setting action was used. This is partial installed
+acceptance, not the complete display/accessibility/lifecycle matrix. A final
+bounded keyboard check showed the Live Preview focus ring, but did not establish
+full control traversal. The native control interface did not expose the real
+status item; Control-F8 did not reveal it. Command-F5 produced no observed
+VoiceOver process or prompt. No further system toggle was attempted. Final
+readback again confirmed the baseline and normal Quit left no Core or VoiceOver
+process; the remaining menu-bar and spoken-accessibility checks stay open.
+[Detailed evidence and limits](COMPREHENSIVE_REVIEW_2026-10-12.md#actual-testflight-build-9-manual-checkpoint--12-october-2026).
+
+**Earlier bounded desktop check — 12 October, 19:53 EEST:** a fresh final-Xcode
+ad-hoc Debug build of unchanged current source succeeded, with the corrected
+`Core MetricsUITests/CoreMetricsUITests/testSettingsControlsFitContentWidth`
+selector. The runner then failed while enabling automation, before any scenario
+body. The result bundle reports one infrastructure failure and zero passes; it
+is not an application assertion failure. Read-only `automationmodetool` reports
+**Automation Mode disabled / user authentication required**, and
+`DevToolsSecurity -status` reports developer mode disabled. No approval modal
+was observed in Xcode or the app inventory. No security preference was changed;
+the tool's CI-oriented option to allow automation without authentication was
+not used. The normal automation authorization path remains unresolved. The
+installed development executable's SHA-256 is unchanged and no owned app/runner
+process remains. Evidence: `~/Library/Logs/PortfolioReleaseContinuation20261012/core-desktop-corrected/`.
+
+**Earlier invitation status, before the successful resend:** the owner clarified that the existing Core TestFlight invitation
+still does not work; the coordinator's latest App Store Connect read still
+shows **Invited**. No installation or acceptance is claimed. TestFlight's
+settings explain that invitation and current Apple Account email addresses may
+differ; that fact alone does not diagnose an account mismatch. No account was
+changed, invitation resent or tester added during this check.
+
+**Earlier TestFlight installation checkpoint — 12 October:** the official Apple
+TestFlight Mac app is installed (4.4.0). Core was initially absent and the sole
+owner was Invited; the owner subsequently confirmed accepting the existing
+invitation and seeing Core in TestFlight. The current group remains **9 Testing /
+90 days**. A subsequent Mac TestFlight refresh, explicit Core search and app restart still show no Core entry; owner-reported acceptance and observed availability on this Mac remain distinct. Private screenshot: `~/Library/Logs/PortfolioReleaseContinuation20261012/core-testflight-after-acceptance.png`. Candidate installation/acceptance remains open. No
+invitation was resent and no tester was added. The existing local development
+Core app is build 1 with a separate bundle identifier. The coordinator also
+updated TestFlight Feedback Email and Beta App Review Email to
+**support@dorobantimedia.com** and verified the fields after reload; private
+readback is `~/Library/Logs/PortfolioReleaseContinuation20261012/core-testflight-support-saved.jpg`.
+
+**Current build-9 account checkpoint — 12 October:** authenticated readback confirms build **1.0 (9)** processed and **Testing in the sole-owner internal group**; a fresh post-expiry group reload shows **1 tester / 1 build: 9 Testing, 90 days** and the tester tab contains only the specified owner. All older builds **1–8 are Expired**. Public draft **9**, the exact **2006-character [review notes](APP_REVIEW_BUILD_9_NOTES_EN.txt)** and confirmed `2026 DOROBANTI NETWORK S.R.L.` copyright are saved and verified after a full reload. The exact [2696-character beta notes](TESTFLIGHT_BUILD_9_NOTES_EN.txt) are now saved and verified after a full reload with heading 1.0 (9) and Save disabled, superseding the earlier input-focus failure. The [three-panel marketing gallery](app-store/screenshots/README.md) is uploaded and persisted at **3 of 10**, independently read after fresh app navigation in **01-selection.png → 02-styles.png → 03-explanations.png** order. All three Apple-hosted images are now loaded after fresh app navigation and remotely visually verified; the earlier third-image processing wait is resolved. Public draft 9, disabled Save and the existing automatic-release choice remain. The two earlier version associations were removed recoverably, retaining their Asset Library originals. No Mac header was uploaded. The later installed checkpoint above now verifies TestFlight installation; no public submission was performed. [Current source and delivery evidence](COMPREHENSIVE_REVIEW_2026-10-12.md).
 
 **Later availability and privacy readback — 12 October:** the coordinator found **Set Up Availability** still unset, selected Specific Countries with **Romania only**, left future-country expansion unchecked and confirmed. A full reload shows **Availability (1 Country or Region)**, **Romania — Available on App Release**, and the remaining regions **Not Available**. No pre-order, price, distribution-method, public-submission or release change occurred. A fresh App Privacy read shows the **Publish** button, the saved **Data Not Collected** preview/data types and the correct `https://core-metrics.dorobantimedia.com/en/privacy` URL; the optional choices URL is blank. Publish was not clicked and no declaration or policy-compliance attestation was changed. App Privacy remains saved but unpublished, with factual/legal approval still open. This supersedes earlier pending-availability observations without establishing public availability. The [portfolio follow-up](<../../Pe langa/Verification/LaunchFollowup2026-10-12/README.md>) retains the account evidence.
 
@@ -36,9 +95,9 @@ This dated receipt records the previous successful delivery. Its group-specific 
 
 ## Required before public submission
 
-1. **Complete the policies and website delivery checks.** The current runtime maintenance patch is live; resolve the GitHub Actions billing/spending-limit block and finish its hosted CI verification. Confirm the actual hosting/security logs and access, developer in-console use of beta information and other beta records, lawful grounds, local/device/provider backup handling, and recipients/locations/transfer safeguards. Trash/attachment/export deletion at the routine deadline and no downloaded/retained TestFlight feedback/crash reports are now confirmed. Approve the equivalent EN/RO policy and effective date, then publish it. The website’s publication gate still rejects unresolved operational inputs and approval; a draft banner/noindex does not waive duties to current visitors or testers. Contact is `support@dorobantimedia.com`. See the [current publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>). Assign responsibility for applicable CRA incident reporting; the legal review records scope and deadlines.
+1. **Complete the policies and website delivery checks.** The current runtime maintenance patch is live; resolve the GitHub Actions billing/spending-limit block and finish its hosted CI verification. Confirm the actual hosting/security logs and access, developer in-console use of beta information and other beta records, lawful grounds, provider-controlled backup/recovery handling, and recipients/locations/transfer safeguards. No support-mail forwarding, sole-owner access to receiving devices and exclusion of support mail/downloaded files from local/device backups are now owner-confirmed; do not treat them as outstanding questions. Trash/attachment/export deletion at the routine deadline and no downloaded/retained TestFlight feedback/crash reports are now confirmed. Approve the equivalent EN/RO policy and effective date, then publish it. The website’s publication gate still rejects unresolved operational inputs and approval; a draft banner/noindex does not waive duties to current visitors or testers. Contact is `support@dorobantimedia.com`. See the [current publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>). Assign responsibility for applicable CRA incident reporting; the legal review records scope and deadlines.
 
-2. **Accept the installed candidate.** Candidate **1.0 (9)** from frozen `401f9c2` passes archive/export/actual-upload checks and Apple validation. Processing and sole-owner internal-group **Testing** are independently verified; builds 1–8 are expired. Install through TestFlight and verify the candidate; no build-9 TestFlight installation is established. The exact 2696-character beta instructions are saved and full-reload verified; use them for the installed-candidate check. Do not reupload the accepted package. The latest non-GUI run passes 75 distinct unit cases / 173 executions, and genuine signed Release Settings/Help captures were inspected; these do not replace full desktop or installed-candidate acceptance. Resolve automation access and verify clean launch and saved choices, one/three/seven readings and all modes, constrained menu-bar/Finder recovery, outside-click/Escape behavior, VoiceOver and accessibility display settings, sleep/wake and a real signed Launch at Login cycle. Check minimum macOS **27.0**; this host runs **27.2**. Preserve the ordinary app, personal clipboard and login items during automated fixture work.
+2. **Complete the remaining installed-candidate matrix.** Actual TestFlight **1.0 (9)** installation and the bounded Settings/modes/selection/persistence/Help/Privacy/reset checks above are verified. Keep the saved beta instructions. Remaining checks include the real menu-bar popover and outside-click/reopen behavior under constrained space, full keyboard and spoken VoiceOver use, accessibility display settings, complete sheet scrolling, sleep/wake, a real signed Launch at Login cycle and minimum macOS **27.0**. This host runs **27.2**. The CUA sheet-scroll operation returned `noWindowsAvailable`, and Page Down produced no visible advancement, so full sheet scrolling is not claimed as passed or diagnosed as an app defect. Desktop XCTest remains blocked by automation initialization; do not repeat an unchanged attempt. Preserve the ordinary development app, personal clipboard and login items.
 
 3. **Finish the remaining App Store fields.** Copyright and review email/notes are now saved and reload-verified. Romania-only availability is now saved and full-reload verified as **Available on App Release**, with future-country expansion off and all remaining regions Not Available; wider distribution remains a separate decision. Public draft **9**, exact 2006-character review notes and company/copyright are now saved and full-reload verified; no public submission occurred. Existing contact and URL evidence remains recorded above; all three marketing panels are uploaded, persisted and remotely visually verified, and age-rating/content-rights work is recorded as completed. Publish accurate App Privacy answers after resolving actual Apple/developer data access and optional support; **Data Not Collected remains an unpublished draft**, freshly confirmed with Publish available; no new declaration or compliance attestation was made. Keep Sign-in required off. The saved [Privacy Policy URL](https://core-metrics.dorobantimedia.com/en/privacy) still points to the policy that must be finalized in step 1. Romanian store metadata with a suitable English fallback is recommended; Apple lists Romania's default as English (U.K.) and supports Romanian. Accurately disclose the app's English interface. [Apple localizations](https://developer.apple.com/help/app-store-connect/reference/app-information/app-store-localizations/).
 

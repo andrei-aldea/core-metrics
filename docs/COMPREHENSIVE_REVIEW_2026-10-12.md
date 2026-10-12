@@ -51,3 +51,99 @@ The exact **2006-character [App Review notes](APP_REVIEW_BUILD_9_NOTES_EN.txt)**
 The isolated light-appearance Debug9 fixture was inspected through native accessibility and an actual screenshot: the scrollbar reaches the entire footer, Version 1.0 (9), copyright and restore explanation are visible without clipped controls. The fixture quit normally; all baseline application processes remained running. Private evidence is `VisualDebug9/settings-footer-light.png` and `ownership.json` alongside the logs. This confirms the focused footer rendering, not full keyboard/VoiceOver acceptance or genuine App Store artwork. A subsequent genuine signed Release 9 capture now confirms Settings top/lower footer and Metric Help in dark appearance. All three images were visually inspected; Escape dismissed Help, the owned candidate quit, all baseline app processes stayed running, and the executable/signature remained unchanged. No setting, clipboard, mail or login control was changed. See the capture provenance and the earlier two-image gallery evidence above; the later marketing upload has its own processing boundary. Broader current desktop behavior, VoiceOver and accessibility display settings, constrained menu-bar space, sleep/wake, a complete login cycle, installed TestFlight acceptance and minimum macOS **27.0** acceptance remain separate from this macOS 27.2 non-GUI run. Reachable hardware is not evidence that the delivered candidate is installed.
 
 Website legal notices remain marked drafts with noindex and failed-closed publication approval. Confirmed ownership does not approve final legal wording, verify provider retention/transfers, prove mailbox delivery or authorize a public App Review submission/release. Preserve the remaining facts in the shared policy.
+
+
+## Later bounded desktop authorization check — 12 October 2026
+
+At 19:53 EEST, one correctly selected current-source Settings-width XCTest
+completed its fresh ad-hoc Debug build but failed during runner initialization:
+“Timed out while enabling automation mode.” The result records one runner
+infrastructure failure, zero passes and no scenario body; earlier rejection of
+a selector missing the target's space was a separate command error. Read-only
+macOS status reports Automation Mode disabled with user authentication required;
+DevToolsSecurity reports developer mode disabled. No permission dialog appeared
+in the observed Xcode state or app inventory. These statuses identify the
+remaining authorization boundary, not a proven product defect or a guarantee
+that changing one setting resolves it. No TCC/security setting was changed.
+
+The attempt used a dedicated DerivedData/result folder, two Xcode jobs, the
+existing isolated test suite/fake login/no-op clipboard controls and a 240-second
+outer limit (not reached). The installed development app's executable hash is
+unchanged; no Core app/runner process remained afterwards. Logs, command,
+result summary and status receipts are retained under
+`~/Library/Logs/PortfolioReleaseContinuation20261012/core-desktop-corrected/`.
+At that checkpoint no TestFlight candidate was installed. The later actual
+installation is recorded below. The latest invitation/availability status is in
+the current launch checklist; no release input or native source changed.
+
+
+## Actual TestFlight build-9 manual checkpoint — 12 October 2026
+
+At approximately 19:58–20:02 EEST, after the owner-authorized resend and
+successful redemption, the official TestFlight page independently showed Core
+Metrics **1.0 (9)** with **Open**, **Works on this Mac**, 90 days and the current
+support address. It was already installed when inspected; the agent used Open
+rather than claiming to have performed the install. The installed location is
+`/Applications/Core Metrics 2.app`, bundle `com.dorobantimedia.CoreMetrics`,
+version/build **1.0 (9)**. Strict signature verification passes and an Apple
+receipt is present. Its executable SHA-256 is
+`e7b75dacfe8a2f139c8e76b7134588d932bb2704704c54ddc39f18c6964be2e2`.
+This is distinct from both the local signed archive and the unchanged old
+`org.example.CoreMetrics` build-1 application.
+
+The preceding local-archive alternative had a Launch Services/CUA timeout and
+prevent-launch assertion; its transient process was gone before the TestFlight
+checks and no local-archive UI interaction was completed. No signing change was
+made to force launch.
+
+Observed manual checks on the actual installed TestFlight candidate:
+
+- Initial Settings: CPU User only, Label and Value, Launch at Login off with no
+  registration; footer visibly identifies **Version 1.0 (9)**.
+- Added Memory Used (%) and Storage Used (%) and cycled Compact, Icon and Value,
+  Values Only and Label and Value. Each selection and live preview updated;
+  four window captures were visually inspected.
+- Added CPU Used, CPU System, CPU Idle and Memory Used. The canonical list grew
+  to seven, Add Stat became disabled and the full accessibility preview retained
+  all seven readings. The horizontally scrollable preview intentionally exceeds
+  the viewport for long selections; no claim of every stat visible at once.
+- Metric Help opened with its explanations; Escape dismissed it. Privacy
+  opened with current local-data/support explanations and correct displayed
+  email/website destinations; Done dismissed it. No external link was activated.
+- Normal Quit followed by rebinding the installed path produced a new process
+  identifier and retained all seven choices and Label and Value. CUA's immediate
+  post-Quit read timed out; the subsequent process/readback established the
+  relaunch and persisted preferences.
+- Restore Defaults returned CPU User only / Label and Value, with removing the
+  last reading disabled. Launch at Login remained off/unregistered. A final
+  normal Quit followed by observation of TestFlight left no Core process.
+
+The attempt to scroll a sheet through CUA returned `noWindowsAvailable` twice;
+Page Down did not visibly advance the Privacy sheet. The app remained running
+and both sheets dismissed normally. Complete sheet scrolling remains unverified,
+not recorded as a product failure. The real menu-bar popover and constrained
+space/outside-click behavior, spoken VoiceOver and display-accessibility matrix,
+sleep/wake, a full login cycle and minimum macOS **27.0** remain separate; this
+host is macOS **27.2**. No XCTest pass is inferred from the manual observations.
+
+Private captures/readbacks, installed identity and cleanup receipts are under
+`~/Library/Logs/PortfolioReleaseContinuation20261012/core-testflight-manual/`,
+with the official TestFlight page in `core-testflight-build9-installed.png`.
+Final executable hashes match initial values for the installed TestFlight and
+old development apps. No clipboard, login-item, external-message or security
+setting was changed. No native source, project, frozen release input, App Store
+declaration or public App Review state changed.
+
+At 20:08 EEST, a final bounded keyboard follow-up on that same TestFlight copy
+showed a visible Live Preview focus ring. Further Tab/Option-Tab did not visibly
+traverse the Settings controls, so complete keyboard use remains unverified.
+The app accessibility tree and window screenshot did not expose the real
+menu-bar status item; Control-F8 did not make it observable and selecting
+SystemUIServer timed out. No status-item position was guessed. Command-F5
+produced no observed VoiceOver process or prompt, and no further system toggle
+was attempted; accessibility labels are not evidence of spoken VoiceOver use.
+These are bounded interaction/tool limitations, not diagnosed product failures.
+No security setting, clipboard, login registration, sleep or login/logout action
+was used. `final-baseline.txt` again confirms CPU User only / Label and Value /
+Launch at Login off; `final-cleanup.json` confirms normal Quit left no Core or
+VoiceOver process and both installed executable hashes remain unchanged.

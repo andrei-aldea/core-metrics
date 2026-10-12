@@ -1,8 +1,15 @@
 # Mac App Store screenshots
 
-## Current build-9 replacement set — 12 October 2026
+## Current saved build-9 gallery — 12 October 2026
 
-The three current `01-settings.jpg`, `02-metric-help.jpg` and `03-preferences.jpg` exports are now **1280×800 opaque JPEG compositions of genuine signed Release 1.0 (9) captures**. They preserve the existing Settings → Metric Help → Preferences order. The third image now shows actual Version 1.0 (9) and the confirmed 2026 publisher copyright. The images are prepared and visually inspected locally. On 12 October the authenticated account picker kept Upload disabled, so replacement upload is incomplete; no new acceptance or remote rendering/order is claimed. The existing build-8 listing assets retain their historical saved scope.
+The current gallery contains **two accurate 1280×800 opaque JPEG compositions**, saved and verified after a full reload at **2 of 10**, with **Save disabled**, in this order:
+
+1. **core9-01-settings.jpg** — newly uploaded byte-identical copy of committed `01-settings.jpg`, from the genuine signed Release 1.0 (9) Settings capture. SHA-256 `33a34ce26e8f5b28d5c9b59dc85d1c95f573d55e2ae9439f1a5c52b886b1ebdc`; remote asset `85000019-5cdb-8310-8033-511d6aef4522`.
+2. **02-metric-help.jpg** — retained accepted asset, independently byte-identical to the current export and to the pre-build9 export at `938da31`. SHA-256 `be07669e3668b3f0a7ce1e844b01f4125d30f5f99a48457223c6b3f5f2427e15`; remote asset `eb000019-5cdb-8310-802f-b9c355750cf1`. Asset Library displays the disambiguating label `02-metric-help.jpg (3)`; the gallery retains the original filename.
+
+Both **Asset Library detail images** rendered fully and were visually inspected. Both Recent Usage entries link to macOS App Version 1.0 (English US), modified Today **5:24 AM** on 12 October. Gallery thumbnails remain blank in the account renderer; this record does not claim they rendered. Remove All explicitly preserved Asset Library originals before the two intended images were selected in order. Old Settings and Preferences associations are removed, while their original assets and all source captures remain available.
+
+The initial local plan contained three images, Settings → Metric Help → Preferences. All three were genuinely captured and visually inspected locally; `03-preferences.jpg` shows Version 1.0 (9) and confirmed 2026 publisher copyright. Earlier native-picker attempts failed; Settings later uploaded successfully, but subsequent uploads stayed disabled despite exact paths, reloads, keyboard/double-click attempts and a byte-identical temporary copy. The new Preferences image remains **optional and local**, not remotely accepted. The verified two-image gallery satisfies the intended accurate listing without claiming completion of the original three-image upload plan.
 
 Source `401f9c2363bb1846a2ae376d7c7b877f49a4cab0` was archived, strictly verified, Apple-validated and uploaded. The unmodified signed archive app was opened separately using its distribution bundle identifier; the ordinary development app remained running. Capture used Settings opening/scrolling and Metric Help only. No preference/login/copy/mail control or system appearance changed; Help dismissed with Escape and the owned candidate quit normally. The binary/signature were rechecked unchanged. Raw Settings captures are 1160×1064; Help is 960×920. [Exact hashes and provenance](provenance-build9.json) cover sources and exports. No source capture was re-signed, retouched, synthesized or made with DEBUG fixtures.
 

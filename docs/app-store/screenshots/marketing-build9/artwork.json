@@ -1,0 +1,84 @@
+{
+  "appName": "Core Metrics",
+  "platform": "mac",
+  "width": 2560,
+  "height": 1600,
+  "background": "#e7e8ea",
+  "foreground": "#17191c",
+  "roundedType": false,
+  "output": "exports",
+  "panels": [
+    {
+      "id": "01-selection",
+      "title": "Keep the readings you need.",
+      "subtitle": "Choose up to seven stats, in one place.",
+      "image": "source/settings-three-label.jpg",
+      "crop": [
+        0,
+        66,
+        1160,
+        998
+      ]
+    },
+    {
+      "id": "02-styles",
+      "title": "Make your menu bar yours.",
+      "subtitle": "Four ways to show your selected readings.",
+      "image": "source/settings-three-label.jpg",
+      "crop": [
+        0,
+        66,
+        1160,
+        550
+      ],
+      "variants": [
+        {
+          "label": "Label and Value",
+          "image": "source/settings-three-label.jpg",
+          "crop": [
+            40,
+            155,
+            1080,
+            420
+          ]
+        },
+        {
+          "label": "Compact",
+          "image": "source/settings-three-compact.jpg",
+          "crop": [
+            40,
+            155,
+            1080,
+            420
+          ]
+        },
+        {
+          "label": "Icon and Value",
+          "image": "source/settings-three-icons.jpg",
+          "crop": [
+            40,
+            155,
+            1080,
+            420
+          ]
+        },
+        {
+          "label": "Values Only",
+          "image": "source/settings-three-values.jpg",
+          "crop": [
+            40,
+            155,
+            1080,
+            420
+          ]
+        }
+      ]
+    },
+    {
+      "id": "03-explanations",
+      "title": "Know what the numbers mean.",
+      "subtitle": "Built-in explanations for every reading.",
+      "image": "source/metric-help-previous.jpg"
+    }
+  ]
+}

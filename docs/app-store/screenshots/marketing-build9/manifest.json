@@ -1,0 +1,133 @@
+{
+  "date": "2026-10-12",
+  "version": "1.0",
+  "build": "9",
+  "sourceCommit": "401f9c2363bb1846a2ae376d7c7b877f49a4cab0",
+  "startingDocumentationCommit": "da027c93aa382a40e458efb2e54a9a42bcf8bf24",
+  "executableSHA256": "5f291d829ddc933e2acf90ab622b4578c9f0de4007d6c867ccee51813847ac58",
+  "language": "en-US",
+  "platform": "macOS",
+  "renderer": "../../../../scripts/store-artwork/render.swift",
+  "rendererSHA256": "3290f3c165e31a99adb4df058b945d8f8a2a7a9905154d397ab2c3242773f9f9",
+  "configSHA256": "15ab6aa1c4fada7bfb59a52cc61ea901565525d7033e490165267727e17dcf9f",
+  "sourceImages": {
+    "source/metric-help-previous.jpg": {
+      "sha256": "31ec96caa91172240450e8f0b2c8b0b0ca7b459e27cf7b1f310dfd066b228d91",
+      "width": 960,
+      "height": 920,
+      "format": "JPEG",
+      "captureDate": "2026-10-12",
+      "captureSession": "Earlier build-9 delivery inspection; reused unchanged",
+      "sourceKind": "Unmodified CUA app-surface screenshot, no DEBUG fixture",
+      "origin": "../source/metric-help-build9-real.jpg"
+    },
+    "source/settings-three-compact.jpg": {
+      "sha256": "e993b2eb30b85c56bfef6281152c113309a74ebf3b6f6ed7d70cc370305bf500",
+      "width": 1160,
+      "height": 1064,
+      "format": "JPEG",
+      "captureDate": "2026-10-12",
+      "captureSession": "Fresh marketing-artwork capture of signed Release9",
+      "sourceKind": "Unmodified CUA app-surface screenshot, no DEBUG fixture",
+      "origin": "Ignored private capture checkpoint/raw/settings-three-compact.jpg"
+    },
+    "source/settings-three-icons.jpg": {
+      "sha256": "b7380027146675ab6b10ba0deb74e95adc5eaed303ec43db98a280a7cf1cc7c6",
+      "width": 1160,
+      "height": 1064,
+      "format": "JPEG",
+      "captureDate": "2026-10-12",
+      "captureSession": "Fresh marketing-artwork capture of signed Release9",
+      "sourceKind": "Unmodified CUA app-surface screenshot, no DEBUG fixture",
+      "origin": "Ignored private capture checkpoint/raw/settings-three-icons.jpg"
+    },
+    "source/settings-three-label.jpg": {
+      "sha256": "5a08bf0a5ab00425d1fbb0e4cc368c15a9f8f56658da43967c2e93db3e12b50e",
+      "width": 1160,
+      "height": 1064,
+      "format": "JPEG",
+      "captureDate": "2026-10-12",
+      "captureSession": "Fresh marketing-artwork capture of signed Release9",
+      "sourceKind": "Unmodified CUA app-surface screenshot, no DEBUG fixture",
+      "origin": "Ignored private capture checkpoint/raw/settings-three-label.jpg"
+    },
+    "source/settings-three-values.jpg": {
+      "sha256": "87cf427b04e1d1e982a30a2b371f8cb511e1b17ff05b4dd83658560f559d407a",
+      "width": 1160,
+      "height": 1064,
+      "format": "JPEG",
+      "captureDate": "2026-10-12",
+      "captureSession": "Fresh marketing-artwork capture of signed Release9",
+      "sourceKind": "Unmodified CUA app-surface screenshot, no DEBUG fixture",
+      "origin": "Ignored private capture checkpoint/raw/settings-three-values.jpg"
+    }
+  },
+  "storeExports": {
+    "01-selection.png": {
+      "sha256": "eb57be0d086187c81843947e8005449729ce0885f63d231d0d9c0384949691c6",
+      "bytes": 336577,
+      "width": 2560,
+      "height": 1600,
+      "format": "PNG",
+      "colorSpace": "sRGB",
+      "opaque": true,
+      "sourcePixelScale": 1
+    },
+    "02-styles.png": {
+      "sha256": "4fb31c09e2f8d83a0a2ae2e3820bcd20e377da335d913846dbf977c945466c3c",
+      "bytes": 519309,
+      "width": 2560,
+      "height": 1600,
+      "format": "PNG",
+      "colorSpace": "sRGB",
+      "opaque": true,
+      "sourcePixelScale": 1
+    },
+    "03-explanations.png": {
+      "sha256": "65432c5dfa952fbf8d530387279df9fedb7825576b8de7dde8e8f964e72cde78",
+      "bytes": 437044,
+      "width": 2560,
+      "height": 1600,
+      "format": "PNG",
+      "colorSpace": "sRGB",
+      "opaque": true,
+      "sourcePixelScale": 1
+    }
+  },
+  "composition": "Opaque 2560x1600 graphite/silver Mac canvas. Real cropped native UI at 1:1, on integer canvas pixels. Outside-UI headings, shadows and rounded masks only; no reading or control retouching. Four style captures are independent live samples.",
+  "verification": {
+    "fullResolutionVisualInspection": "All three inspected locally and independently by portfolio coordinator",
+    "formatHashDimensionCropChecks": "Passed",
+    "repeatRenderByteParity": "Passed; all three exact SHA-256 values unchanged after repeat render",
+    "productFilesMatchFrozenSource": "Passed; 93/93 frozen runtime/project/test/tooling inputs match current working files and Git",
+    "appSignatureBeforeCapture": "Strict verification passed",
+    "appSignatureAfterCapture": "Strict deep verification passed; executable SHA-256 unchanged. Capture process remains running pending UI cleanup."
+  },
+  "captureCleanup": {
+    "status": "Pending manual screen unlock; no safe supported non-UI restore route",
+    "originalStats": [
+      "CPU User"
+    ],
+    "originalMode": "Label and Value",
+    "originalLaunchAtLogin": "off",
+    "temporaryStats": [
+      "CPU User",
+      "Memory Used (%)",
+      "Storage Used (%)"
+    ],
+    "lastMode": "Label and Value",
+    "remainingActions": [
+      "Dismiss open sheet if present",
+      "Remove Memory Used (%) and Storage Used (%) while retaining CPU User",
+      "Confirm Label and Value and Launch at Login still off",
+      "Quit only the owned distribution instance normally; retain the ordinary development app"
+    ],
+    "limits": "Release has no preference CLI; UserDefaults configuration is held in-memory. A container preference read was denied and was not bypassed. No shared domain rewrite or process signal was attempted."
+  },
+  "accountState": "Local artwork only; existing two-image App Store gallery unchanged by this task",
+  "pendingOptionalPanels": [
+    "Actual status item/selector",
+    "Copy Current Readings"
+  ],
+  "failedCaptureAttempt": "Attachment-only XCTest runner built, but automation-mode initialization timed out before any test method; no screenshots or app actions from that harness. CUA then reported the Mac locked."
+}

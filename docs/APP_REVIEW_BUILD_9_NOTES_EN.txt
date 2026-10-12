@@ -1,0 +1,10 @@
+Core Metrics is a macOS menu-bar utility. It requires macOS 27 or later on a compatible Apple silicon Mac. The interface is in English; numeric formatting follows the macOS locale.
+
+1. Launch the app and locate its live readings in the menu bar. There is intentionally no Dock icon or main app window. Allow a few seconds for the initial CPU sample.
+2. Click the status label to open the persistent selection panel. Choose one to seven CPU, Memory and Storage stats. The panel remains open as choices change.
+3. Use Settings in the panel footer to open the native Settings window. Menu Bar Text changes the representation; all four modes remain available for every selection count. Add Stat and the remove controls change the selection. Live Preview can scroll horizontally.
+4. Copy Readings in the panel footer writes the full selected names and current values to this Mac’s clipboard. It is an explicit action, replaces the current clipboard content and excludes these copies from Universal Clipboard.
+5. Metric Help, Support and Privacy are available in Settings. The Help and Preferences footer shows the actual version/build and publisher copyright. The Privacy sheet opens the public policy or a privacy-request email with a subject only; no readings are attached or sent automatically. Restore Defaults returns the selection to CPU User and Label and Value, leaving Launch at Login unchanged. Launch at Login is optional and reflects macOS registration or approval state. No helper or administrator access is required.
+6. Quit in the panel footer exits the app.
+
+The app reads aggregate system values through public Apple APIs. It has no accounts, network connections, purchases or retained metric history. A dash indicates an unavailable reading. Storage represents startup-volume capacity, not a file scan. Long selections need sufficient menu-bar space; Compact, Icon and Value, or Values Only use less room. If the readings are hidden, open the already-running app in Finder to recover Settings.

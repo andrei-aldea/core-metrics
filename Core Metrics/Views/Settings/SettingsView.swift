@@ -87,7 +87,22 @@ struct SettingsView: View {
             } header: {
                 Text("Help and Preferences")
             } footer: {
-                Text("Restore Defaults selects CPU User and Label and Value. It does not change Launch at Login.")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Restore Defaults selects CPU User and Label and Value. It does not change Launch at Login.")
+
+                    if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+                       let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String {
+                        Text("Version \(version) (\(build))")
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("settings.version")
+                    }
+
+                    if let copyright = Bundle.main.object(forInfoDictionaryKey: "NSHumanReadableCopyright") as? String,
+                       !copyright.isEmpty {
+                        Text(verbatim: copyright)
+                            .textSelection(.enabled)
+                    }
+                }
             }
         }
         .formStyle(.grouped)

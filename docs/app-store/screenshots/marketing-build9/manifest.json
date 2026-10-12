@@ -101,10 +101,10 @@
     "repeatRenderByteParity": "Passed; all three exact SHA-256 values unchanged after repeat render",
     "productFilesMatchFrozenSource": "Passed; 93/93 frozen runtime/project/test/tooling inputs match current working files and Git",
     "appSignatureBeforeCapture": "Strict verification passed",
-    "appSignatureAfterCapture": "Strict deep verification passed; executable SHA-256 unchanged. Capture process remains running pending UI cleanup."
+    "appSignatureAfterCapture": "Strict deep verification passed; executable SHA-256 unchanged. Subsequent native-UI cleanup restored the recorded preferences and normally quit only the owned capture process."
   },
   "captureCleanup": {
-    "status": "Pending manual screen unlock; no safe supported non-UI restore route",
+    "status": "Completed after unlock on 2026-10-12, verified by the portfolio coordinator through native accessibility and a shell process check",
     "originalStats": [
       "CPU User"
     ],
@@ -116,13 +116,16 @@
       "Storage Used (%)"
     ],
     "lastMode": "Label and Value",
-    "remainingActions": [
-      "Dismiss open sheet if present",
-      "Remove Memory Used (%) and Storage Used (%) while retaining CPU User",
-      "Confirm Label and Value and Launch at Login still off",
-      "Quit only the owned distribution instance normally; retain the ordinary development app"
-    ],
-    "limits": "Release has no preference CLI; UserDefaults configuration is held in-memory. A container preference read was denied and was not bypassed. No shared domain rewrite or process signal was attempted."
+    "remainingActions": [],
+    "limits": "Release has no preference CLI; UserDefaults configuration is held in-memory. A container preference read was denied and was not bypassed. No shared domain rewrite or process signal was attempted.",
+    "observedCompletion": [
+      "Bound Computer Use to the exact signed archive app; dismissed Privacy with Done",
+      "Fresh Settings readback: three temporary stats, Label and Value, Launch at Login off/unregistered",
+      "Removed Memory Used (%); fresh accessibility readback showed two stats",
+      "Removed Storage Used (%); fresh accessibility readback showed CPU User only, with mode and login state unchanged",
+      "Normal Command-Q; Computer Use reported the owned process absent",
+      "Shell process check confirmed the owned archive process absent and the ordinary development app still at its original path"
+    ]
   },
   "accountState": "Local artwork only; existing two-image App Store gallery unchanged by this task",
   "pendingOptionalPanels": [

@@ -1,6 +1,6 @@
 # Core Metrics App Store artwork
 
-The current **local marketing pack** contains three English, opaque **2560×1600 PNGs** built from the genuine signed **1.0 (9)** app. It follows the graphite/silver identity with clear benefit headings, short subtitles and native Mac UI. [Preview and provenance](marketing-build9/README.md) · [all three panels](marketing-build9/preview.html) · [exact manifest](marketing-build9/manifest.json).
+The current **marketing pack** contains three English, opaque **2560×1600 PNGs** built from the genuine signed **1.0 (9)** app. It follows the graphite/silver identity with clear benefit headings, short subtitles and native Mac UI. [Preview and provenance](marketing-build9/README.md) · [all three panels](marketing-build9/preview.html) · [exact manifest](marketing-build9/manifest.json).
 
 1. **Keep the readings you need.** Choose up to seven stats, in one place.
 2. **Make your menu bar yours.** Four ways to show your selected readings.
@@ -12,7 +12,9 @@ The active export folder contains only these three panels. Superseded 1280×800 
 
 ## Account and capture limits
 
-This task does **not** change App Store Connect. Its last verified saved gallery remains the two earlier 1280×800 images, **core9-01-settings.jpg → 02-metric-help.jpg**, with full-reload verification at 2 of 10 and Save disabled. Both remote Asset Library detail images were inspected; the account's gallery thumbnails remained blank. The new three-panel pack is local and is not claimed as uploaded or approved.
+**Later upload checkpoint — 12 October:** all three unchanged panels uploaded through the authenticated in-app browser. Fresh app navigation verifies **3 of 10** in **01-selection.png → 02-styles.png → 03-explanations.png** order, public build **9**, **Save disabled** and the existing automatic-release choice. The first two branded images rendered fully in the remote gallery and were visually inspected. **The third still shows cloud processing; its remote visual check remains pending.** No Mac header was uploaded, and no public submission or release occurred.
+
+The two earlier 1280×800 version associations, **core9-01-settings.jpg → 02-metric-help.jpg**, were removed recoverably; their original files remain in Asset Library. Their earlier full-reload verification at 2 of 10, complete Asset Library detail renders, blank gallery thumbnails and disabled-picker failures remain dated history, not the current gallery state.
 
 Fresh status-item/selector and Copy Readings panels remain optional enhancements. The attachment-only desktop XCTest capture runner built, but initialization timed out before any test method. Computer Use subsequently reported the Mac locked. **Cleanup completed after unlock on 12 October:** the coordinator dismissed Privacy and removed the two temporary selections, with fresh accessibility readbacks showing three → two → one stat. The original **CPU User only**, **Label and Value**, and Launch at Login off/unregistered state was verified. Normal Command-Q closed only the owned distribution instance; a shell process check confirmed the ordinary development app remained running at its original path. No clipboard, login, browser or mail action was taken.
 

@@ -127,10 +127,35 @@
       "Shell process check confirmed the owned archive process absent and the ordinary development app still at its original path"
     ]
   },
-  "accountState": "Local artwork only; existing two-image App Store gallery unchanged by this task",
+  "accountState": "All three uploaded and persisted after fresh app navigation; first two remote renders verified, third cloud processing; no public submission or release",
   "pendingOptionalPanels": [
     "Actual status item/selector",
     "Copy Current Readings"
   ],
-  "failedCaptureAttempt": "Attachment-only XCTest runner built, but automation-mode initialization timed out before any test method; no screenshots or app actions from that harness. CUA then reported the Mac locked."
+  "failedCaptureAttempt": "Attachment-only XCTest runner built, but automation-mode initialization timed out before any test method; no screenshots or app actions from that harness. CUA then reported the Mac locked.",
+  "accountVerification": {
+    "date": "2026-10-12",
+    "method": "Authenticated in-app browser upload; fresh app navigation readback",
+    "galleryCount": 3,
+    "galleryCapacity": 10,
+    "order": [
+      "01-selection.png",
+      "02-styles.png",
+      "03-explanations.png"
+    ],
+    "fullyRenderedAndVisuallyVerified": [
+      "01-selection.png",
+      "02-styles.png"
+    ],
+    "remoteRenderingPending": [
+      "03-explanations.png"
+    ],
+    "publicBuild": "1.0 (9)",
+    "saveDisabled": true,
+    "existingAutomaticReleasePreserved": true,
+    "priorAssociationsRemovedRecoverably": 2,
+    "assetLibraryOriginalsRetained": true,
+    "macHeaderUploaded": false,
+    "publicReviewSubmitted": false
+  }
 }

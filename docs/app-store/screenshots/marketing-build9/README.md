@@ -1,6 +1,6 @@
 # Build 9 marketing pack — 12 October 2026
 
-Three English **2560×1600 opaque sRGB PNGs** form the local replacement pack. Open [preview.html](preview.html) to compare the panels, or inspect the full-resolution exports individually:
+Three English **2560×1600 opaque sRGB PNGs** form the replacement pack. Open [preview.html](preview.html) to compare the panels, or inspect the full-resolution exports individually:
 
 | Order | Benefit | Genuine native source |
 | --- | --- | --- |
@@ -26,7 +26,7 @@ The capture changed only the separately launched distribution app's selected rea
 
 A separately built attachment-only XCTest harness was prepared to capture the status item/selection panel without launching or terminating either app. Automation-mode initialization timed out before test execution and produced no app screenshots. Computer Use then reported the Mac locked; further native actions stopped. Rather than use older DEBUG material or repeat Settings into five panels, the pack contains three distinct, truthful concepts. Actual status-item/selector and Copy Readings panels remain optional future additions; the later successful preference cleanup did not add captures. This task does not establish installed-TestFlight, VoiceOver, complete menu geometry or minimum-OS acceptance.
 
-App Store Connect remains unchanged; these are local upload-ready pixels, not uploaded, accepted or publicly released assets. See [the active directory](../README.md) for the last verified remote gallery.
+**Later account delivery — 12 October:** all three unchanged PNGs uploaded through the authenticated in-app browser and persist after fresh app navigation as **3 of 10**, ordered **01-selection.png → 02-styles.png → 03-explanations.png**. The first two fully branded remote images were visually inspected; **the third is still processing**, so complete remote visual acceptance is pending. Public draft **9**, Save disabled and the existing automatic-release choice remain. The two earlier associations were removed recoverably while their originals remain in Asset Library. No Mac header, public submission or release occurred. [The active directory](../README.md) retains the earlier account-history boundary.
 
 ## Reproduction
 

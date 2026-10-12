@@ -1,6 +1,6 @@
 # Core Metrics project analysis and remediation report
 
-[Comprehensive 12 October review](COMPREHENSIVE_REVIEW_2026-10-12.md) records the new **1.0 (9)** Settings version/build and confirmed copyright, source review and passing non-GUI checks. Delivery and a genuine candidate footer screenshot are still pending; the build-8 observations below remain historical account evidence.
+[Comprehensive 12 October review](COMPREHENSIVE_REVIEW_2026-10-12.md) records the new **1.0 (9)** Settings version/build and confirmed copyright, source review and passing non-GUI checks. Apple validation/upload and actual signed-candidate screenshots are complete; processing, latest-only beta assignment and listing replacement still require account readback. Build-8 observations below remain historical account evidence.
 
 ## Owner-requested beta audience cleanup — 12 October 2026
 

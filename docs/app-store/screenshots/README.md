@@ -1,5 +1,15 @@
 # Mac App Store screenshots
 
+## Current build-9 replacement set — 12 October 2026
+
+The three current `01-settings.jpg`, `02-metric-help.jpg` and `03-preferences.jpg` exports are now **1280×800 opaque JPEG compositions of genuine signed Release 1.0 (9) captures**. They preserve the existing Settings → Metric Help → Preferences order. The third image now shows actual Version 1.0 (9) and the confirmed 2026 publisher copyright. The images are prepared and visually inspected locally; uploading them to the listing and verifying remote rendering/order remain separate steps.
+
+Source `401f9c2363bb1846a2ae376d7c7b877f49a4cab0` was archived, strictly verified, Apple-validated and uploaded. The unmodified signed archive app was opened separately using its distribution bundle identifier; the ordinary development app remained running. Capture used Settings opening/scrolling and Metric Help only. No preference/login/copy/mail control or system appearance changed; Help dismissed with Escape and the owned candidate quit normally. The binary/signature were rechecked unchanged. Raw Settings captures are 1160×1064; Help is 960×920. [Exact hashes and provenance](provenance-build9.json) cover sources and exports. No source capture was re-signed, retouched, synthesized or made with DEBUG fixtures.
+
+The HTML/CSS method described below is unchanged and truthfully distinguishes native window pixels from the store marketing canvas. All earlier build-8/build-5 source images remain preserved; old exported compositions remain in Git history and uploaded assets remain in Apple’s library.
+
+## Historical build-8 preparation and upload
+
 Three English screenshots prepared 12 October 2026 from the real **Core Metrics 1.0 (8)** distribution archive:
 
 1. `01-settings.jpg` — native Settings at the current default CPU User selection, with a live reading and all four display choices.

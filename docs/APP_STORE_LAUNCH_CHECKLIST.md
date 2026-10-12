@@ -1,6 +1,6 @@
 # App Store launch checklist — October 12, 2026
 
-[Comprehensive 12 October review](COMPREHENSIVE_REVIEW_2026-10-12.md) records the new **1.0 (9)** Settings version/build and confirmed copyright, source review and passing non-GUI checks. Delivery and a genuine candidate footer screenshot are still pending; the build-8 observations below remain historical account evidence.
+[Comprehensive 12 October review](COMPREHENSIVE_REVIEW_2026-10-12.md) records the new **1.0 (9)** Settings version/build and confirmed copyright, source review and passing non-GUI checks. Apple validation/upload and actual signed-candidate screenshots are complete; processing, latest-only beta assignment and listing replacement still require account readback. Build-8 observations below remain historical account evidence.
 
 **Current owner-requested TestFlight cleanup — 12 October:** builds **1–7 are Expired** and 8 remains active. A fresh full reload confirms only the new internal group with **the specified existing owner / 1 tester / 1 build: 8 Testing**, 90 days, automatic distribution **off**, and an empty external section. The old internal group was deleted; the old external was removed from the app, preserving historical tester records. Public build 8, exact notes, release choice and the three real candidate screenshots retain their saved scope. Installation is unverified. See the [consolidated cleanup record](<../../Pe langa/Verification/TestFlightCleanup2026-10-12.md>). Earlier group counts and external availability below are dated history.
 

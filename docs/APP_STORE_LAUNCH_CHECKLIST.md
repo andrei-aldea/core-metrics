@@ -1,5 +1,16 @@
 # App Store launch checklist — October 12, 2026
 
+**Latest App Store Connect preparation — 12 October, 20:38–20:39 EEST:**
+the coordinator's fresh read confirms public draft **1.0 (9)**, the three saved
+screenshots, disabled Save and the existing automatic-release choice. **Add for
+Review** validation reports one blocker: an Admin must provide App Privacy
+information. No review packet was created; the app remains **Prepare for
+Submission**. The separate privacy page still shows the unpublished **Data Not
+Collected** draft, the correct `/en/privacy` URL, a blank optional choices URL
+and Publish available. Publish and Submit for Review were not used. This is
+Apple's observed validation result, not completion of the remaining product or
+policy acceptance below. [Current evidence and focused owner inputs](COMPREHENSIVE_REVIEW_2026-10-12.md#app-store-connect-readiness--12-october-20382039-eest).
+
 **Latest installed TestFlight checkpoint — 12 October, 20:08 EEST:** after the
 owner-authorized invitation resend and successful redemption, the official
 TestFlight page shows **Core Metrics 1.0 (9), Open, Works on this Mac** and the

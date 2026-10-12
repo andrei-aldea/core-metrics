@@ -1,6 +1,6 @@
 # Core Metrics comprehensive review — 12 October 2026
 
-Current native candidate: **1.0 (9), Apple-validated and upload accepted at 04:08:10.573 EEST on 12 October**. Frozen source: `401f9c2363bb1846a2ae376d7c7b877f49a4cab0`. Starting clean native revision: `938da31f4426cebdb29faa404098e15f661dcfce`; companion website: `ff7ba975c2111c1b03f09b8282b515e8f6297097`. The [build-8 delivery receipt](RELEASE_PREPARATION_2026-10-12.md) and [owner-only beta cleanup](<../../Pe langa/Verification/TestFlightCleanup2026-10-12.md>) remain dated account evidence. The later authenticated account readback on 12 October confirms build 9 processed and **Testing in the sole-owner internal group**, with builds **1–8 Expired**. A fresh post-expiry group read confirms **1 tester / 1 build: 9 Testing, 90 days**, and the tester tab contains only the specified owner. Public draft **9** and its exact **2006-character review notes** are saved and verified after a full reload, including the confirmed company/copyright. The exact 2696-character TestFlight notes are now saved and full-reload verified. The three marketing panels are now uploaded and persisted after fresh app navigation in Selection → Styles → Explanations order (3 of 10). All three remote renders are now visually verified; the earlier third-panel processing wait is resolved. Installed acceptance remains unverified.
+Current native candidate: **1.0 (9), Apple-validated and upload accepted at 04:08:10.573 EEST on 12 October**. Frozen source: `401f9c2363bb1846a2ae376d7c7b877f49a4cab0`. Starting clean native revision: `938da31f4426cebdb29faa404098e15f661dcfce`; companion website: `ff7ba975c2111c1b03f09b8282b515e8f6297097`. The [build-8 delivery receipt](RELEASE_PREPARATION_2026-10-12.md) and [owner-only beta cleanup](<../../Pe langa/Verification/TestFlightCleanup2026-10-12.md>) remain dated account evidence. The later authenticated account readback on 12 October confirms build 9 processed and **Testing in the sole-owner internal group**, with builds **1–8 Expired**. A fresh post-expiry group read confirms **1 tester / 1 build: 9 Testing, 90 days**, and the tester tab contains only the specified owner. Public draft **9** and its exact **2006-character review notes** are saved and verified after a full reload, including the confirmed company/copyright. The exact 2696-character TestFlight notes are now saved and full-reload verified. The three marketing panels are now uploaded and persisted after fresh app navigation in Selection → Styles → Explanations order (3 of 10). All three remote renders are now visually verified; the earlier third-panel processing wait is resolved. The later actual TestFlight installation and bounded manual acceptance are verified below; the complete acceptance matrix remains open.
 
 ## Later artwork-only follow-up — 12 October
 
@@ -147,3 +147,65 @@ No security setting, clipboard, login registration, sleep or login/logout action
 was used. `final-baseline.txt` again confirms CPU User only / Label and Value /
 Launch at Login off; `final-cleanup.json` confirms normal Quit left no Core or
 VoiceOver process and both installed executable hashes remain unchanged.
+
+
+## App Store Connect readiness — 12 October, 20:38–20:39 EEST
+
+The coordinator's authenticated read confirms macOS draft **1.0 (9)**, the saved
+three-image gallery, **Save disabled** and the existing **automatic-release**
+choice. Add for Review validation produces one requirement: an Admin must
+provide the app's privacy information. It does not create a review packet; the
+version remains **Prepare for Submission**. No Submit for Review action occurred.
+
+A subsequent App Privacy read confirms **Data Not Collected** in both the
+preview and Data Types, `https://core-metrics.dorobantimedia.com/en/privacy`, a
+blank optional Privacy Choices URL and **Publish available**. The draft remains
+unpublished. No privacy answer, compliance attestation, price, audience, artwork
+or release setting changed. Existing Romania-only availability remains the
+latest saved distribution evidence; free pricing retains its dated earlier
+receipt rather than a new price check. The canonical reviewer notes remain
+**2006 characters / 2008 UTF-8 bytes**; the beta notes remain **2696 characters /
+bytes**, measured after trimming. No source or signed artifact changed and no
+completed native test was repeated for this documentation checkpoint.
+
+The independently inspected private screenshots are
+`~/Library/Logs/PortfolioReleaseContinuation20261012/core-review-validation-privacy.png`
+and `core-privacy-draft-ready.png` in the same directory. They establish the
+account state above, not Apple approval of the declaration or the app.
+
+### Focused privacy decision before publication
+
+Current source already establishes on-device aggregate readings and preferences,
+no app network/SDK/analytics, and an empty collected-data manifest with tracking
+false. `PublicAppLinks` opens the person's browser or external mail app only on
+request; the mail URL supplies a product/purpose subject and attaches no readings,
+preferences or device identifiers. There is no in-app submission form or webview.
+These are source facts, not questions for the owner to answer again.
+
+[Apple's current App Privacy guidance](https://developer.apple.com/app-store/app-privacy-details/)
+excludes on-device processing and distinguishes Apple's own collection from
+information the developer collects through Apple services. Optional disclosure
+has cumulative conditions; voluntary support alone does not prove an exemption.
+The label's scope must be assessed against actual developer practices, separately
+from the website and external correspondence. Merely viewing an Apple dashboard
+has not been classified here as collection, and no automatic exemption is asserted
+for every mail request.
+
+The remaining focused owner questions are:
+
+1. Does the publisher view or use Core's App Analytics, TestFlight feedback,
+   crash, session or device information in Apple's consoles, or create notes,
+   screenshots, exports or other records from it? If so, identify the categories,
+   purpose and any retained records. The confirmed practice of not downloading or
+   retaining feedback/crash reports does not answer every console-use or other-record question.
+2. Is voluntary support information used only to resolve support/privacy requests,
+   without marketing, tracking or profile reuse? Confirm the actual practice;
+   no changed use is proposed.
+
+The questions were sent to the owner and remain unanswered at this checkpoint.
+After the factual assessment, the accurate App Privacy declaration still needs
+explicit approval/publication. The existing policy's provider/account arrangements,
+justified exception retention, equivalent EN/RO wording and effective-date approval
+remain separate work in the [publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>).
+Apple's single validation error is not evidence that those legal or installed
+acceptance gates are complete. Public submission still requires separate authorization.

@@ -1,5 +1,7 @@
 # App Store listing — current draft and saved fields
 
+The later [owner-practice clarification](COMPREHENSIVE_REVIEW_2026-10-12.md#later-owner-practice-clarification--12-october) resolves support purpose and adopts a prospective limit on publisher collection through Apple analytics/diagnostic services. It supports the prepared public-app privacy assessment without asserting historical non-use. Privacy publication and final policy approval remain separate from the account observations below.
+
 **Latest preparation — 12 October, 20:38–20:39 EEST:** a fresh account read
 confirms draft build **9**, its saved gallery, disabled Save and automatic
 release. Add for Review validation returns only the unpublished App Privacy

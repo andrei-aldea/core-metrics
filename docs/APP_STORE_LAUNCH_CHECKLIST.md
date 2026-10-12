@@ -1,5 +1,16 @@
 # App Store launch checklist — October 12, 2026
 
+**Later owner-practice clarification — 12 October:** support information is
+confirmed to be used only to handle the request, without marketing, tracking or
+profiling. Under the delegated prospective policy, the publisher will not begin
+collecting, retaining or analysing public-user data through App Analytics or
+developer diagnostic feeds. Apple's own processing and the limited owner-release
+administration evidence remain separate. Existing private release records still
+need scoped retention review; historical non-use is not asserted. These facts
+support the proposed public-app Data Not Collected assessment, rather than
+requiring another historical-use answer. Publication of that declaration and
+final website/legal approval remain separate. [Assessment and limits](COMPREHENSIVE_REVIEW_2026-10-12.md#later-owner-practice-clarification--12-october).
+
 **Latest App Store Connect preparation — 12 October, 20:38–20:39 EEST:**
 the coordinator's fresh read confirms public draft **1.0 (9)**, the three saved
 screenshots, disabled Save and the existing automatic-release choice. **Add for
@@ -106,7 +117,7 @@ This dated receipt records the previous successful delivery. Its group-specific 
 
 ## Required before public submission
 
-1. **Complete the policies and website delivery checks.** The current runtime maintenance patch is live; resolve the GitHub Actions billing/spending-limit block and finish its hosted CI verification. Confirm the actual hosting/security logs and access, developer in-console use of beta information and other beta records, lawful grounds, provider-controlled backup/recovery handling, and recipients/locations/transfer safeguards. No support-mail forwarding, sole-owner access to receiving devices and exclusion of support mail/downloaded files from local/device backups are now owner-confirmed; do not treat them as outstanding questions. Trash/attachment/export deletion at the routine deadline and no downloaded/retained TestFlight feedback/crash reports are now confirmed. Approve the equivalent EN/RO policy and effective date, then publish it. The website’s publication gate still rejects unresolved operational inputs and approval; a draft banner/noindex does not waive duties to current visitors or testers. Contact is `support@dorobantimedia.com`. See the [current publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>). Assign responsibility for applicable CRA incident reporting; the legal review records scope and deadlines.
+1. **Complete the policies and website delivery checks.** The current runtime maintenance patch is live; resolve the GitHub Actions billing/spending-limit block and finish its hosted CI verification. Confirm the actual hosting/security logs and access, actual existing beta/release records under the adopted forward practice, lawful grounds, provider-controlled backup/recovery handling, and recipients/locations/transfer safeguards. No support-mail forwarding, sole-owner access to receiving devices and exclusion of support mail/downloaded files from local/device backups are now owner-confirmed; do not treat them as outstanding questions. Trash/attachment/export deletion at the routine deadline and no downloaded/retained TestFlight feedback/crash reports are now confirmed. Approve the equivalent EN/RO policy and effective date, then publish it. The website’s publication gate still rejects unresolved operational inputs and approval; a draft banner/noindex does not waive duties to current visitors or testers. Contact is `support@dorobantimedia.com`. See the [current publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>). Assign responsibility for applicable CRA incident reporting; the legal review records scope and deadlines.
 
 2. **Complete the remaining installed-candidate matrix.** Actual TestFlight **1.0 (9)** installation and the bounded Settings/modes/selection/persistence/Help/Privacy/reset checks above are verified. Keep the saved beta instructions. Remaining checks include the real menu-bar popover and outside-click/reopen behavior under constrained space, full keyboard and spoken VoiceOver use, accessibility display settings, complete sheet scrolling, sleep/wake, a real signed Launch at Login cycle and minimum macOS **27.0**. This host runs **27.2**. The CUA sheet-scroll operation returned `noWindowsAvailable`, and Page Down produced no visible advancement, so full sheet scrolling is not claimed as passed or diagnosed as an app defect. Desktop XCTest remains blocked by automation initialization; do not repeat an unchanged attempt. Preserve the ordinary development app, personal clipboard and login items.
 

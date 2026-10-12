@@ -209,3 +209,46 @@ justified exception retention, equivalent EN/RO wording and effective-date appro
 remain separate work in the [publisher inputs](<../../core-metrics-website/docs/PUBLISHER_INPUTS.md>).
 Apple's single validation error is not evidence that those legal or installed
 acceptance gates are complete. Public submission still requires separate authorization.
+
+
+## Later owner-practice clarification — 12 October
+
+The owner subsequently confirmed that support details are used only to handle
+the person's request, with no marketing, tracking or profiling. The owner
+delegated the Apple-console practice going forward, rather than reporting all
+past dashboard use. The [shared policy](<../../Pe langa/BUSINESS_POLICY.md>) now
+adopts no new developer collection, retention or analysis of public-user metrics
+from App Analytics or developer diagnostic feeds. Reassess the declaration before
+any such collection starts. Aggregate data and avoiding downloads are not assumed
+to create a blanket exemption.
+
+Necessary inspection of the existing owner's beta installation status remains
+permitted for authorized release verification. New summaries are limited to the
+build/result/device type/OS, without tester or device identifiers or private
+session content. Earlier private release-verification evidence exists and still
+requires its own retention review. Nothing was deleted, and neither historical
+non-use nor provider-wide erasure is asserted.
+
+The Core **public App Store app** supports the proposed **Data Not Collected**
+answer: its aggregate readings/preferences remain local; there is no publisher
+backend, network entitlement, integrated collection SDK or diagnostic upload.
+Fixed external browser/mail links do not attach app readings or user/session
+parameters. Support correspondence is processed separately in the person's mail
+service and the publisher mailbox, under the confirmed request-only purpose.
+This assessment does not claim that the company never processes personal data
+or that every optional support channel automatically qualifies for an exception.
+
+[Apple's collection guidance](https://developer.apple.com/app-store/app-privacy-details/)
+was rechecked against the canonical current page. It separates on-device work
+and Apple's own processing from developer collection, including collection
+through Apple services. The [canonical TestFlight notice](https://www.apple.com/legal/privacy/data/en/test-flight/)
+also confirms separate beta data sharing. The prospective operating boundary
+above avoids introducing a new developer analytics flow while preparing the
+public label. An undefined historical-use answer is not treated as an automatic
+blocker for that prospective assessment; known beta/release records remain
+explicit rather than being erased from the account of actual practices.
+
+This is a prepared classification for explicit approval, not a new App Store
+Connect save, privacy publication, legal attestation or public review submission.
+The latest observed account state remains the separately dated checkpoint above.
+No source, build-9 artifact, price, audience or release setting changed.

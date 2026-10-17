@@ -76,4 +76,4 @@ Do not commit, push, publish, archive for distribution, upload, rewrite history,
 
 ## Shared business policy
 
-Read [BUSINESS_POLICY.md](<../Pe langa/BUSINESS_POLICY.md>) before changing publisher, support, privacy or legal copy. It records confirmed facts, proposals and unresolved operational details; do not promote a proposal to a public promise.
+Read [BUSINESS_POLICY.md](<../Bluff Artist/BUSINESS_POLICY.md>) before changing publisher, support, privacy or legal copy. It records confirmed facts, proposals and unresolved operational details; do not promote a proposal to a public promise.

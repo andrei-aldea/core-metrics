@@ -78,7 +78,7 @@ docs/                              Product, engineering and release guidance
 
 ## Privacy, release, and maintenance
 
-The [11 October portfolio review](docs/PORTFOLIO_REVIEW_2026-10-11.md) records the current local changes and validation. [Shared business policy](<../Pe langa/BUSINESS_POLICY.md>) owns confirmed contacts and pending operations. Support and privacy use `support@dorobantimedia.com`; the in-app Privacy sheet offers a prefilled email without attaching readings. The dated review itself did not deliver a build. The later 12 October candidate and refreshed Settings artwork are recorded below.
+The [11 October portfolio review](docs/PORTFOLIO_REVIEW_2026-10-11.md) records the current local changes and validation. [Shared business policy](<../Bluff Artist/BUSINESS_POLICY.md>) owns confirmed contacts and pending operations. Support and privacy use `support@dorobantimedia.com`; the in-app Privacy sheet offers a prefilled email without attaching readings. The dated review itself did not deliver a build. The later 12 October candidate and refreshed Settings artwork are recorded below.
 
 Core Metrics uses documented public Apple APIs and the App Sandbox entitlement. The privacy manifest declares disk-space display and app-only UserDefaults access, with no tracking or collected data. Settings → Privacy explains aggregate readings, saved preferences, the absence of network connections, and local diagnostic messages. Logging contains only metric-category failure/recovery transitions. Fan control, process inspection, file scanning, cleaning, privileged helpers, private APIs, and cloud features are outside product scope.
 

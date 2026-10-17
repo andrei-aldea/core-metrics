@@ -1254,3 +1254,19 @@ The actual menu-bar control remains unavailable to this controller, so popover, 
 The repository audit starts from clean, synchronized `c01f7c420d412b4e9df414d977911a9a564dee90`; the sole prior commit since midnight Bucharest records today's installed build-9 sheet acceptance above. README and the historical publishing-review entry point now distinguish current build 9 and the published App Privacy/unsent Ready for Review packet from build-8 and earlier checkpoints. Those delivery/account actions occurred on **12 October**, not today. The remaining website legal approval is separate from the already published Apple declaration.
 
 This reconciliation changes documentation only. Whitespace/diff checks apply to the documentation change; no native build, test, installation, account action or product input was repeated or changed. Remaining menu-bar, full keyboard/assistive-technology, display, lifecycle/login and minimum-OS checks stay open in the launch checklist.
+
+
+## Portfolio naming reference maintenance — 17 October 2026
+
+The owner renamed Pe Lângă to Bluff Artist and Kiwano to Instigator. No retired
+product-name reference occurs in this project's runtime source, localization,
+scripts or tests. Current engineering, publisher and release-guide policy links
+now resolve through the canonical sibling `Bluff Artist/BUSINESS_POLICY.md`.
+Dated release and audit receipts retain their original paths and observations.
+Core Metrics branding, native behavior, website domains, company facts and
+publication gates are unchanged.
+
+Verification is documentation-only: current shared-policy link targets exist,
+the runtime text sweep is clear, and `git diff --check` passes. No app build,
+browser, live-site, database, commit, push, deployment or App Store action was
+performed for this reference correction.

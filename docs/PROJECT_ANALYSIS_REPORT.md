@@ -1,10 +1,55 @@
 # Core Metrics project analysis and remediation report
 
+## Native validation and focused desktop attempt — 24 October 2026
+
+**Request and source:** run the canonical non-UI validator on this Mac, try one focused signed desktop scenario, diagnose failures, and update the plan/report. Validation used clean, synchronized `main` at `7f94243`; app/project/scripts/resources remained unchanged throughout. Tools remain selected Xcode **27.1 (`27A9275`)**, Swift **6.4**, macOS SDK **27.0**, on the macOS **27.2** Apple silicon host recorded below. No publisher signing, installed-app replacement, distribution, account or production operation occurred.
+
+### Non-UI validation: passed
+
+`./scripts/validate.sh` exits **0** after approximately **286.5 seconds**. Its `summary.tsv` records **21 PASS / 0 FAIL / 1 SKIP**; the skipped step is the full desktop suite, intentionally separate from the focused attempt requested here.
+
+- Toolchain, source plist/privacy/sandbox policy, permission/concurrency-setting regression fixtures, project discovery, dependency resolution and resolved Debug/Release policy all pass. No packages are resolved.
+- Debug and Release builds, all **75 unit tests** (**75 passed / 0 failed / 0 skipped / 0 expected failures**), static analysis, packaged plist/policy/Release-isolation/permission checks and final configuration-integrity checks pass. Test counts are read from `UnitTests.xcresult`, rather than inferred from a build or copied from an earlier receipt.
+- Working/staged whitespace checks pass. Source configuration, privacy-manifest and entitlement fingerprints remain unchanged. The existing guard explicitly reports unsigned Debug hardened runtime resolving to `NO`; resolved Release remains `YES`. This is development evidence, not effective distribution signing.
+- The final outcome counts **3 known AppIntents metadata-skipped warning lines**, **0 other warning lines**, and **0 DisplayManager rectangle diagnostic lines**. The known message is `Metadata extraction skipped, no AppIntents.framework dependency found`. Debug build, unit-test build and Release build each emit one line. It remains an unresolved toolchain limitation; no unused dependency, setting override or warning suppression was introduced.
+
+Unrelated builds were active during part of validation, and a read-only process inventory was temporarily slow under heavy host load. The Release compiler continued making progress; no task was restarted or unrelated process terminated. The total elapsed time is a validation receipt, not a launch/runtime benchmark or evidence of a product performance defect.
+
+### One focused signed desktop attempt: blocked before scenario execution
+
+The exact selected scenario is [`Core MetricsUITests/CoreMetricsUITests/testSettingsControlsFitContentWidth`](../Core%20MetricsUITests/CoreMetricsUITests.swift). The separate invocation uses the `Core Metrics UI Tests` scheme, Debug, `platform=macOS,arch=arm64`, `-parallel-testing-enabled NO`, `CODE_SIGN_IDENTITY=-`, `CODE_SIGNING_REQUIRED=YES`, and only that `-only-testing:` selector. DerivedData and `FocusedUI.xcresult` remain in the private validation run; the canonical non-UI artifacts are preserved separately. No Core Metrics executable was running before the attempt.
+
+The scenario is intended to launch isolated DEBUG test preferences, reopen the same running bundle through public NSWorkspace, require foreground **580 ± 2 point** Settings, click all four display controls, check Help/Privacy/Support control hit targets and retain a Settings screenshot. It uses the existing fake login service and injected clipboard writer; it does not open external links, change real login items or write the general clipboard.
+
+The signed build succeeds, but the invocation exits **65** after **147.29 seconds**. `FocusedUI.xcresult` reports **0 passed / 1 failed / 0 skipped**. That single failure is synthetic runner initialization, with **zero application scenario bodies executed**:
+
+> The test runner failed to initialize for UI testing. (Underlying Error: Timed out while enabling automation mode.)
+
+This does not verify Settings width, display controls, foreground/reopen behavior or a screenshot. No failed application assertion or production-code defect is established. The focused build log contains **2 known AppIntents warning lines**, **0 other warning lines** and **0 DisplayManager rectangle diagnostics**, separate from the three warnings in the non-UI run.
+
+Independent checks on the built ad-hoc Debug app pass **strict deep signature verification**, **effective App Sandbox**, and the existing **UI-sandbox/bundle-permission guards**. Its expected Debug `get-task-allow` entitlement is present. These checks establish the local test artifact's signature/sandbox/readability, not distribution identity, shipping hardening or runtime acceptance.
+
+### Current failure diagnosis and next action
+
+The bounded diagnosis considered an unmet automation authentication requirement, runner/daemon communication failure and host-load setup delay. Current exported diagnostics show successful test-daemon authorization and daemon-session establishment, followed by a **60-second** wait for enabling automation mode and its timeout. The read-only command `xcrun automationmodetool get-status` exits 0 and reports:
+
+> Automation Mode is disabled. This device requires user authentication to enable Automation Mode.
+
+This confirms a current OS authentication prerequisite, rather than relying on the similar old-machine failure. Daemon communication reached the enabling step; host contention does not explain away the explicit authentication requirement. Prompt visibility or completion was not independently observed, so no claim is made about a person's interaction with it. The agent did not authenticate, change Automation Mode/Accessibility/security settings, alter signing/entitlements/test timeouts, or retry the desktop scenario unchanged. No application fix is warranted by this evidence.
+
+**Next action:** the operator completes macOS “Enable UI Automation” authentication, then a separately requested run retries this same focused scenario using the retained UI build directory. If it enters and passes its body, schedule the wider desktop/accessibility/lifecycle matrix in [PLAN.md](PLAN.md). The non-UI evidence remains reusable while relevant source/toolchain/configuration inputs are unchanged; documentation edits and commits do not require another full run.
+
+### Retained evidence and documentation scope
+
+Private receipt basename **`core-metrics-validation.OaEYaa`** contains `summary.tsv`, `outcome.txt`, raw step logs, resolved settings, fingerprints, unsigned products and `UnitTests.xcresult`; focused evidence adds the exact command/execution JSON, `focused-ui.log`, `FocusedUI.xcresult`, exported `FocusedUIDiagnostics`, read-only automation status, and signed-app signature/entitlement/policy checks. No raw logs, result bundles, host identifiers, signature data or screenshots are committed.
+
+This follow-up changes only PLAN status/next actions and this report. The non-UI baseline is verified; focused desktop execution is blocked by authentication, and the full runtime/minimum-OS/release matrix remains open. Final documentation review and Git delivery are reported in the task receipt.
+
 ## Fresh-Mac onboarding — 24 October 2026
 
 **Scope:** source-based repository analysis and development/product/planning documentation only. Starting revision `066e2fa` on clean `main` matched `origin/main`; fetch and remote HEAD discovery confirmed `main` as the existing remote's default branch. No branch or PR was created. The current request explicitly authorizes focused commits and one complete-batch push; no application fix, installation, cleanup, distribution or production operation is authorized by this work.
 
-This section is the current onboarding receipt. [PRODUCT.md](PRODUCT.md) owns maintained product context, [PLAN.md](PLAN.md) owns proposed delivery phases and acceptance, and [DEVELOPMENT.md](DEVELOPMENT.md) owns commands/check tiers. Every older receipt below retains its date and scope. The latest recorded release observations are the October 12–13 build-9 review/installed checks; no live account state, installed copy or old private release artifact was inspected on this Mac.
+This section records the initial onboarding receipt; the later native validation above supplies current build/test evidence. [PRODUCT.md](PRODUCT.md) owns maintained product context, [PLAN.md](PLAN.md) owns delivery phases and acceptance, and [DEVELOPMENT.md](DEVELOPMENT.md) owns commands/check tiers. Every older receipt below retains its date and scope. The latest recorded release observations are the October 12–13 build-9 review/installed checks; no live account state, installed copy or old private release artifact was inspected during onboarding or this validation follow-up.
 
 ### Instructions and conflicts resolved
 

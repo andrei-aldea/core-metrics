@@ -1,6 +1,43 @@
 # Core Metrics project analysis and remediation report
 
+## Finder reopen fixture correction — 24 October 2026
+
+**Outcome:** the focus failure is fixed in the UI-test handoff. The fixture previously activated Finder but sent `NSWorkspace.openApplication` from the background test runner; that is a different launch origin from a person opening the already-running app in foreground Finder. The corrected fixture reveals the exact built app with public NSWorkspace, requires Finder and its reveal window, then sends Finder’s Command-O action. It preserves both original five-second Core Metrics foreground assertions. Production application code and behavior remain unchanged.
+
+**Scope and source:** the user explicitly authorized diagnosis/fix, reuse of passing non-UI evidence, focused verification and updated PLAN/report. Work starts from clean synchronized `main` at `0d53e4f`. The final source diff is confined to the two affected UI fixtures and their shared helper; app, unit, project, resources, signing and validation-tool inputs remain identical to the passing baseline. No new package, permission change, cleanup, installed-app replacement or release operation occurs.
+
+### Evidence and diagnosis
+
+The previously recorded failing retry is the existing regression signal: after the synthetic runner-originated request, Core Metrics briefly became foreground, then Finder became foreground before the assertion. Source already called public app activation. Three explanations were considered: unsettled Finder setup, Settings presentation/focus behavior and external desktop interference. The focused experiments were serialized, retaining private result bundles and changing only the relevant diagnostic/handoff input:
+
+| Private result bundle | Actual result | What it established |
+| --- | --- | --- |
+| `FocusedUIDiagnosis1.xcresult` | Exit 65; one test failed at Settings existence, foreground eventually observed | Public-state attachments exposed timing differences; direct AX focused-window reading was unavailable (`-25211`), so no permission was changed or key-window claim inferred. |
+| `FocusedUIFinderPrecondition.xcresult` | Exit 65; Finder-active precondition passed, Settings/foreground checks failed | Waiting for native Finder activity alone did not fix the direct runner-originated open. This experiment was removed. |
+| `FocusedUIAppTrace.xcresult` | Exit 0; one test passed | Temporary DEBUG app traces recorded reopen delivery, active app state and a key Settings window after the scene action. Logging influenced timing; it was not accepted as a fix. All diagnostic source was removed. |
+| `FocusedUIFinderOpen.xcresult` | Exit 0; width scenario passed in 13.959 seconds | With production source restored and original foreground assertion intact, a real Finder Open succeeded. This was the controlled handoff comparison. |
+
+Apple documents that [NSRunningApplication’s changing properties persist until a main-run-loop turn](https://developer.apple.com/documentation/appkit/nsrunningapplication), so immediate same-actor native snapshots are not reliable proof of settled focus. Apple’s [Finder reveal API](https://developer.apple.com/documentation/appkit/nsworkspace/activatefileviewerselecting(_:)) explicitly activates Finder and selects the specified files. The correction models that real user journey rather than trying to force production activation around a synthetic test request.
+
+The supported diagnosis is a fixture handoff mismatch with timing-sensitive focus behavior. These results do not establish an undocumented macOS mechanism or prove that no external focus event could ever occur. No app-side delayed/repeated activation, event monitor, application observer, policy change, private selector, target-side test activation or longer timeout is introduced.
+
+### Implemented correction and final verification
+
+[`reopenInFinder(at:)`](../Core%20MetricsUITests/CoreMetricsUITests.swift) is shared by `testSettingsControlsFitContentWidth` and `testReopeningRunningApplicationOpensSettings`. It reveals only the supplied built-app URL, waits for foreground Finder and the correct parent-folder window, then sends Open. It returns a reveal-window cleanup reference only when total window count increased, no same-title window existed before, and exactly one matching window exists. Cleanup closes only that identified newly created window; pre-existing same-title windows are retained. The app stays already running throughout; the second fixture checks its PID after Settings existence/foreground are established, closing a review-discovered ordering gap.
+
+- **`FocusedUIFinderFinal.xcresult`: 2 passed / 0 failed / 0 skipped / 0 expected failures**, exit **0**, **50.74 seconds** total. Both affected scenarios pass with the shared helper; the Settings-width body takes **14.356 seconds**, the reopen body **23.650 seconds**.
+- After moving PID sampling behind Settings readiness, **`FocusedUIFinderPIDFinal.xcresult`: 1 passed / 0 failed / 0 skipped / 0 expected failures**, exit **0**, **18.29 seconds** total. Only that affected scenario was rerun; the unchanged width/helper pass remains valid.
+- Each final build/test invocation emits **one known AppIntents metadata-skipped warning**, **zero unexpected warning lines**, and **zero “Could not find any displays containing rect” diagnostics**. No warning is suppressed.
+- The final signed test app passes strict deep signature verification, effective sandbox and bundle-permission guards. The temporary app-trace string is absent from its executable; temporary trace imports, helpers and markers are absent from source.
+- The earlier **21-check / 75-unit-test non-UI pass** is reused. Final app/unit/project/tooling diffs against `7f94243` are empty and all policy fingerprints match. Only UI-test source changed, so no non-UI rebuild/test/analysis repetition is needed. Both target foreground assertion expressions and five-second bounds are unchanged.
+
+The final Settings screenshot is retained with the result bundle. This verifies the affected native Settings width/control/reopen contracts, not the complete thirteen-case desktop suite or the wider assistive-technology, display, lifecycle, minimum-OS and distribution matrix. Those remaining tasks stay open in [PLAN.md](PLAN.md).
+
+All commands, raw logs, diagnostic/result bundles, captures and effective-signature evidence remain outside Git under private receipt **`core-metrics-validation.OaEYaa`**. The source/test change, maintained fixture descriptions, decision amendment, plan and this report are the delivery batch. Final source/diff/link/private-data review and Git/CI delivery status are reported in the task receipt.
+
 ## Signed Settings retry — 24 October 2026
+
+**Earlier failing retry:** the correction above supersedes its unresolved status and next task. Its failure and diagnostic evidence remain intact below.
 
 **Request and reuse:** retry only `testSettingsControlsFitContentWidth` while the operator is ready for macOS authentication, reuse passing non-UI results, and update PLAN/report. Starting `main` at `accb510` is clean and synchronized. There are **zero application/test/project/script changes** since validated `7f94243`; all three configuration/privacy/entitlement fingerprints match, selected Xcode remains **27.1 (`27A9275`)**, and retained products/results are available. The earlier **21-check / 75-test non-UI pass** is reused without running the validator again. Its three known AppIntents warnings remain documented, not resolved by this retry.
 

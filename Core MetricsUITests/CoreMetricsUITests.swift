@@ -40,11 +40,8 @@ final class CoreMetricsUITests: XCTestCase {
             NSRunningApplication.runningApplications(withBundleIdentifier: "org.example.CoreMetrics").first
         )
         let url = try XCTUnwrap(running.bundleURL)
-        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
-        _ = try await NSWorkspace.shared.openApplication(
-            at: url,
-            configuration: NSWorkspace.OpenConfiguration()
-        )
+        let finderWindow = try reopenInFinder(at: url)
+        defer { closeReopenFinderWindow(finderWindow) }
         let settings = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertTrue(settings.waitForExistence(timeout: 5))
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
@@ -455,17 +452,14 @@ final class CoreMetricsUITests: XCTestCase {
         let url = try XCTUnwrap(running.bundleURL)
         let settingsWindow = app.windows["com_apple_SwiftUI_Settings_window"]
         XCTAssertFalse(settingsWindow.exists)
-        XCUIApplication(bundleIdentifier: "com.apple.finder").activate()
-
-        // Use the same public launch request as opening an installed app. A
-        // terminate/relaunch would not exercise the delegate's reopen event.
-        let reopened = try await NSWorkspace.shared.openApplication(
-            at: url,
-            configuration: NSWorkspace.OpenConfiguration()
-        )
-        XCTAssertEqual(reopened.processIdentifier, running.processIdentifier)
+        let finderWindow = try reopenInFinder(at: url)
+        defer { closeReopenFinderWindow(finderWindow) }
         XCTAssertTrue(settingsWindow.waitForExistence(timeout: 5))
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+        let reopened = try XCTUnwrap(
+            NSRunningApplication.runningApplications(withBundleIdentifier: "org.example.CoreMetrics").first
+        )
+        XCTAssertEqual(reopened.processIdentifier, running.processIdentifier)
         XCTAssertTrue(settingsWindow.radioButtons["Compact"].isHittable)
     }
 
@@ -1108,6 +1102,38 @@ final class CoreMetricsUITests: XCTestCase {
             scrollView.scroll(byDeltaX: 0, deltaY: -250)
         }
         XCTAssertTrue(control.isHittable, "Control should become reachable by scrolling")
+    }
+
+    @MainActor
+    private func reopenInFinder(at url: URL) throws -> XCUIElement? {
+        let finder = XCUIApplication(bundleIdentifier: "com.apple.finder")
+        let folderName = url.deletingLastPathComponent().lastPathComponent
+        let previousWindowCount = finder.windows.count
+        let previousMatchingCount = finder.windows.matching(identifier: folderName).count
+
+        // The reopen must originate in foreground Finder. A direct workspace
+        // open from the background runner has a different activation handoff.
+        NSWorkspace.shared.activateFileViewerSelecting([url])
+        let activeFinder = try XCTUnwrap(
+            finder.wait(for: .runningForeground, timeout: 5) ? finder : nil,
+            "Finder must become foreground before opening the selected app"
+        )
+        let window = activeFinder.windows[folderName]
+        let revealedWindow = try XCTUnwrap(
+            window.waitForExistence(timeout: 5) ? window : nil,
+            "Finder must reveal the built app before its Open command"
+        )
+        let ownsWindow = previousMatchingCount == 0
+            && activeFinder.windows.matching(identifier: folderName).count == 1
+            && activeFinder.windows.count > previousWindowCount
+        revealedWindow.typeKey("o", modifierFlags: .command)
+        return ownsWindow ? revealedWindow : nil
+    }
+
+    @MainActor
+    private func closeReopenFinderWindow(_ window: XCUIElement?) {
+        guard let window, window.exists else { return }
+        window.buttons[XCUIIdentifierCloseWindow].click()
     }
 
     @MainActor

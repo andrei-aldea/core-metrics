@@ -1,6 +1,38 @@
 # Core Metrics project analysis and remediation report
 
+## Signed Settings retry — 24 October 2026
+
+**Request and reuse:** retry only `testSettingsControlsFitContentWidth` while the operator is ready for macOS authentication, reuse passing non-UI results, and update PLAN/report. Starting `main` at `accb510` is clean and synchronized. There are **zero application/test/project/script changes** since validated `7f94243`; all three configuration/privacy/entitlement fingerprints match, selected Xcode remains **27.1 (`27A9275`)**, and retained products/results are available. The earlier **21-check / 75-test non-UI pass** is reused without running the validator again. Its three known AppIntents warnings remain documented, not resolved by this retry.
+
+The single retry uses the same ad-hoc signed `FocusedUIData`, scheme, destination, signing overrides and one `-only-testing:` selector as the original focused invocation, with **`test-without-building`** and a new **`FocusedUIRetry1.xcresult`**. No app executable was running beforehand. There is no rebuild, signing/configuration change or repeated non-UI gate.
+
+### Actual outcome: one scenario executed and failed
+
+The invocation exits **65** after **49.85 seconds**. XCTest initializes, enters the scenario body, and records **0 passed / 1 failed / 0 skipped / 0 expected failures**; the body runs for **25.934 seconds**. The sole assertion failure is [the UI fixture](../Core%20MetricsUITests/CoreMetricsUITests.swift), **line 50**:
+
+```swift
+XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+```
+
+This follows activating Finder and reopening the already-running app through NSWorkspace. Settings existence succeeds, but XCTest does not observe the required foreground state within five seconds. Exported runner events show Core Metrics briefly becoming frontmost at approximately 9.6 seconds, then Finder becoming frontmost and Core Metrics transitioning to background at approximately 10.7 seconds. The wait starts at 11.26 seconds and times out with current state `Running Background`. This is an executed test assertion, not the earlier synthetic runner-initialization failure, and the scenario is **not passed**.
+
+The test continues: the **580 ± 2 point** width, all four display-control hit targets/selections, and Help/Privacy/Support control assertions produce no additional failures. The retained Settings screenshot was visually inspected and shows the scrolled native configuration surface and footer actions. These later observations do not verify foreground-on-reopen: at **17.54 seconds** the first radio click explicitly logs XCUI activating the app. The screenshot is later than that activation and cannot establish focus at the failed wait. The app terminates through the test's deferred teardown; normal preferences, real clipboard/login items and external links are untouched by this isolated fixture.
+
+The retry emits **0 warning lines** and **0 “Could not find any displays containing rect” diagnostics**. The earlier signed artifact checks are reused; this retry runs no build or signing actions. The full thirteen-case desktop suite, spoken accessibility/display/lifecycle/minimum-OS matrix and distribution acceptance remain unverified.
+
+### Interpretation and next task
+
+The delegate's public reopen handler calls `openSettings()`, which dismisses the panel, requests `NSApplication.activate()` and invokes the represented scene's Settings action ([CoreMetricsAppDelegate.swift](../Core%20Metrics/Application/CoreMetricsAppDelegate.swift), lines 67–83). Source and runner events show that activation was requested and briefly succeeded. The current evidence narrows the issue to focus returning to Finder before the wait; it does not establish whether app/test/OS event ordering or another desktop interaction caused that return. A pure foreground-enum reporting mismatch is less supported by the recorded frontmost transition, but independent active/key-window state was not captured at the failure. No app/test assertion is weakened, timeout increased or source fix applied on an unproven cause.
+
+A fresh read-only `xcrun automationmodetool get-status` still reports disabled mode requiring user authentication. This retry nevertheless initializes and executes its body; permanent Automation Mode enablement or the visibility/completion of an authentication prompt was not independently observed. The earlier initialization failure is not the explanation for this run's assertion failure. The agent did not authenticate or change permission/security settings.
+
+**Next task:** capture public active/frontmost-application and owned Settings key-window state plus activation ordering around Finder's focus return, without a test action that activates the app. Use that evidence to decide whether an app fix or a test-state correction is justified, then rerun this scenario on the diagnosed state. The request here authorizes the retry and documentation outcome, not a speculative source change or broader suite.
+
+Private receipt **`core-metrics-validation.OaEYaa`** now also retains `focused-ui-retry1-command.json`, execution/summary JSON, `focused-ui-retry1.log`, `FocusedUIRetry1.xcresult`, exported diagnostics/attachments (including the screenshot/recording), and the read-only automation status. No raw captures, logs, result bundles, identity/signature data or user data enter Git. Only PLAN and this report change; the non-UI pass remains valid. Final documentation checks/review and Git delivery are reported in the task receipt.
+
 ## Native validation and focused desktop attempt — 24 October 2026
+
+**Initial validation/attempt receipt:** the non-UI results below remain valid. The later authorized retry above supersedes the initial desktop execution status and next action; this first attempt remains recorded as historical evidence.
 
 **Request and source:** run the canonical non-UI validator on this Mac, try one focused signed desktop scenario, diagnose failures, and update the plan/report. Validation used clean, synchronized `main` at `7f94243`; app/project/scripts/resources remained unchanged throughout. Tools remain selected Xcode **27.1 (`27A9275`)**, Swift **6.4**, macOS SDK **27.0**, on the macOS **27.2** Apple silicon host recorded below. No publisher signing, installed-app replacement, distribution, account or production operation occurred.
 

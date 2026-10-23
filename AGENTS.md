@@ -2,11 +2,17 @@
 
 These rules apply repository-wide. This is the canonical instruction file; no nested or assistant-specific guidance is currently needed.
 
+## Start here
+
+Read [docs/PRODUCT.md](docs/PRODUCT.md) for implemented journeys and scope, [docs/PLAN.md](docs/PLAN.md) for priorities and acceptance criteria, and the opening section of [docs/PROJECT_ANALYSIS_REPORT.md](docs/PROJECT_ANALYSIS_REPORT.md) for the latest environment evidence and blockers. [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/DESIGN.md](docs/DESIGN.md), and [docs/DECISIONS.md](docs/DECISIONS.md) own the detailed implementation/design contracts and rationale. Dated release receipts are historical observations, not current machine or account state.
+
+Global collaboration and Git preferences remain in the global instructions. Inspect the working tree, fetch the existing remote when possible, and discover its default branch before substantial work. Do not create branches or PRs unless requested. The current request determines commit/push authorization; it never authorizes distribution or production changes implicitly.
+
 ## Product and platform
 
 Core Metrics is a small native macOS menu-bar utility for aggregate CPU, memory, and startup-volume storage. An owned `NSStatusItem` displays native text with a fixed allocation for each configuration. Its `NSPopover` contains a selection panel that stays open while choices change; live values also appear in Settings preview. It retains no metric history.
 
-- macOS 27.0 minimum, Xcode 27/macOS 27 SDK; the current release-validation toolchain is final Xcode 27.0 (`27A266a`, the same build previously designated RC), Swift 6.4 compiler. Earlier beta-6 results are historical.
+- macOS 27.0 minimum on Apple silicon, full Xcode 27+ with a macOS 27+ SDK. Verify selected Xcode, Swift, SDK and first-launch readiness on each Mac using [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md). The previous distribution-validation toolchain was Xcode 27.0 (`27A266a`, also designated RC), Swift 6.4; those results do not validate a new machine or toolchain.
 - Swift 6 language mode, complete strict concurrency, MainActor app default isolation, approachable concurrency enabled.
 - Entry point: `Core Metrics.xcodeproj`; shared schemes: `Core Metrics` and `Core Metrics UI Tests`.
 - Targets: `Core Metrics`, `Core MetricsTests`, `Core MetricsUITests`; configurations: Debug and Release.
@@ -51,6 +57,8 @@ Before removing a symbol or resource, check runtime/asset references, target mem
 
 ## Validation and development commands
 
+Choose checks using the [development guide's change tiers](docs/DEVELOPMENT.md#choose-checks-for-the-change). Documentation-only work needs source/link review and working/staged diff checks; it does not require application builds or desktop tests. For code/build changes, preserve the relevant checks below and consolidate expensive checks on the final combined state. `./scripts/validate.sh` owns the complete non-UI build/unit/analysis/artifact gate; `./scripts/validate.sh --ui` includes that gate and serial signed desktop tests. Choose one rather than running both consecutively. Each invocation creates fresh DerivedData outside the checkout.
+
 ```sh
 xcodebuild -list -project "Core Metrics.xcodeproj"
 xcodebuild -project "Core Metrics.xcodeproj" -scheme "Core Metrics" -resolvePackageDependencies
@@ -64,6 +72,8 @@ git diff --check
 
 Dependency resolution currently finds no packages. UI tests require a signed local app, interactive desktop, and automation permissions. See [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) for isolated build directories, diagnostics and troubleshooting. Treat warnings, concurrency diagnostics, sandbox errors, and privacy-manifest diagnostics as defects; report toolchain limitations accurately instead of suppressing them.
 
+Use `swiftui-expert-skill` for native SwiftUI work and Xcode tools when connected; the documented CLI remains available when the connector lacks project access. Keep one owner for build/test outputs and desktop automation. There is no web frontend in this repository; companion website work belongs to its own checkout and guidance.
+
 For UI work, run from Xcode, locate the status item, open its panel and Settings, change preferences and confirm immediate label updates. Verify that a real click in another application or on the open Settings window outside the popover dismisses it, reopening works, interior checkbox clicks keep it open, and Escape dismisses it. Measure actual status-item width and screen position across changing readings with a fixed configuration; separately verify expected resizing after selection/mode/locale changes. Inspect one/three/seven selections, saved-selection startup, already-running app reopen recovery to Settings (covered by the public NSWorkspace/PID-preservation UI fixture), panel dismissal and reopening, light/dark appearance, focus, spoken labels, large text, clipping and accessibility display options. Fixed allocation does not guarantee available menu-bar space, and `NSStatusItem.isVisible` remains true when space temporarily hides the item. A successful build or preview alone is insufficient. Add meaningful regression tests for correctness changes; do not add tests that merely restate trivial implementation.
 
 ## Environment cleanup and completion
@@ -72,8 +82,10 @@ Inventory before cleanup. No simulator is required for this Mac app, but other p
 
 Update README/runbooks when setup or behavior changes, `docs/METRICS.md` when formulas change, and `docs/DECISIONS.md` for architectural decisions. Keep [docs/PROJECT_ANALYSIS_REPORT.md](docs/PROJECT_ANALYSIS_REPORT.md) aligned with this remediation's final diff, measurements, failures and limitations. Do a second repository-wide review before declaring completion.
 
-Do not commit, push, publish, archive for distribution, upload, rewrite history, or discard unrelated work unless explicitly requested. Before an authorized commit, inspect working and staged diffs, search staged content for personal/signing/secret data, build and run relevant tests, and ensure one coherent change. Prefer descriptive messages such as `fix(metrics): reject cancelled samples`.
+Do not commit or push unless authorized by the active request; when authorized, follow the global default-branch and complete-batch policy. Publishing, archives for distribution, uploads, history rewriting and discarding unrelated work require their own explicit authorization. Before an authorized commit, inspect working and staged diffs, search staged content for personal/signing/secret data, complete the verification tier appropriate to the change, and ensure one coherent change. Prefer descriptive messages such as `fix(metrics): reject cancelled samples`.
 
 ## Shared business policy
 
-Read [BUSINESS_POLICY.md](<../Bluff Artist/BUSINESS_POLICY.md>) before changing publisher, support, privacy or legal copy. It records confirmed facts, proposals and unresolved operational details; do not promote a proposal to a public promise.
+Read [BUSINESS_POLICY.md](../../iOS/BluffArtist/BUSINESS_POLICY.md) before changing publisher, support, privacy or legal copy. It records confirmed facts, proposals and unresolved operational details; do not promote a proposal to a public promise.
+
+If the linked policy is absent on a new machine, restore its verified source before those changes. Its absence does not block unrelated source analysis or development-guidance work. Do not substitute old release notes for the missing policy.

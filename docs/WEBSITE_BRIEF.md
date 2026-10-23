@@ -1,6 +1,6 @@
 # Website-agent handoff
 
-Updated September 12, 2026 from the current Mac app and final local validation. This replaces the September 6 website-building brief, including its obsolete missing-site/link statements. The text below is ready to paste into the existing website task.
+**Historical handoff, September 12, 2026.** The release/account status and validation results below describe that checkpoint and are superseded by later dated receipts. Use [PRODUCT.md](PRODUCT.md) for maintained native behavior, [PLAN.md](PLAN.md) for priorities, and [PROJECT_ANALYSIS_REPORT.md](PROJECT_ANALYSIS_REPORT.md) for evidence. Consult the website checkout's own guidance and current approved business policy before new website work; this archived prompt is not standing implementation or publishing authorization.
 
 ---
 

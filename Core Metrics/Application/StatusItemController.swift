@@ -24,6 +24,9 @@ final class StatusItemController: NSObject, NSStatusItemExpandedInterfaceDelegat
         self.metricsStore = metricsStore
         self.preferencesStore = preferencesStore
         super.init()
+        #if DEBUG
+        UITestLaunchConfiguration.configureStatusItemIfRequested(statusItem)
+        #endif
         panelPresenter = StatusPanelPresenter(
             openSettings: openSettings,
             metricsStore: metricsStore,

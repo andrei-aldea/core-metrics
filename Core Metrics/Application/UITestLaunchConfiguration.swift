@@ -6,6 +6,15 @@ import Foundation
 /// development launches continue to use the person's own preferences/appearance.
 @MainActor
 enum UITestLaunchConfiguration {
+    static func configureStatusItemIfRequested(_ statusItem: NSStatusItem) {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["CORE_METRICS_UI_TESTING"] == "1",
+              environment["CORE_METRICS_UI_WIDE_STATUS"] == "1" else { return }
+        // Keep Command-dragged fixture placement separate from the ordinary
+        // item's automatic identity, including across persistence relaunches.
+        statusItem.autosaveName = "CoreMetrics.UITests.WideStatus"
+    }
+
     static func configureIfRequested() -> PreferencesStore? {
         let environment = ProcessInfo.processInfo.environment
         guard environment["CORE_METRICS_UI_TESTING"] == "1" else {
